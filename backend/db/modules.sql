@@ -1,17 +1,13 @@
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  username varchar(255),
   email varchar(255),
-  password varchar(255)
-);
-
-CREATE TABLE IF NOT EXISTS personal_data (
-  user_id INTEGER,
+  password varchar(255),
   firstname varchar(255),
   lastname varchar(255),
-  gender varchar(255),
   birth DATETIME,
-  FOREIGN KEY(user_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE
+  nickname varchar(255),
+  avatar varchar(255),
+  about varchar(255)
 );
 
 CREATE TABLE IF NOT EXISTS sessions (

@@ -23,12 +23,17 @@ func (r *UserRepository) Create(u *model.User) error {
 	if foundUser != nil {
 			return errors.New("Email already taken")
 	}
-	
+
 	return r.Repository.db.QueryRow(
-		"INSERT INTO users (username,email,password) VALUES ($1,$2,$3) RETURNING id",
-		u.Username,
+		"INSERT INTO users (email, password, firstname, lastname, birth, nickname, avatar, about) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
 		u.Email,
 		u.EncryptedPassword,
+		u.Firstname,
+		u.Lastname,
+		u.Birth,
+		u.Username,
+		u.Avatar,
+		u.About,
 	).Scan(&u.ID)
 }
 
@@ -38,17 +43,16 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 	var value interface{}
 	switch v := identifier.(type) {
 	case int:
-		query = "SELECT id, username, email, password from users WHERE id = $1"
+		query = "SELECT id, email, password from users WHERE id = $1"
 		value = v
 	case string:
-		query = "SELECT id, username, email, password from users WHERE username = $1 or email = $1"
+		query = "SELECT id, email, password from users WHERE email = $1"
 		value = v
 	default:
 		return nil, errors.New("Invalid identifier type")
 	}
 	if err := r.Repository.db.QueryRow(query, value).Scan(
 		&u.ID,
-		&u.Username,
 		&u.Email,
 		&u.EncryptedPassword); err != nil {
 		if err == sql.ErrNoRows {

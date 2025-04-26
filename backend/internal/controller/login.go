@@ -12,16 +12,16 @@ func (s *Server) Login(request map[string]any) model.Response {
 	}
 
 	// Validate username
-	usernameRaw, ok := request["username"]
+	emailRaw, ok := request["email"]
 	if !ok {
-		response.Type = "username"
-		response.Error = "Missing 'username' field"
+		response.Type = "email"
+		response.Error = "Missing 'email' field"
 		return response
 	}
-	username, ok := usernameRaw.(string)
+	email, ok := emailRaw.(string)
 	if !ok {
-		response.Type = "username"
-		response.Error = "'username' must be a string"
+		response.Type = "email"
+		response.Error = "'email' must be a string"
 		return response
 	}
 
@@ -40,15 +40,15 @@ func (s *Server) Login(request map[string]any) model.Response {
 	}
 
 	u := &model.User{
-		Username: username,
+		Email: email,
 		Password: password,
 	}
 
-	foundUser, err := s.repository.User().Find(u.Username)
+	foundUser, err := s.repository.User().Find(u.Email)
 	if err != nil {
 		log.Println("Failed to find a user:", err)
-		response.Type = "username"
-		response.Error = "Username does not exists!"
+		response.Type = "email"
+		response.Error = "Email does not exists!"
 		return response
 	}
 

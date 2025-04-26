@@ -33,7 +33,6 @@ func (s *Server) ValidateSession(request map[string]any) model.Response {
 	}
 
 	response.Error = ""
-	response.Username = foundUser.Username
 	response.Userid = foundUser.ID
 	response.Session = session
 

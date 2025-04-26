@@ -19,7 +19,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const data = await res.json()
 
-  if (!data.username) {
+  if (!data.session) {
+    console.log('dataaaa', data)
     redirect('/auth')
   }
 
