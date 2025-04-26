@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"real-time-forum/internal/model"
+	"strings"
 )
 
 func (s *Server) Register(request map[string]any) model.Response {
@@ -14,13 +15,13 @@ func (s *Server) Register(request map[string]any) model.Response {
 
 	var username, password, email string
 	
-	if usernameRaw, ok := request["nickname"]; !ok {
-		response.Type = "nickname"
-		response.Error = "Missing 'nickname' field"
+	if usernameRaw, ok := request["username"]; !ok {
+		response.Type = "username"
+		response.Error = "Missing 'username' field"
 		return response
 	} else if username, ok = usernameRaw.(string); !ok {
-		response.Type = "nickname"
-		response.Error = "'nickname' must be a string"
+		response.Type = "username"
+		response.Error = "'username' must be a string"
 		return response
 	}
 	
@@ -73,8 +74,13 @@ func (s *Server) Register(request map[string]any) model.Response {
 	/// Sould handle from here to bellow and login too and handlers go
 	err := s.repository.User().Create(u)
 	if err != nil {
-		log.Println("Failed to create a user:", err)
-		response.Error = "User already exists!"
+		if strings.Contains(err.Error(), "User") {
+			response.Type = "username"
+		} else if strings.Contains(err.Error(), "Email") {
+			response.Type = "email"
+		}
+
+		response.Error = err.Error()
 		return response
 	}
 

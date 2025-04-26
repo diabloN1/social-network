@@ -13,13 +13,13 @@ export default function AuthForm() {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    nickname: "",
+    username: "",
     confirmPassword: "",
   });
   const [errors, setErrors] = useState({
     email: "",
     password: "",
-    name: "",
+    username: "",
     confirmPassword: "",
   });
 
@@ -46,11 +46,11 @@ export default function AuthForm() {
     const newErrors = { ...errors };
 
     // Registration specific validations
-    if (!formData.nickname) {
-      newErrors.name = "Username/Email is required";
+    if (!formData.username) {
+      newErrors.username = "Username/Email is required";
       isValid = false;
     } else {
-      newErrors.name = "";
+      newErrors.username = "";
     }
 
     // Password validation
@@ -67,7 +67,7 @@ export default function AuthForm() {
     if (!isLogin) {
       // Email validation
       if (!formData.email) {
-        newErrors.name = "email is required";
+        newErrors.username = "email is required";
         isValid = false;
       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
         newErrors.email = "Email is invalid";
@@ -101,7 +101,10 @@ export default function AuthForm() {
         });
         return;
       }
-      router.push("/app");
+
+      if (data.session) {
+        router.push("/app");
+      }
     }
   };
 
@@ -111,7 +114,7 @@ export default function AuthForm() {
     setErrors({
       email: "",
       password: "",
-      name: "",
+      username: "",
       confirmPassword: "",
     });
   };
@@ -144,17 +147,17 @@ export default function AuthForm() {
           )}
 
           <div className="form-group">
-            <label htmlFor="nickname">nickname</label>
+            <label htmlFor="username">username</label>
             <input
               type="text"
               id="name"
-              name="nickname"
+              name="username"
               onChange={handleChange}
               placeholder="Enter your name"
-              className={errors.name ? "error" : ""}
+              className={errors.username ? "error" : ""}
             />
-            {errors.name && (
-              <span className="error-message">{errors.name}</span>
+            {errors.username && (
+              <span className="error-message">{errors.username}</span>
             )}
           </div>
 
@@ -198,12 +201,6 @@ export default function AuthForm() {
               {errors.confirmPassword && (
                 <span className="error-message">{errors.confirmPassword}</span>
               )}
-            </div>
-          )}
-
-          {isLogin && (
-            <div className="forgot-password">
-              <a href="#">Forgot password?</a>
             </div>
           )}
 

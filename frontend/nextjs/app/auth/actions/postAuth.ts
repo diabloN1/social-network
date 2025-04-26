@@ -14,9 +14,9 @@ const postAuth = async (path: string, formData: any) => {
     console.log(data);
     if (data.session && !data.error) {
       await setSessionCookie(data.session);
+      data.session = "true";
     }
 
-    data.session = "";
     return data;
   } catch (err) {
     console.error(err);

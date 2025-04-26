@@ -13,17 +13,17 @@ type UserRepository struct {
 func (r *UserRepository) Create(u *model.User) error {
 
 	foundUser, _ := r.Find(u.Username)
-	if foundUser == nil {
-		foundUser, _ = r.Find(u.Email)
-	}
+
 	if foundUser != nil {
-		if foundUser.Username == u.Username {
-			return errors.New("User already exists")
-		}
-		if foundUser.Email == u.Email {
-			return errors.New("Email already taken")
-		}
+		return errors.New("User already exists")
 	}
+
+	foundUser, _ = r.Find(u.Email)
+
+	if foundUser != nil {
+			return errors.New("Email already taken")
+	}
+	
 	return r.Repository.db.QueryRow(
 		"INSERT INTO users (username,email,password) VALUES ($1,$2,$3) RETURNING id",
 		u.Username,

@@ -11,17 +11,17 @@ func (s *Server) Login(request map[string]any) model.Response {
 		Error: "",
 	}
 
-	// Validate nickname
-	nicknameRaw, ok := request["nickname"]
+	// Validate username
+	usernameRaw, ok := request["username"]
 	if !ok {
-		response.Type = "nickname"
-		response.Error = "Missing 'nickname' field"
+		response.Type = "username"
+		response.Error = "Missing 'username' field"
 		return response
 	}
-	username, ok := nicknameRaw.(string)
+	username, ok := usernameRaw.(string)
 	if !ok {
-		response.Type = "nickname"
-		response.Error = "'nickname' must be a string"
+		response.Type = "username"
+		response.Error = "'username' must be a string"
 		return response
 	}
 
@@ -47,12 +47,14 @@ func (s *Server) Login(request map[string]any) model.Response {
 	foundUser, err := s.repository.User().Find(u.Username)
 	if err != nil {
 		log.Println("Failed to find a user:", err)
-		response.Error = "Username or password is wrong!"
+		response.Type = "username"
+		response.Error = "Username does not exists!"
 		return response
 	}
 
 	if !ComparePasswords(foundUser.EncryptedPassword, u.Password) {
-		response.Error = "Username or password is wrong!"
+		response.Type = "password"
+		response.Error = "Password is wrong!"
 		return response
 	}
 
