@@ -1,0 +1,12 @@
+package model
+
+type Post struct {
+	ID           int        `json:"id"`
+	UserId       int        `json:"user_id"`
+	Author       string     `json:"author"`
+	CategoryID   int        `json:"category_id"`
+	Title        string     `json:"title"`
+	Text         string     `json:"text"`
+	CreationDate string     `json:"creation_date"`
+	Comment      []*Comment `json:"comments"`
+}
