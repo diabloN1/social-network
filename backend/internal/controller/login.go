@@ -14,11 +14,13 @@ func (s *Server) Login(request map[string]any) model.Response {
 	// Validate nickname
 	nicknameRaw, ok := request["nickname"]
 	if !ok {
+		response.Type = "nickname"
 		response.Error = "Missing 'nickname' field"
 		return response
 	}
 	username, ok := nicknameRaw.(string)
 	if !ok {
+		response.Type = "nickname"
 		response.Error = "'nickname' must be a string"
 		return response
 	}
@@ -26,11 +28,13 @@ func (s *Server) Login(request map[string]any) model.Response {
 	// Validate password
 	passwordRaw, ok := request["password"]
 	if !ok {
+		response.Type = "password"
 		response.Error = "Missing 'password' field"
 		return response
 	}
 	password, ok := passwordRaw.(string)
 	if !ok {
+		response.Type = "password"
 		response.Error = "'password' must be a string"
 		return response
 	}
