@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="18px" height="18px" viewBox="0 0 18 18" version="1.1">
+<defs>
+<filter id="alpha" filterUnits="objectBoundingBox" x="0%" y="0%" width="100%" height="100%">
+  <feColorMatrix type="matrix" in="SourceGraphic" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+</filter>
+<mask id="mask0">
+  <g filter="url(#alpha)">
+<rect x="0" y="0" width="18" height="18" style="fill:rgb(0%,0%,0%);fill-opacity:0.501961;stroke:none;"/>
+  </g>
+</mask>
+<clipPath id="clip1">
+  <rect x="0" y="0" width="18" height="18"/>
+</clipPath>
+<g id="surface5" clip-path="url(#clip1)">
+<path style="fill:none;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:4;" d="M 12.5 4.338542 C 13.036458 3.53125 13.958333 3 15 3 C 16.65625 3 18 4.34375 18 6 C 18 7.65625 16.65625 9 15 9 C 13.958333 9 13.036458 8.46875 12.5 7.661458 " transform="matrix(0.75,0,0,0.75,0,0)"/>
+</g>
+<mask id="mask1">
+  <g filter="url(#alpha)">
+<rect x="0" y="0" width="18" height="18" style="fill:rgb(0%,0%,0%);fill-opacity:0.501961;stroke:none;"/>
+  </g>
+</mask>
+<clipPath id="clip2">
+  <rect x="0" y="0" width="18" height="18"/>
+</clipPath>
+<g id="surface8" clip-path="url(#clip2)">
+<path style="fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:4;" d="M 18 14 C 19.755208 14.385417 21 15.359375 21 16.5 C 21 17.53125 19.984375 18.421875 18.5 18.869792 " transform="matrix(0.75,0,0,0.75,0,0)"/>
+</g>
+</defs>
+<g id="surface1">
+<path style="fill:none;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:4;" d="M 13 6 C 13 3.791667 11.208333 2 9 2 C 6.791667 2 5 3.791667 5 6 C 5 8.208333 6.791667 10 9 10 C 11.208333 10 13 8.208333 13 6 Z M 13 6 " transform="matrix(0.75,0,0,0.75,0,0)"/>
+<use xlink:href="#surface5" mask="url(#mask0)"/>
+<path style="fill:none;stroke-width:1.5;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(100%,100%,100%);stroke-opacity:1;stroke-miterlimit:4;" d="M 16 17 C 16 14.791667 12.864583 13 9 13 C 5.135417 13 2 14.791667 2 17 C 2 19.208333 5.135417 21 9 21 C 12.864583 21 16 19.208333 16 17 Z M 16 17 " transform="matrix(0.75,0,0,0.75,0,0)"/>
+<use xlink:href="#surface8" mask="url(#mask1)"/>
+</g>
+</svg>

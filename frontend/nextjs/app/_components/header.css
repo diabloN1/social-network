@@ -25,7 +25,7 @@
   cursor: pointer;
 }
 
-.header-left {
+.header-right {
   display: flex;
   align-items: center;
   justify-content: end;

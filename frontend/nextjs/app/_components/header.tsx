@@ -32,8 +32,8 @@ const Header: React.FC = () => {
             </li>
           </ul>
         </nav>
-
-        <div className="header-left">
+        </div>
+        <div className="header-right">
           {/* Hamburger Icon for small screens */}
           <div className="hamburger" onClick={toggleMenu}>
             <div className={`bar ${isMenuOpen ? "open" : ""}`}></div>
@@ -41,9 +41,8 @@ const Header: React.FC = () => {
             <div className={`bar ${isMenuOpen ? "open" : ""}`}></div>
           </div>
           <button className="logout-btn" onClick={logout}>
-            <img src="/logout.svg" alt="Logout" />
+            <img src="/icons/logout.svg" alt="Logout" />
           </button>
-        </div>
       </div>
     </header>
   );
