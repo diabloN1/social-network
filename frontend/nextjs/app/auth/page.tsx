@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import "./auth-form.css"
-import postAuth from "./actions/postAuth"
-import { useRouter } from "next/navigation"
-import { uploadFile } from "./actions/uploadFile"
+import { useState } from "react";
+import "./auth-form.css";
+import postAuth from "./actions/postAuth";
+import { useRouter } from "next/navigation";
+import { uploadFile } from "./actions/uploadFile";
 
 export default function AuthForm() {
-  const [isLogin, setIsLogin] = useState(true)
-  const [showPassword, setShowPassword] = useState(false)
+  const [isLogin, setIsLogin] = useState(true);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -22,7 +22,7 @@ export default function AuthForm() {
     avatar: null as any,
     nickname: "",
     aboutMe: "",
-  })
+  });
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -31,135 +31,145 @@ export default function AuthForm() {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-  })
-  const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+  });
+  const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
 
-  const router = useRouter()
+  const router = useRouter();
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
       [name]: value,
-    })
+    });
 
     // Clear error when user types
     if (errors[name as keyof typeof errors]) {
       setErrors({
         ...errors,
         [name]: "",
-      })
+      });
     }
-  }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
+
       setFormData({
         ...formData,
         avatar: file,
-      })
+      });
 
       // Create preview URL
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onload = (event) => {
-        setAvatarPreview(event.target?.result as string)
-      }
-      reader.readAsDataURL(file)
+        setAvatarPreview(event.target?.result as string);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const validateForm = (): boolean => {
-    let isValid = true
-    const newErrors = { ...errors }
+    let isValid = true;
+    const newErrors = { ...errors };
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = "Email is required"
-      isValid = false
+      newErrors.email = "Email is required";
+      isValid = false;
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid"
-      isValid = false
+      newErrors.email = "Email is invalid";
+      isValid = false;
     } else {
-      newErrors.email = ""
+      newErrors.email = "";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = "Password is required"
-      isValid = false
+      newErrors.password = "Password is required";
+      isValid = false;
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters"
-      isValid = false
+      newErrors.password = "Password must be at least 6 characters";
+      isValid = false;
     } else {
-      newErrors.password = ""
+      newErrors.password = "";
     }
 
     if (!isLogin) {
       // Registration specific validations
       if (!formData.firstName) {
-        newErrors.firstName = "First name is required"
-        isValid = false
+        newErrors.firstName = "First name is required";
+        isValid = false;
       } else {
-        newErrors.firstName = ""
+        newErrors.firstName = "";
       }
 
       if (!formData.lastName) {
-        newErrors.lastName = "Last name is required"
-        isValid = false
+        newErrors.lastName = "Last name is required";
+        isValid = false;
       } else {
-        newErrors.lastName = ""
+        newErrors.lastName = "";
       }
 
       if (!formData.dateOfBirth) {
-        newErrors.dateOfBirth = "Date of birth is required"
-        isValid = false
+        newErrors.dateOfBirth = "Date of birth is required";
+        isValid = false;
       } else {
-        newErrors.dateOfBirth = ""
+        newErrors.dateOfBirth = "";
       }
 
       if (formData.password !== formData.confirmPassword) {
-        newErrors.confirmPassword = "Passwords do not match"
-        isValid = false
+        newErrors.confirmPassword = "Passwords do not match";
+        isValid = false;
       } else {
-        newErrors.confirmPassword = ""
+        newErrors.confirmPassword = "";
       }
     }
 
-    setErrors(newErrors)
-    return isValid
-  }
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const handleSubmit = async () => {
     if (validateForm()) {
-      const path = isLogin ? "login" : "register"
+      const path = isLogin ? "login" : "register";
 
       // Create FormData object to handle file upload
-      if (formData.avatar) {
-        const submitData = new FormData()
-        submitData.append('file', formData.avatar)
-        formData.avatar = await uploadFile(submitData, formData.email)
-      }
 
+      try {
+        if (formData.avatar) {
+          const submitData = new FormData();
+          submitData.append("file", formData.avatar);
+          formData.avatar = await uploadFile(submitData, formData.email);
+        } else {
+          formData.avatar = "";
+        }
 
-      const data = await postAuth(path, formData)
+        const data = await postAuth(path, formData);
 
-      if (data.error && errors.hasOwnProperty(data.type)) {
-        setErrors({
-          ...errors,
-          [data.type]: data.error,
-        })
-        return
-      }
+        if (data.error && errors.hasOwnProperty(data.type)) {
+          setErrors({
+            ...errors,
+            [data.type]: data.error,
+          });
+          return;
+        }
+  
+        if (data.session) {
+          router.push("/app");
+        }
 
-      if (data.session) {
-        router.push("/app")
+      } catch (err) {
+        alert(err);
       }
     }
-  }
+  };
 
   const toggleView = () => {
-    setIsLogin(!isLogin)
+    setIsLogin(!isLogin);
     // Reset errors when toggling views
     setErrors({
       email: "",
@@ -169,10 +179,10 @@ export default function AuthForm() {
       firstName: "",
       lastName: "",
       dateOfBirth: "",
-    })
+    });
     // Reset avatar preview
-    setAvatarPreview(null)
-  }
+    setAvatarPreview(null);
+  };
 
   return (
     <div className="auth-container">
@@ -196,7 +206,9 @@ export default function AuthForm() {
                   placeholder="Enter your first name"
                   className={errors.firstName ? "error" : ""}
                 />
-                {errors.firstName && <span className="error-message">{errors.firstName}</span>}
+                {errors.firstName && (
+                  <span className="error-message">{errors.firstName}</span>
+                )}
               </div>
 
               <div className="form-group">
@@ -210,7 +222,9 @@ export default function AuthForm() {
                   placeholder="Enter your last name"
                   className={errors.lastName ? "error" : ""}
                 />
-                {errors.lastName && <span className="error-message">{errors.lastName}</span>}
+                {errors.lastName && (
+                  <span className="error-message">{errors.lastName}</span>
+                )}
               </div>
 
               <div className="form-group">
@@ -235,15 +249,26 @@ export default function AuthForm() {
                   onChange={handleChange}
                   className={errors.dateOfBirth ? "error" : ""}
                 />
-                {errors.dateOfBirth && <span className="error-message">{errors.dateOfBirth}</span>}
+                {errors.dateOfBirth && (
+                  <span className="error-message">{errors.dateOfBirth}</span>
+                )}
               </div>
 
               <div className="form-group">
                 <label htmlFor="avatar">Profile Picture (Optional)</label>
-                <input type="file" id="avatar" name="avatar" accept="image/*" onChange={handleFileChange} />
+                <input
+                  type="file"
+                  id="avatar"
+                  name="avatar"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                />
                 {avatarPreview && (
                   <div className="avatar-preview">
-                    <img src={avatarPreview || "/placeholder.svg"} alt="Avatar preview" />
+                    <img
+                      src={avatarPreview || "/placeholder.svg"}
+                      alt="Avatar preview"
+                    />
                   </div>
                 )}
               </div>
@@ -273,7 +298,9 @@ export default function AuthForm() {
               placeholder="Enter your email"
               className={errors.email ? "error" : ""}
             />
-            {errors.email && <span className="error-message">{errors.email}</span>}
+            {errors.email && (
+              <span className="error-message">{errors.email}</span>
+            )}
           </div>
 
           <div className="form-group">
@@ -288,11 +315,17 @@ export default function AuthForm() {
                 placeholder="Enter your password"
                 className={errors.password ? "error" : ""}
               />
-              <button type="button" className="toggle-password" onClick={() => setShowPassword(!showPassword)}>
+              <button
+                type="button"
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
                 {showPassword ? "Hide" : "Show"}
               </button>
             </div>
-            {errors.password && <span className="error-message">{errors.password}</span>}
+            {errors.password && (
+              <span className="error-message">{errors.password}</span>
+            )}
           </div>
 
           {!isLogin && (
@@ -307,11 +340,17 @@ export default function AuthForm() {
                 placeholder="Confirm your password"
                 className={errors.confirmPassword ? "error" : ""}
               />
-              {errors.confirmPassword && <span className="error-message">{errors.confirmPassword}</span>}
+              {errors.confirmPassword && (
+                <span className="error-message">{errors.confirmPassword}</span>
+              )}
             </div>
           )}
 
-          <button type="button" className="submit-button" onClick={handleSubmit}>
+          <button
+            type="button"
+            className="submit-button"
+            onClick={handleSubmit}
+          >
             {isLogin ? "Sign In" : "Sign Up"}
           </button>
         </form>
@@ -326,5 +365,5 @@ export default function AuthForm() {
         </div>
       </div>
     </div>
-  )
+  );
 }

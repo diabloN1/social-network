@@ -119,15 +119,15 @@ func (s *Server) Register(request map[string]any) model.Response {
 	}
 
 	// Validate first name and last name (new)
-	if len(firstName) < 1 {
+	if !IsUsernameValid(firstName) {
 		response.Type = "firstName"
-		response.Error = "First name is required"
+		response.Error = "First name is required must be at least 4 chars"
 		return response
 	}
 
-	if len(lastName) < 1 {
+	if !IsUsernameValid(lastName) {
 		response.Type = "lastName"
-		response.Error = "Last name is required"
+		response.Error = "Last name is required must be at least 4 chars"
 		return response
 	}
 
