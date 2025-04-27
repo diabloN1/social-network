@@ -97,12 +97,12 @@
 .bar {
   height: 4px;
   width: 100%;
-  background-color: var(--text-color);
+  background-color: var(--primary-color);
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
 
 .bar.open:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
+  transform: rotate(45deg) translate(6px, 5px);
 }
 
 .bar.open:nth-child(2) {
@@ -110,7 +110,7 @@
 }
 
 .bar.open:nth-child(3) {
-  transform: rotate(-45deg) translate(5px, -5px);
+  transform: rotate(-45deg) translate(6px, -5px);
 }
 
 /* Navbar responsive */

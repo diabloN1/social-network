@@ -40,10 +40,10 @@ const Header: React.FC = () => {
             <div className={`bar ${isMenuOpen ? "open" : ""}`}></div>
             <div className={`bar ${isMenuOpen ? "open" : ""}`}></div>
           </div>
+          <button className="logout-btn" onClick={logout}>
+            <img src="/logout.svg" alt="Logout" />
+          </button>
         </div>
-        <button className="logout-btn" onClick={logout}>
-          <img src="/logout.svg" alt="Logout" />
-        </button>
       </div>
     </header>
   );
