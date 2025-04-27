@@ -1,3 +1,5 @@
+'use server'
+
 import setSessionCookie from "./setSession";
 
 const postAuth = async (path: string, formData: any) => {

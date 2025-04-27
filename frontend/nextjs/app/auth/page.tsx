@@ -4,9 +4,9 @@ import type React from "react";
 
 import { useState } from "react";
 import "./auth-form.css";
-import postAuth from "./actions/postAuth";
+import postAuth from "../api/_auth/postAuth";
 import { useRouter } from "next/navigation";
-import { uploadFile } from "./actions/uploadFile";
+import { uploadFile } from "../api/_auth/uploadFile";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -157,11 +157,10 @@ export default function AuthForm() {
           });
           return;
         }
-  
+
         if (data.session) {
           router.push("/app");
         }
-
       } catch (err) {
         alert(err);
       }

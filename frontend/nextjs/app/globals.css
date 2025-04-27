@@ -1,0 +1,23 @@
+/* Root Variables (Theme-Based) */
+:root {
+  --primary-color: #6c63ff;
+  --primary-hover: #5a52d5;
+  --error-color: #ff4d4f;
+  --text-color: #f0f0f0;
+  --text-light: #bbb;
+  --border-color: #e1e1e1;
+  --bg-color: #121212;
+  --header-bg: #1f1f1f;
+  --card-bg: #2e2e2e;
+  --input-bg: #333;
+  --shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  --transition: all 0.3s ease;
+}
+
+body {
+    padding: 0px;
+    margin: 0px;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+    background-color: var(--bg-color);
+    color: white;
+}

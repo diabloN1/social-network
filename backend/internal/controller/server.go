@@ -45,6 +45,7 @@ func Start() error {
 	s.router.HandleFunc("/login", s.LoginHanlder)
 	s.router.HandleFunc("/register", s.RegisterHandler)
 	s.router.HandleFunc("/session", s.SessionHandler)
+	s.router.HandleFunc("/logout", s.LogoutHandler)
 
 	go s.checkClientsLastActivity()
 	log.Println("Server started at http://localhost:8080/")

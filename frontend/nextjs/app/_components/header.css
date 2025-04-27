@@ -1,0 +1,151 @@
+/* Header Styles */
+.header {
+  background-color: var(--header-bg);
+  padding: 1rem 2rem;
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 60px;
+}
+
+.project-name h1 {
+  font-size: 1.6rem;
+  font-weight: bolder;
+  letter-spacing: 1px;
+  color: var(--primary-color); /* Soft green accent */
+  cursor: pointer;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  justify-content: end;
+  gap: 0.5rem;
+}
+
+/* Navbar styles */
+.navbar {
+  display: flex;
+  justify-content: flex-start; /* Align navbar items to the left */
+  align-items: center;
+  flex-grow: 1;
+}
+
+.nav-links {
+  display: flex;
+  gap: 2rem;
+}
+
+.nav-links li {
+  list-style: none;
+  text-decoration: underline var(--primary-color);
+}
+
+.nav-links a {
+  text-decoration: none;
+  color: var(--text-light);
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  transition: color 0.3s ease;
+}
+
+.nav-links a:hover {
+  color: var(--primary-color); /* Hover accent color */
+}
+
+.logout-btn {
+  background: none;
+  border: none;
+  padding: 0.5rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logout-icon {
+  width: 20px;
+  height: 20px;
+  stroke: var(--error-color);
+  transition: stroke 0.3s ease;
+}
+
+.logout-btn:hover .logout-icon {
+  stroke: #ff3333; /* Hover color for logout icon */
+}
+
+/* Hamburger Menu */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 30px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.bar {
+  height: 4px;
+  width: 100%;
+  background-color: var(--text-color);
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.bar.open:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+
+.bar.open:nth-child(2) {
+  opacity: 0;
+}
+
+.bar.open:nth-child(3) {
+  transform: rotate(-45deg) translate(5px, -5px);
+}
+
+/* Navbar responsive */
+@media (max-width: 768px) {
+  .navbar {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background-color: var(--header-bg);
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transform: translateY(-200%);
+    transition: transform 0.1s ease;
+    z-index: -1;
+  }
+
+  .navbar.open {
+    transform: translateY(0);
+  }
+
+  .nav-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .nav-links li {
+    text-align: center;
+    font-size: 1.1rem;
+  }
+
+  .hamburger {
+    display: flex;
+  }
+}

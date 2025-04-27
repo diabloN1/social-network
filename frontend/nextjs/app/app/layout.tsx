@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import Header from '../_components/header'
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   
@@ -24,5 +25,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
 
-  return <>{children}</>
+  return <><Header/>{children}</>
 }

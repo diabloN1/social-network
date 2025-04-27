@@ -48,3 +48,10 @@ func (s *Server) SessionHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.ValidateSession(request)
 	s.SendJson(w, response, err)
 }
+
+func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.Logout(request)
+	s.SendJson(w, response, err)
+}
