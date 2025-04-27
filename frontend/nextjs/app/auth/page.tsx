@@ -143,7 +143,7 @@ export default function AuthForm() {
         if (formData.avatar) {
           const submitData = new FormData();
           submitData.append("file", formData.avatar);
-          formData.avatar = await uploadFile(submitData, formData.email);
+          formData.avatar = await uploadFile(submitData);
         } else {
           formData.avatar = "";
         }

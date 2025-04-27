@@ -3,7 +3,7 @@
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
-export async function uploadFile(formData: FormData, identifier: string): Promise<string> {
+export async function uploadFile(formData: FormData): Promise<string> {
   try {
     const file = formData.get('file') as File
 
@@ -26,7 +26,8 @@ export async function uploadFile(formData: FormData, identifier: string): Promis
     const bytes = await file.arrayBuffer()
     const buffer = Buffer.from(bytes)
 
-    const filename = `${identifier}_${file.name.replace(/\s+/g, '-').toLowerCase()}`
+    const uuid = crypto.randomUUID()
+    const filename = `${uuid}_${file.name.replace(/\s+/g, '-').toLowerCase()}`
     const path = join(process.cwd(), 'public', 'avatars', filename)
 
     // Write the file
