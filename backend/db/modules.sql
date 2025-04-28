@@ -18,20 +18,13 @@ CREATE TABLE IF NOT EXISTS sessions (
   FOREIGN KEY (user_id) REFERENCES users (id) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
-
-CREATE TABLE IF NOT EXISTS categories (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category varchar(255) 
-);
-
 CREATE TABLE IF NOT EXISTS posts (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  category_id INTEGER,
+  privacy varchar(50),
   user_id INTEGER,
-  title varchar(255),
-  text TEXT,
+  caption TEXT,
+  image varchar(255),
   creation_date DATETIME  DEFAULT CURRENT_TIMESTAMP,
-  FOREIGN KEY (category_id) REFERENCES categories (id)
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
 

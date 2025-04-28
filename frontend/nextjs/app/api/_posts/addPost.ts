@@ -2,26 +2,36 @@
 
 import { cookies } from 'next/headers'
 
-const logout = async () => {
+const addPost = async (formData: {
+    image: string;
+    caption: string;
+    privacy: string;
+    session?: string;
+  }) => {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('token')?.value || ''
 
-    const response = await fetch("http://localhost:8080/logout", {
+    formData['session'] = token
+
+    const response = await fetch("http://localhost:8080/addPost", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ session: token }),
+      body: JSON.stringify(formData),
     });
     const data = await response.json();
 
-    cookieStore.delete('token');
     console.log(data);
+
+    if (data.error == "Invalid session") {
+        cookieStore.delete('token');
+    }
     return data;
   } catch (err) {
     console.error(err);
   }
 };
 
-export default logout
+export default addPost

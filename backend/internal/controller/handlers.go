@@ -55,3 +55,9 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.Logout(request)
 	s.SendJson(w, response, err)
 }
+func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.AddPost(request)
+	s.SendJson(w, response, err)
+}

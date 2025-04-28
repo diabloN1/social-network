@@ -6,7 +6,7 @@
 }
 
 .posts-container {
-  max-width: 900px;
+  max-width: 800px;
   margin: 0 auto;
   padding: 20px;
   width: 100%;
@@ -355,14 +355,17 @@
 
 /* Add styles for individual post page */
 .single-post-container {
-  max-width: 800px;
-  margin: 20px auto;
+  max-width: 1300px;
   display: flex;
   flex-direction: column;
   background-color: var(--card-bg);
   border-radius: 8px;
   overflow: hidden;
   box-shadow: var(--shadow);
+  margin: 0 auto;
+  padding: 20px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 @media (min-width: 768px) {

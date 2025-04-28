@@ -3,7 +3,7 @@
 import { writeFile } from 'fs/promises'
 import { join } from 'path'
 
-export async function uploadFile(formData: FormData): Promise<string> {
+export async function uploadFile(formData: FormData, route: string): Promise<string> {
   try {
     const file = formData.get('file') as File
 
@@ -28,13 +28,13 @@ export async function uploadFile(formData: FormData): Promise<string> {
 
     const uuid = crypto.randomUUID()
     const filename = `${uuid}_${file.name.replace(/\s+/g, '-').toLowerCase()}`
-    const path = join(process.cwd(), 'public', 'avatars', filename)
+    const path = join(process.cwd(), 'public', route, filename)
 
     // Write the file
     await writeFile(path, buffer)
 
     // Return the public URL path
-    return `/avatars/${filename}`
+    return `${route}/${filename}`
   } catch (error) {
     console.error('Error uploading file:', error)
     throw new Error('Failed to upload file ' + error)

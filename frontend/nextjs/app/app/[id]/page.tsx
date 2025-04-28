@@ -43,7 +43,7 @@ export default function SinglePostPage() {
         id: comments.length + 1,
         user: {
           name: "Current User",
-          avatar: "/placeholder.svg?height=30&width=30",
+          avatar: "/icons/placeholder.svg?height=30&width=30",
         },
         text: newComment,
         timestamp: "Just now",
@@ -84,7 +84,7 @@ export default function SinglePostPage() {
 
   return (
     <div className="posts-page">
-      <div className="posts-container">
+      <div className="single-post-container">
         <button
           onClick={goBack}
           style={{
@@ -92,143 +92,133 @@ export default function SinglePostPage() {
             border: "none",
             color: "var(--text-color)",
             display: "flex",
-            alignItems: "center",
             cursor: "pointer",
             marginBottom: "16px",
           }}
         >
-          <Image
-            src='/icons/left.svg'
-            alt="back"
-            width={16}
-            height={16}
-          />
-          <span style={{ marginLeft: "8px" }}>Back to feed</span>
+          <Image src="/icons/left.svg" alt="back" width={16} height={16} />
         </button>
+        <div className="single-post-image">
+          <Image
+            src={post.image || "/icons/placeholder.svg"}
+            alt="Post content"
+            fill
+            className="post-image"
+          />
+        </div>
 
-        <div className="single-post-container">
-          <div className="single-post-image">
-            <Image
-              src={post.image || "/placeholder.svg"}
-              alt="Post content"
-              fill
-              className="post-image"
-            />
+        <div className="single-post-content">
+          <div className="single-post-header">
+            <div style={{ display: "flex", alignItems: "center" }}>
+              <div className="post-user-avatar">
+                <Image
+                  src={post.user?.avatar || "/icons/placeholder.svg"}
+                  alt="avatar"
+                  width={40}
+                  height={40}
+                />
+              </div>
+              <div className="post-user-name">{post.user?.name}</div>
+              <div className="post-privacy">
+                {renderPrivacyIcon(post.privacy)}
+                {post.privacy === "public"
+                  ? "Public"
+                  : post.privacy === "almost-private"
+                  ? "Followers"
+                  : "Private"}
+              </div>
+            </div>
+            <div style={{ marginTop: "10px" }}>
+              <div className="post-caption">
+                <span className="post-user-name">{post.user?.name}</span>{" "}
+                {post.caption}
+              </div>
+              <div className="post-timestamp">{post.timestamp}</div>
+            </div>
           </div>
 
-          <div className="single-post-content">
-            <div className="single-post-header">
-              <div style={{ display: "flex", alignItems: "center" }}>
-                <div className="post-user-avatar">
+          <div className="single-post-comments">
+            {comments.map((comment) => (
+              <div key={comment.id} className="post-comment">
+                <div className="comment-user-avatar">
                   <Image
-                    src={post.user?.avatar || "/placeholder.svg"}
-                    alt="avatar"
-                    width={40}
-                    height={40}
+                    src={comment.user.avatar || "/icons/placeholder.svg"}
+                    alt={comment.user.name}
+                    width={30}
+                    height={30}
                   />
                 </div>
-                <div className="post-user-name">{post.user?.name}</div>
-                <div className="post-privacy">
-                  {renderPrivacyIcon(post.privacy)}
-                  {post.privacy === "public"
-                    ? "Public"
-                    : post.privacy === "almost-private"
-                    ? "Followers"
-                    : "Private"}
-                </div>
-              </div>
-              <div style={{ marginTop: "10px" }}>
-                <div className="post-caption">
-                  <span className="post-user-name">{post.user?.name}</span>{" "}
-                  {post.caption}
-                </div>
-                <div className="post-timestamp">{post.timestamp}</div>
-              </div>
-            </div>
-
-            <div className="single-post-comments">
-              {comments.map((comment) => (
-                <div key={comment.id} className="post-comment">
-                  <div className="comment-user-avatar">
-                    <Image
-                      src={comment.user.avatar || "/placeholder.svg"}
-                      alt={comment.user.name}
-                      width={30}
-                      height={30}
-                    />
-                  </div>
-                  <div className="comment-content">
-                    <span>
-                      <span className="comment-user-name">
-                        {comment.user.name}
-                      </span>
-                      <span className="comment-text">{comment.text}</span>
+                <div className="comment-content">
+                  <span>
+                    <span className="comment-user-name">
+                      {comment.user.name}
                     </span>
-                    <div className="comment-timestamp">{comment.timestamp}</div>
-                  </div>
+                    <span className="comment-text">{comment.text}</span>
+                  </span>
+                  <div className="comment-timestamp">{comment.timestamp}</div>
                 </div>
-              ))}
-            </div>
-
-            <div className="single-post-actions">
-              <div className="post-actions">
-                <button
-                  className="post-action-btn"
-                  onClick={handleLike}
-                  style={{
-                    color: liked ? "var(--primary-color)" : "var(--text-color)",
-                  }}
-                >
-                  <Image
-                    src="/icons/heart.svg"
-                    alt="heart"
-                    width={24}
-                    height={24}
-                  />
-                </button>
-                <button className="post-action-btn">
-                  <Image
-                    src="/icons/messages.svg"
-                    alt="messages"
-                    width={24}
-                    height={24}
-                  />
-                </button>
-                <button className="post-action-btn">
-                  <Image
-                    src="/icons/send.svg"
-                    alt="send"
-                    width={24}
-                    height={24}
-                  />
-                </button>
               </div>
+            ))}
+          </div>
 
-              <div className="post-likes">{likes} likes</div>
-
-              <form className="add-comment">
-                <input
-                  type="text"
-                  className="comment-input"
-                  placeholder="Add a comment..."
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
+          <div className="single-post-actions">
+            <div className="post-actions">
+              <button
+                className="post-action-btn"
+                onClick={handleLike}
+                style={{
+                  color: liked ? "var(--primary-color)" : "var(--text-color)",
+                }}
+              >
+                <Image
+                  src="/icons/heart.svg"
+                  alt="heart"
+                  width={24}
+                  height={24}
                 />
-                <button
-                  type="button"
-                  className="post-submit-btn"
-                  onClick={handleAddComment}
-                >
-                  <Image
-                    src="/icons/send.svg"
-                    alt="send"
-                    width={16}
-                    height={16}
-                  />
-                  <span style={{ marginLeft: "5px" }}>Send</span>
-                </button>
-              </form>
+              </button>
+              <button className="post-action-btn">
+                <Image
+                  src="/icons/messages.svg"
+                  alt="messages"
+                  width={24}
+                  height={24}
+                />
+              </button>
+              <button className="post-action-btn">
+                <Image
+                  src="/icons/send.svg"
+                  alt="send"
+                  width={24}
+                  height={24}
+                />
+              </button>
             </div>
+
+            <div className="post-likes">{likes} likes</div>
+
+            <form className="add-comment">
+              <input
+                type="text"
+                className="comment-input"
+                placeholder="Add a comment..."
+                value={newComment}
+                onChange={(e) => setNewComment(e.target.value)}
+              />
+              <button
+                type="button"
+                className="post-submit-btn"
+                onClick={handleAddComment}
+              >
+                <Image
+                  src="/icons/send.svg"
+                  alt="send"
+                  width={16}
+                  height={16}
+                />
+                <span style={{ marginLeft: "5px" }}>Send</span>
+              </button>
+            </form>
           </div>
         </div>
       </div>

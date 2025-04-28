@@ -1,42 +1,57 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef } from "react"
+import type React from "react";
+import { useState, useRef } from "react";
+import { uploadFile } from "../api/_auth/uploadFile";
 
 interface CreatePostModalProps {
-  onClose: () => void
-  onSubmit: (post: {
-    image: string
-    caption: string
-    privacy: string
-  }) => void
+  onClose: () => void;
+  onSubmit: (post: { image: string; caption: string; privacy: string }) => void;
 }
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onSubmit }) => {
-  const [caption, setCaption] = useState("")
-  const [privacy, setPrivacy] = useState("public")
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const fileInputRef = useRef<HTMLInputElement>(null)
+const CreatePostModal: React.FC<CreatePostModalProps> = ({
+  onClose,
+  onSubmit,
+}) => {
+  const [caption, setCaption] = useState("");
+  const [privacy, setPrivacy] = useState("public");
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [image, setImage] = useState<File | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
+    const file = e.target.files?.[0];
     if (file) {
-      const reader = new FileReader()
+      const reader = new FileReader();
       reader.onloadend = () => {
-        setImagePreview(reader.result as string)
-      }
-      reader.readAsDataURL(file)
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+      setImage(file);
     }
-  }
+  };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    onSubmit({
-      image: imagePreview || "/placeholder.svg?height=500&width=500",
-      caption,
-      privacy,
-    })
-  }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    try {
+      let imageUrl = "";
+
+      if (image) {
+        const formData = new FormData();
+        formData.append("file", image);
+        imageUrl = await uploadFile(formData, "/posts");
+      }
+
+      onSubmit({
+        image: imageUrl,
+        caption,
+        privacy,
+      });
+    } catch (err) {
+      alert(err);
+      console.error(err);
+    }
+  };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
@@ -60,14 +75,16 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onSubmit }) 
                     className="file-input"
                     accept="image/*,.gif"
                     onChange={handleImageChange}
-                    ref={fileInputRef}
                   />
                 </label>
               </div>
 
               {imagePreview && (
                 <div className="image-preview">
-                  <img src={imagePreview || "/placeholder.svg"} alt="Preview" />
+                  <img
+                    src={imagePreview || "/icons/placeholder.svg"}
+                    alt="Preview"
+                  />
                 </div>
               )}
             </div>
@@ -89,10 +106,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onSubmit }) 
               <label className="form-label" htmlFor="privacy">
                 Privacy
               </label>
-              <select id="privacy" className="form-select" value={privacy} onChange={(e) => setPrivacy(e.target.value)}>
+              <select
+                id="privacy"
+                className="form-select"
+                value={privacy}
+                onChange={(e) => setPrivacy(e.target.value)}
+              >
                 <option value="public">Public - Everyone can see</option>
-                <option value="almost-private">Almost Private - Only followers can see</option>
-                <option value="private">Private - Only selected followers can see</option>
+                <option value="almost-private">
+                  Almost Private - Only followers can see
+                </option>
+                <option value="private">
+                  Private - Only selected followers can see
+                </option>
               </select>
             </div>
           </div>
@@ -101,7 +127,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onSubmit }) 
             <button
               type="button"
               className="create-post-btn"
-              style={{ backgroundColor: "var(--input-bg)", marginRight: "10px" }}
+              style={{
+                backgroundColor: "var(--input-bg)",
+                marginRight: "10px",
+              }}
               onClick={onClose}
             >
               Cancel
@@ -113,7 +142,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ onClose, onSubmit }) 
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default CreatePostModal
+export default CreatePostModal;

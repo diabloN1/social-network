@@ -12,8 +12,8 @@ type PostRepository struct {
 
 func (r *PostRepository) Add(p *model.Post) error {
 	return r.Repository.db.QueryRow(
-		"INSERT INTO posts (category_id, user_id, title, text) VALUES ($1, $2, $3, $4) RETURNING id",
-		p.CategoryID, p.UserId, p.Title, p.Text,
+		"INSERT INTO posts (privacy, user_id, caption, image) VALUES ($1, $2, $3, $4) RETURNING id",
+		p.Privacy, p.UserId, p.Caption, p.Image,
 	).Scan(&p.ID)
 
 }

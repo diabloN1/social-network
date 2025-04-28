@@ -143,7 +143,7 @@ export default function AuthForm() {
         if (formData.avatar) {
           const submitData = new FormData();
           submitData.append("file", formData.avatar);
-          formData.avatar = await uploadFile(submitData);
+          formData.avatar = await uploadFile(submitData, "/avatars");
         } else {
           formData.avatar = "";
         }
@@ -265,7 +265,7 @@ export default function AuthForm() {
                 {avatarPreview && (
                   <div className="avatar-preview">
                     <img
-                      src={avatarPreview || "/placeholder.svg"}
+                      src={avatarPreview || "/icons/placeholder.svg"}
                       alt="Avatar preview"
                     />
                   </div>

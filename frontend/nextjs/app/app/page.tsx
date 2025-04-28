@@ -4,6 +4,7 @@ import { useState } from "react";
 import CreatePostModal from "../_components/create-post-modal";
 import Post from "../_components/post";
 import "./posts.css";
+import addPost from "../api/_posts/addPost";
 
 // Sample data for demonstration
 export const SAMPLE_POSTS = [
@@ -11,9 +12,9 @@ export const SAMPLE_POSTS = [
     id: 1,
     user: {
       name: "John Doe",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/icons/placeholder.svg?height=40&width=40",
     },
-    image: "/placeholder.svg?height=500&width=500",
+    image: "/icons/placeholder.svg?height=500&width=500",
     caption: "This is my first post! #excited",
     likes: 42,
     privacy: "public",
@@ -22,7 +23,7 @@ export const SAMPLE_POSTS = [
         id: 1,
         user: {
           name: "Jane Smith",
-          avatar: "/placeholder.svg?height=30&width=30",
+          avatar: "/icons/placeholder.svg?height=30&width=30",
         },
         text: "Great post! 👍",
         timestamp: "2h ago",
@@ -34,9 +35,9 @@ export const SAMPLE_POSTS = [
     id: 2,
     user: {
       name: "Alice Johnson",
-      avatar: "/placeholder.svg?height=40&width=40",
+      avatar: "/icons/placeholder.svg?height=40&width=40",
     },
-    image: "/placeholder.svg?height=500&width=500",
+    image: "/icons/placeholder.svg?height=500&width=500",
     caption: "Beautiful sunset today! 🌅",
     likes: 128,
     privacy: "almost-private",
@@ -49,25 +50,37 @@ export default function PostsPage() {
   const [posts, setPosts] = useState(SAMPLE_POSTS);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleCreatePost = (newPost: {
+  const handleCreatePost = async (newPost: {
     image: string;
     caption: string;
     privacy: string;
   }) => {
-    setPosts([
-      {
-        id: posts.length + 1,
-        user: {
-          name: "Current User",
-          avatar: "/placeholder.svg?height=40&width=40",
+    try {
+      const data = await addPost(newPost);
+      if (data.error && data.error != "Invalid session") {
+        alert(data.error);
+        return;
+      }
+
+      // should fix the bellow from data
+      setPosts([
+        {
+          id: posts.length + 1,
+          user: {
+            name: "Current User",
+            avatar: "/icons/placeholder.svg?height=40&width=40",
+          },
+          likes: 0,
+          comments: [],
+          timestamp: "Just now",
+          ...newPost,
         },
-        likes: 0,
-        comments: [],
-        timestamp: "Just now",
-        ...newPost,
-      },
-      ...posts,
-    ]);
+        ...posts,
+      ]);
+    } catch (err) {
+      console.error(err);
+    }
+
     setIsModalOpen(false);
   };
 
