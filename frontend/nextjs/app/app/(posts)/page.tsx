@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import CreatePostModal from "../_components/create-post-modal";
-import Post from "../_components/post";
+import CreatePostModal from "../../_components/create-post-modal";
+import Post from "../../_components/post";
 import "./posts.css";
-import addPost from "../api/_posts/addPost";
-import getPosts from "../api/_posts/getPosts";
+import addPost from "../../api/_posts/addPost";
+import getPosts from "../../api/_posts/getPosts";
 
 // Sample data for demonstration
 export const SAMPLE_POSTS = [

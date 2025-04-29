@@ -4,7 +4,6 @@ import type React from "react";
 import { useState } from "react";
 import Image from "next/image";
 
-// Add navigation to individual post page
 import { useRouter } from "next/navigation";
 
 interface Comment {
@@ -43,6 +42,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const router = useRouter();
 
   const navigateToPost = () => {
+    console.log("i'm  here");
     router.push(`/app/${post.id}`);
   };
 
@@ -93,7 +93,9 @@ const Post: React.FC<PostProps> = ({ post }) => {
             height={40}
           />
         </div>
-        <div className="post-user-name">{post.user.firstname + " " + post.user.lastname}</div>
+        <div className="post-user-name">
+          {post.user.firstname + " " + post.user.lastname}
+        </div>
         <div className="post-privacy">
           {renderPrivacyIcon()}
           {post.privacy === "public"
@@ -144,7 +146,10 @@ const Post: React.FC<PostProps> = ({ post }) => {
       <div className="post-likes">{likes} likes</div>
 
       <div className="post-caption">
-        <span className="post-user-name">{post.user.firstname + " " + post.user.lastname}</span> {post.caption}
+        <span className="post-user-name">
+          {post.user.firstname + " " + post.user.lastname}
+        </span>{" "}
+        {post.caption}
       </div>
 
       <div className="post-timestamp">{post.timestamp}</div>
