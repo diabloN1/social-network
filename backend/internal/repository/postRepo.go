@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
 	"real-time-forum/internal/model"
 	"time"
@@ -85,10 +86,10 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 						OR (p.privacy = 'almost private' AND f.id IS NOT NULL)
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 					);`,
-					userId, postId)
+		userId, postId)
 	post := &model.Post{}
 	user := &model.User{}
-	if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil {
+	if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil && err != sql.ErrNoRows {
 		return nil, errors.New(err.Error())
 	}
 	post.User = user

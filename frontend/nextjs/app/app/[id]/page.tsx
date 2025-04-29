@@ -16,30 +16,33 @@ export default function SinglePostPage() {
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
-  const [display, setDisplay] = useState('none')
+  const [display, setDisplay] = useState("none");
 
   const pageLoadHandler = async () => {
     try {
       const data = await getPostData(postId);
       if (data.error != "") {
-        throw Error(data.error)
+        throw Error(data.error);
       }
-      const foundData = data.posts[0] || null
-      console.log(foundData)
-      if (foundData) {
-        post;
-        setPost(foundData);
-        setLikes(0);
-        setComments([]);
+      const foundData = data.posts[0];
+      console.log(foundData, data);
+      
+      if (foundData.id == 0) {
+        router.push('/404')
+        return
       }
-      setDisplay('block')
+
+      setPost(foundData);
+      setLikes(0);
+      setComments([]);
+      setDisplay("block");
     } catch (error) {
       console.error(error);
     }
   };
 
   useEffect(() => {
-    pageLoadHandler()
+    pageLoadHandler();
   }, []);
 
   const handleLike = () => {
@@ -97,7 +100,7 @@ export default function SinglePostPage() {
   }
 
   return (
-    <div className="posts-page" style={{display}}>
+    <div className="posts-page" style={{ display }}>
       <div className="single-post-container">
         <button
           onClick={goBack}
@@ -132,7 +135,9 @@ export default function SinglePostPage() {
                   height={40}
                 />
               </div>
-              <div className="post-user-name">{post.user?.firstname + " " + post.user?.lastname}</div>
+              <div className="post-user-name">
+                {post.user?.firstname + " " + post.user?.lastname}
+              </div>
               <div className="post-privacy">
                 {renderPrivacyIcon(post.privacy)}
                 {post.privacy === "public"
@@ -144,7 +149,9 @@ export default function SinglePostPage() {
             </div>
             <div style={{ marginTop: "10px" }}>
               <div className="post-caption">
-                <span className="post-user-name">{post.user?.firstname + " " + post.user?.lastname}</span>{" "}
+                <span className="post-user-name">
+                  {post.user?.firstname + " " + post.user?.lastname}
+                </span>{" "}
                 {post.caption}
               </div>
               <div className="post-timestamp">{post.timestamp}</div>

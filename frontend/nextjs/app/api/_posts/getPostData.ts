@@ -20,11 +20,10 @@ const getPostData = async (postId?: number) => {
     
     const data = await response.json();
 
-    console.log(data);
-
     if (data.error == "Invalid session") {
         cookieStore.delete('token');
     }
+    
     return data;
   } catch (err) {
     console.error(err);

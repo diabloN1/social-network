@@ -35,7 +35,7 @@ func (s *Server) GetPosts(request map[string]any) *model.Response {
 	}
 
 	response.Posts = posts
-	
+
 	return response
 }
 
@@ -65,10 +65,11 @@ func (s *Server) GetPostData(request map[string]any) *model.Response {
 
 	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
 	if err != nil {
-		log.Println("Error in getting feed data:", err)
+		response.Error = err.Error()
+		log.Println("Error in getting Post Data:", err)
 	}
-	
+
 	response.Posts = []*model.Post{post}
-	
+
 	return response
 }
