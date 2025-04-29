@@ -5,8 +5,8 @@ import (
 	"real-time-forum/internal/model"
 )
 
-func (s *Server) Login(request map[string]any) model.Response {
-	response := model.Response{
+func (s *Server) Login(request map[string]any) *model.Response {
+	response := &model.Response{
 		Type:  "login",
 		Error: "",
 	}

@@ -48,6 +48,10 @@ func Start() error {
 	s.router.HandleFunc("/logout", s.LogoutHandler)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 
+	// Experimental (Need testing + front end)
+	s.router.HandleFunc("/getPosts", s.getPostsHandler)
+	s.router.HandleFunc("/getPost", s.getPostHandler)
+
 	go s.checkClientsLastActivity()
 	log.Println("Server started at http://localhost:8080/")
 	return http.ListenAndServe(":8080", s.corsMiddleware(s))
@@ -203,44 +207,44 @@ func (s *Server) readMessage(client *websocket.Conn) {
 
 		switch requestType {
 
-		case "register":
-			response = s.Register(request)
-			if response.Error == "" {
-				s.addClient(response.Userid, response.Session, client, response.Username)
-			}
-			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-			if err != nil {
-				log.Println("Notifications error:", err)
-			}
-			response.TotalNotifications = notifications
-		case "login":
-			response = s.Login(request)
-			if response.Error == "" {
-				s.addClient(response.Userid, response.Session, client, response.Username)
-			}
-			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-			if err != nil {
-				log.Println("Notifications error:", err)
-			}
-			response.TotalNotifications = notifications
-		case "session":
-			response = s.ValidateSession(request)
-			if response.Session != "" {
-				s.addClient(response.Userid, response.Session, client, response.Username)
-			} else {
-				response.Type = "logout"
-			}
-			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-			if err != nil {
-				log.Println("Notifications error:", err)
-			}
-			response.TotalNotifications = notifications
-		case "logout":
-			response = s.Logout(request)
-			s.removeClient(request["session"], client)
-		case "addpost":
-			response = s.AddPost(request)
-			s.BroadcastAddedContent(response)
+		// case "register":
+		// 	response = s.Register(request)
+		// 	if response.Error == "" {
+		// 		s.addClient(response.Userid, response.Session, client, response.Username)
+		// 	}
+		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
+		// 	if err != nil {
+		// 		log.Println("Notifications error:", err)
+		// 	}
+		// 	response.TotalNotifications = notifications
+		// case "login":
+		// 	response = s.Login(request)
+		// 	if response.Error == "" {
+		// 		s.addClient(response.Userid, response.Session, client, response.Username)
+		// 	}
+		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
+		// 	if err != nil {
+		// 		log.Println("Notifications error:", err)
+		// 	}
+		// 	response.TotalNotifications = notifications
+		// case "session":
+		// 	response = s.ValidateSession(request)
+		// 	if response.Session != "" {
+		// 		s.addClient(response.Userid, response.Session, client, response.Username)
+		// 	} else {
+		// 		response.Type = "logout"
+		// 	}
+		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
+		// 	if err != nil {
+		// 		log.Println("Notifications error:", err)
+		// 	}
+		// 	response.TotalNotifications = notifications
+		// case "logout":
+		// 	response = s.Logout(request)
+		// 	s.removeClient(request["session"], client)
+		// case "addpost":
+		// 	response = s.AddPost(request)
+		// 	s.BroadcastAddedContent(response)
 		case "addcomment":
 			response = s.AddComment(request)
 			s.BroadcastAddedContent(response)
@@ -282,7 +286,7 @@ func (s *Server) readMessage(client *websocket.Conn) {
 		s.mu.Lock()
 
 		if response.Session != "" {
-			response.Categories = s.GetCategoryAllData()
+			// response.Categories = s.GetCategoryAllData()
 			response.AllUsers = s.FindAllUsers(response.Userid)
 		}
 

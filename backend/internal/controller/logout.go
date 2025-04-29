@@ -5,9 +5,9 @@ import (
 	"real-time-forum/internal/model"
 )
 
-func (s *Server) Logout(request map[string]any) model.Response {
+func (s *Server) Logout(request map[string]any) *model.Response {
 
-	response := model.Response{}
+	response := &model.Response{}
 
 	response.Type = "logout"
 	response.Session = ""

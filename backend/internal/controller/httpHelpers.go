@@ -21,7 +21,7 @@ func (s *Server) ReadRequest(reqBody io.Reader) (map[string]any, error) {
 	return request, nil
 }
 
-func (s *Server) SendJson(w http.ResponseWriter, response model.Response, err error) {
+func (s *Server) SendJson(w http.ResponseWriter, response *model.Response, err error) {
 	if err != nil {
 		w.WriteHeader(500)
 		fmt.Println(err)

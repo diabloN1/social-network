@@ -1,0 +1,2 @@
+ - Should fix this query to getPostHandler back-end data based on (Is allowed to see), and use the endpoint in single post page.
+ - Fix likes and comments front - back.

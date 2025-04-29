@@ -5,62 +5,64 @@ import (
 	"real-time-forum/internal/model"
 )
 
-func (s *Server) AddPost(request map[string]any) model.Response {
+func (s *Server) AddPost(request map[string]any) *model.Response {
 	p := &model.Post{}
+	u := &model.User{}
+	p.User = u
 	response := &model.Response{}
 
 	var ok bool
 	var caption, privacy, image string
-	
+
 	// Validate text
 	captionRaw, ok := request["caption"]
 	if !ok {
 		response.Error = "Missing 'caption' field"
-		return *response
+		return response
 	}
 	caption, ok = captionRaw.(string)
 	if !ok {
 		response.Error = "'caption' must be a string"
-		return *response
+		return response
 	}
-	
+
 	privacyRaw, ok := request["privacy"]
 	if !ok {
 		response.Error = "Missing 'privacy' field"
-		return *response
+		return response
 	}
 	privacy, ok = privacyRaw.(string)
 	if !ok {
 		response.Error = "'privacy' must be a string"
-		return *response
+		return response
 	}
 
 	imageRaw, ok := request["image"]
 	if !ok {
 		response.Error = "Missing 'image' field"
-		return *response
+		return response
 	}
 	image, ok = imageRaw.(string)
 	if !ok {
 		response.Error = "'image' must be a string"
-		return *response
+		return response
 	}
 
 	if caption == "" && image == "" {
 		response.Error = "Can't create empty posts"
-		return *response
+		return response
 	}
 
 	if privacy != "public" && privacy != "almost-private" && privacy != "private" {
 		response.Error = "Privacy must be one of the following : public - almost-private - private"
-		return *response
+		return response
 	}
 
 	res := s.ValidateSession(request)
 
 	if res.Session == "" {
 		response.Error = "Invalid session"
-		return *response
+		return response
 	}
 
 	// Assign values after validation
@@ -68,7 +70,9 @@ func (s *Server) AddPost(request map[string]any) model.Response {
 	p.Caption = caption
 	p.Privacy = privacy
 	p.Image = image
-	
+	p.User.Firstname = res.User.Firstname
+	p.User.Lastname = res.User.Lastname
+	p.User.Avatar = res.User.Avatar
 
 	response.Type = "newPost"
 
@@ -76,10 +80,16 @@ func (s *Server) AddPost(request map[string]any) model.Response {
 	if len(p.Caption) > 1000 {
 		log.Println("Caption exceed limited chars")
 		response.Error = "Error text or title exceed limited chars or empty"
-		return *response
+		return response
 	}
 
-	s.repository.Post().Add(p)
+	err := s.repository.Post().Add(p)
 
-	return *response
+	if err != nil {
+		response.Error = "Error adding post: " + err.Error()
+		return response
+	}
+
+	response.Posts = []*model.Post{p}
+	return response
 }

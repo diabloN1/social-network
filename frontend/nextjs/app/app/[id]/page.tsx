@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
-import { SAMPLE_POSTS } from "../page";
+import getPostData from "@/app/api/_posts/getPostData";
 
 export default function SinglePostPage() {
   const params = useParams();
@@ -16,17 +16,31 @@ export default function SinglePostPage() {
   const [likes, setLikes] = useState(0);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [display, setDisplay] = useState('none')
+
+  const pageLoadHandler = async () => {
+    try {
+      const data = await getPostData(postId);
+      if (data.error != "") {
+        throw Error(data.error)
+      }
+      const foundData = data.posts[0] || null
+      console.log(foundData)
+      if (foundData) {
+        post;
+        setPost(foundData);
+        setLikes(0);
+        setComments([]);
+      }
+      setDisplay('block')
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   useEffect(() => {
-    // In a real app, you would fetch the post from an API
-    const foundPost = SAMPLE_POSTS.find((p) => p.id === postId);
-    if (foundPost) {
-      post;
-      setPost(foundPost);
-      setLikes(foundPost.likes);
-      setComments(foundPost.comments);
-    }
-  }, [postId]);
+    pageLoadHandler()
+  }, []);
 
   const handleLike = () => {
     if (liked) {
@@ -83,7 +97,7 @@ export default function SinglePostPage() {
   }
 
   return (
-    <div className="posts-page">
+    <div className="posts-page" style={{display}}>
       <div className="single-post-container">
         <button
           onClick={goBack}
@@ -118,7 +132,7 @@ export default function SinglePostPage() {
                   height={40}
                 />
               </div>
-              <div className="post-user-name">{post.user?.name}</div>
+              <div className="post-user-name">{post.user?.firstname + " " + post.user?.lastname}</div>
               <div className="post-privacy">
                 {renderPrivacyIcon(post.privacy)}
                 {post.privacy === "public"
@@ -130,7 +144,7 @@ export default function SinglePostPage() {
             </div>
             <div style={{ marginTop: "10px" }}>
               <div className="post-caption">
-                <span className="post-user-name">{post.user?.name}</span>{" "}
+                <span className="post-user-name">{post.user?.firstname + " " + post.user?.lastname}</span>{" "}
                 {post.caption}
               </div>
               <div className="post-timestamp">{post.timestamp}</div>

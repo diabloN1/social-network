@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-func (s *Server) Register(request map[string]any) model.Response {
-	response := model.Response{
+func (s *Server) Register(request map[string]any) *model.Response {
+	response := &model.Response{
 		Type: "register",
 	}
 

@@ -7,7 +7,9 @@ CREATE TABLE IF NOT EXISTS users (
   birth DATETIME,
   nickname varchar(255),
   avatar varchar(255),
-  about varchar(255)
+  about varchar(255),
+  is_private BOOLEAN NOT NULL DEFAULT FALSE,
+  creation_date DATETIME  DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS sessions (
@@ -26,6 +28,22 @@ CREATE TABLE IF NOT EXISTS posts (
   image varchar(255),
   creation_date DATETIME  DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
+CREATE TABLE IF NOT EXISTS followers (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  follower_id INTEGER,
+  following_id INTEGER,
+  FOREIGN KEY (follower_id) REFERENCES users (id),
+  FOREIGN KEY (following_id) REFERENCES users (id)
+);
+
+CREATE TABLE IF NOT EXISTS post_shares (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER,
+  shared_with_user_id INTEGER,
+  FOREIGN KEY (post_id) REFERENCES posts (id),
+  FOREIGN KEY (shared_with_user_id) REFERENCES users (id)
 );
 
 

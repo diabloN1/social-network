@@ -65,6 +65,5 @@ func (s *Server) AddComment(request map[string]any) model.Response {
 	s.repository.Comment().Add(c)
 
 	response.Postid = c.PostId
-	response.Categories = s.GetCategoryAllData()
 	return *response
 }

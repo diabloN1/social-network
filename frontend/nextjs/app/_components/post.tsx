@@ -21,7 +21,8 @@ interface PostProps {
   post: {
     id: number;
     user: {
-      name: string;
+      firstname: string;
+      lastname: string;
       avatar: string;
     };
     image: string;
@@ -39,7 +40,6 @@ const Post: React.FC<PostProps> = ({ post }) => {
   const [comments, setComments] = useState(post.comments);
   const [newComment, setNewComment] = useState("");
 
-  // Add inside the Post component, before the return statement:
   const router = useRouter();
 
   const navigateToPost = () => {
@@ -59,19 +59,6 @@ const Post: React.FC<PostProps> = ({ post }) => {
   // Update the comment form to include a visible send button with an icon
   const handleAddComment = (e: React.FormEvent) => {
     e.preventDefault();
-    if (newComment.trim()) {
-      const comment = {
-        id: comments.length + 1,
-        user: {
-          name: "Current User",
-          avatar: "/icons/placeholder.svg?height=30&width=30",
-        },
-        text: newComment,
-        timestamp: "Just now",
-      };
-      setComments([...comments, comment]);
-      setNewComment("");
-    }
   };
 
   const renderPrivacyIcon = () => {
@@ -101,12 +88,12 @@ const Post: React.FC<PostProps> = ({ post }) => {
         <div className="post-user-avatar">
           <Image
             src={post.user.avatar || "/icons/placeholder.svg"}
-            alt={post.user.name}
+            alt={post.user.avatar || "/icons/placeholder.svg"}
             width={40}
             height={40}
           />
         </div>
-        <div className="post-user-name">{post.user.name}</div>
+        <div className="post-user-name">{post.user.firstname + " " + post.user.lastname}</div>
         <div className="post-privacy">
           {renderPrivacyIcon()}
           {post.privacy === "public"
@@ -157,19 +144,19 @@ const Post: React.FC<PostProps> = ({ post }) => {
       <div className="post-likes">{likes} likes</div>
 
       <div className="post-caption">
-        <span className="post-user-name">{post.user.name}</span> {post.caption}
+        <span className="post-user-name">{post.user.firstname + " " + post.user.lastname}</span> {post.caption}
       </div>
 
       <div className="post-timestamp">{post.timestamp}</div>
 
-      {comments.length > 0 && (
+      {comments?.length > 0 && (
         <div className="post-comments">
           {comments.map((comment) => (
             <div key={comment.id} className="post-comment">
               <div className="comment-user-avatar">
                 <Image
                   src={comment.user.avatar || "/icons/placeholder.svg"}
-                  alt={comment.user.name}
+                  alt={comment.user.name || "/icons/placeholder.svg"}
                   width={30}
                   height={30}
                 />

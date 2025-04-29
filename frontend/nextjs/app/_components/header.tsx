@@ -2,9 +2,12 @@
 import React, { useState } from "react";
 import "./header.css";
 import logout from "../api/_auth/logout";
+import { useRouter } from "next/navigation";
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const router = useRouter();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -12,11 +15,11 @@ const Header: React.FC = () => {
 
   return (
     <header className="header">
+      {/* Project Name */}
       <div className="project-name">
-        <h1>Social Net</h1>
+        <h1 onClick={() => router.push("/app")}>Social Net</h1>
       </div>
       <div className="header-container">
-        {/* Project Name */}
         {/* Nav Bar */}
         <nav className={`navbar ${isMenuOpen ? "open" : ""}`}>
           <ul className="nav-links">

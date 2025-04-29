@@ -5,8 +5,8 @@ import (
 	"real-time-forum/internal/model"
 )
 
-func (s *Server) ValidateSession(request map[string]any) model.Response {
-	response := model.Response{}
+func (s *Server) ValidateSession(request map[string]any) *model.Response {
+	response := &model.Response{}
 	response.Type = "session"
 	response.Error = "error"
 
@@ -34,6 +34,7 @@ func (s *Server) ValidateSession(request map[string]any) model.Response {
 
 	response.Error = ""
 	response.Userid = foundUser.ID
+	response.User = foundUser
 	response.Session = session
 
 	response.Data = ""

@@ -9,9 +9,11 @@ type Response struct {
 	Error              string      `json:"error"`
 	AllUsers           []*User     `json:"allusers"`
 	Categories         []*Category `json:"categories"`
+	Posts              []*Post     `json:"posts"`
 	Postid             int         `json:"postid"`
 	TotalNotifications int         `json:"totalnotifications"`
 	Partnerid          int         `json:"partnerid"`
 	Message            *Message    `json:"message"`
 	Messages           []*Message  `json:"messages"`
+	User               *User       `json:"user"`
 }

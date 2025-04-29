@@ -9,7 +9,8 @@ type Post struct {
 	Text         string     `json:"text"`
 	CreationDate string     `json:"creation_date"`
 	Comment      []*Comment `json:"comments"`
-	Privacy string `json:"privacy"`
-	Caption string `json:"caption"`
-	Image string `json:"image"`
+	Privacy      string     `json:"privacy"`
+	Caption      string     `json:"caption"`
+	Image        string     `json:"image"`
+	User         *User      `json:"user"`
 }

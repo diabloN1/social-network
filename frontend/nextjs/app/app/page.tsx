@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import CreatePostModal from "../_components/create-post-modal";
 import Post from "../_components/post";
 import "./posts.css";
 import addPost from "../api/_posts/addPost";
+import getPosts from "../api/_posts/getPosts";
 
 // Sample data for demonstration
 export const SAMPLE_POSTS = [
@@ -47,8 +48,22 @@ export const SAMPLE_POSTS = [
 ];
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState(SAMPLE_POSTS);
+  const [posts, setPosts] = useState<any[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const data = await getPosts(0);
+        setPosts(data.posts);
+        console.log('posts :', data)
+      } catch (error) {
+        console.error(error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   const handleCreatePost = async (newPost: {
     image: string;
@@ -57,18 +72,23 @@ export default function PostsPage() {
   }) => {
     try {
       const data = await addPost(newPost);
+      
       if (data.error && data.error != "Invalid session") {
         alert(data.error);
         return;
       }
 
+      console.log(data)
+      const user = data.posts[0].user
+      console.log('user ---', user)
       // should fix the bellow from data
       setPosts([
         {
-          id: posts.length + 1,
+          id: posts.length + 1000,
           user: {
-            name: "Current User",
-            avatar: "/icons/placeholder.svg?height=40&width=40",
+            firstname: user.firstname,
+            lastname: user.lastname,
+            avatar: user.avatar,
           },
           likes: 0,
           comments: [],
