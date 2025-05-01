@@ -7,6 +7,7 @@ type User struct {
 	Username           string    `json:"username"`
 	Firstname          string    `json:"firstname"`
 	Lastname           string    `json:"lastname"`
+	Nickname           string    `json:"nickname"`
 	Password           string    `json:"password"`
 	EncryptedPassword  string    `json:"-"`
 	Email              string    `json:"email"`
@@ -15,6 +16,13 @@ type User struct {
 	Avatar             string    `json:"avatar"`
 	About              string    `json:"about"`
 	Online             bool      `json:"online"`
+	IsPrivate          bool      `json:"isprivate"`
+	IsAccepted         bool      `json:"isaccepted"`
+	Follow             Follow    `json:"follow"`
+	Posts              []*Post   `json:"posts"`
+	Followers          []*User   `json:"followers"`
+	Following          []*User   `json:"following"`
+	CurrentUser		   bool `json:"currentuser"`
 	TotalNotifications int       `json:"totalnotifications"`
 	LastMessageDate    string    `json:"lastmessagedate"`
 }

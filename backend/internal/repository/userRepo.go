@@ -12,16 +12,10 @@ type UserRepository struct {
 
 func (r *UserRepository) Create(u *model.User) error {
 
-	foundUser, _ := r.Find(u.Username)
+	foundUser, _ := r.Find(u.Email)
 
 	if foundUser != nil {
-		return errors.New("User already exists")
-	}
-
-	foundUser, _ = r.Find(u.Email)
-
-	if foundUser != nil {
-			return errors.New("Email already taken")
+		return errors.New("Email already taken")
 	}
 
 	return r.Repository.db.QueryRow(
@@ -31,7 +25,7 @@ func (r *UserRepository) Create(u *model.User) error {
 		u.Firstname,
 		u.Lastname,
 		u.Birth,
-		u.Username,
+		u.Nickname,
 		u.Avatar,
 		u.About,
 	).Scan(&u.ID)
@@ -43,10 +37,10 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 	var value interface{}
 	switch v := identifier.(type) {
 	case int:
-		query = "SELECT id, email, password, firstname, lastname, avatar from users WHERE id = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, is_private from users WHERE id = $1"
 		value = v
 	case string:
-		query = "SELECT id, email, password, firstname, lastname, avatar from users WHERE email = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, is_private from users WHERE email = $1"
 		value = v
 	default:
 		return nil, errors.New("Invalid identifier type")
@@ -57,13 +51,71 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 		&u.EncryptedPassword,
 		&u.Firstname,
 		&u.Lastname,
-		&u.Avatar); err != nil {
+		&u.Nickname,
+		&u.Avatar,
+		&u.Birth,
+		&u.IsPrivate); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
 		}
 		return nil, err
 	}
 	return u, nil
+}
+
+func (r *UserRepository) FindProfile(profileId, userId int) (*model.User, error) {
+
+	var fId int
+	var fIsAccepted bool
+	query := `SELECT id, is_accepted FROM followers WHERE following_id = $1 AND follower_id = $2`
+	if err := r.Repository.db.QueryRow(query, profileId, userId).Scan(
+		&fId,
+		&fIsAccepted); err != nil && err != sql.ErrNoRows {
+		return nil, err
+	}
+
+	user, err := r.Repository.User().Find(profileId)
+	if profileId == userId {
+		user.CurrentUser = true
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	isAllowed := user.CurrentUser || !user.IsPrivate || (fId != 0 && fIsAccepted)
+
+	if !isAllowed {
+		u := &model.User{}
+		u.Firstname = user.Firstname
+		u.Lastname = user.Lastname
+		u.Avatar = user.Avatar
+		u.IsPrivate = user.IsPrivate
+		u.Follow.ID = fId
+		u.Follow.IsAccepted = fIsAccepted
+		return u, nil
+	}
+
+	user.Posts, err = r.Repository.Post().GetProfilePosts(profileId, userId)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get following and followers
+	user.Followers, err = r.Repository.Follow().GetFollowers(profileId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Following, err = r.Repository.Follow().GetFollowing(profileId)
+	if err != nil {
+		return nil, err
+	}
+
+	user.Follow.ID = fId
+	user.Follow.IsAccepted = fIsAccepted
+
+	return user, nil
 }
 
 func (r *UserRepository) GetAll(userid int) ([]*model.User, error) {
@@ -106,6 +158,7 @@ func (r *UserRepository) GetAll(userid int) ([]*model.User, error) {
 	}
 	return users, nil
 }
+
 func (r *UserRepository) FindUsernameByID(userid int) (string, error) {
 	username := ""
 	query := "SELECT username from users WHERE id = $1"
@@ -117,4 +170,21 @@ func (r *UserRepository) FindUsernameByID(userid int) (string, error) {
 		return "", err
 	}
 	return username, nil
+}
+
+func (r *UserRepository) SetUserPrivacy(userId int, state bool) error {
+
+	// Accept older follow requests if pravicy set to Public
+	if state == false {
+		query := "UPDATE followers SET is_accepted = TRUE WHERE following_id = $1"
+		if _, err := r.Repository.db.Exec(query, userId); err != nil && err != sql.ErrNoRows {
+			return err
+		}
+	}
+
+	query := "UPDATE users SET is_private = $1 WHERE id = $2"
+	if _, err := r.Repository.db.Exec(query, state, userId); err != nil {
+		return err
+	}
+	return nil
 }

@@ -12,8 +12,15 @@ func New(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
 
+
 func (r *Repository) User() *UserRepository {
 	return &UserRepository{
+		Repository: r,
+	}
+}
+
+func (r *Repository) Follow() *FollowRepository {
+	return &FollowRepository{
 		Repository: r,
 	}
 }

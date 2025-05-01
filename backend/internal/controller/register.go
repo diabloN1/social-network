@@ -148,7 +148,7 @@ func (s *Server) Register(request map[string]any) *model.Response {
 
 	// Create user with all fields
 	u := &model.User{
-		Username:          nickname,
+		Nickname:          nickname,
 		EncryptedPassword: HashPassword(password),
 		Email:             email,
 		Firstname:         firstName,

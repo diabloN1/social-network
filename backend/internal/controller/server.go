@@ -41,16 +41,27 @@ func Start() error {
 	s := NewServer(http.NewServeMux(), db)
 
 	// s.router.Handle("/view/", http.StripPrefix("/view/", http.FileServer(http.Dir("./view"))))
-	s.router.HandleFunc("/", s.Home)
+	// s.router.HandleFunc("/", s.Home)
+
+	// Login
 	s.router.HandleFunc("/login", s.LoginHanlder)
 	s.router.HandleFunc("/register", s.RegisterHandler)
 	s.router.HandleFunc("/session", s.SessionHandler)
 	s.router.HandleFunc("/logout", s.LogoutHandler)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 
-	// Experimental (Need testing + front end)
+	// Posts
 	s.router.HandleFunc("/getPosts", s.getPostsHandler)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
+
+	// Profile
+	s.router.HandleFunc("/getProfile", s.getProfileHandler)
+
+	// Follow
+	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
+	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
+	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
+	s.router.HandleFunc("/setPrivacy", s.SetPrivacyHandler)
 
 	go s.checkClientsLastActivity()
 	log.Println("Server started at http://localhost:8080/")

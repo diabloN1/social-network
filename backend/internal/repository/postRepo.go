@@ -28,14 +28,14 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 				u.lastname
 				FROM posts p
 
-				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1
 				LEFT JOIN post_shares ps ON p.id = ps.post_id AND ps.shared_with_user_id = $1
 				LEFT JOIN users u ON u.id = p.user_id
+				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1
 
 				WHERE 
-					p.user_id = u.id
+					p.user_id = $1
 					OR (p.privacy = 'public' AND u.is_private = FALSE)
-					OR (p.privacy = 'almost private' AND f.id IS NOT NULL)
+					OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 					OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 				ORDER BY p.creation_date DESC
 				LIMIT 10 OFFSET $2;`
@@ -62,6 +62,44 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 	}
 	return posts, nil
 }
+func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, error) {
+	query := `SELECT p.id, p.image 
+				FROM posts p
+
+				LEFT JOIN followers f ON f.follower_id = $1 AND f.following_id = $2 
+				LEFT JOIN post_shares ps ON p.id = ps.post_id AND ps.shared_with_user_id = $1
+				LEFT JOIN users u ON u.id = p.user_id
+
+				WHERE 
+					p.user_id = $2
+					AND (
+						p.user_id = $1
+						OR (p.privacy = 'public' AND u.is_private = FALSE)
+						OR ((p.privacy = 'public' OR p.privacy = 'almost-private') AND f.id IS NOT NULL)
+						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
+					)
+				ORDER BY p.creation_date DESC`
+	rows, err := r.Repository.db.Query(query, userId, profileId)
+	if err != nil {
+		return nil, err
+	}
+
+	posts := []*model.Post{}
+	defer rows.Close()
+	for rows.Next() {
+		p := &model.Post{}
+		if err := rows.Scan(&p.ID, &p.Image); err != nil {
+			return nil, err
+		}
+		posts = append(posts, p)	
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return posts, nil
+}
 
 func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 
@@ -73,7 +111,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 				u.lastname
 				FROM posts p
 
-				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1
+				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1 AND is_accepted = 1
 				LEFT JOIN post_shares ps ON p.id = ps.post_id AND ps.shared_with_user_id = $1
 				LEFT JOIN users u ON u.id = p.user_id
 
@@ -83,7 +121,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 					(
 						p.user_id = u.id
 						OR (p.privacy = 'public' AND u.is_private = FALSE)
-						OR (p.privacy = 'almost private' AND f.id IS NOT NULL)
+						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 					);`,
 		userId, postId)

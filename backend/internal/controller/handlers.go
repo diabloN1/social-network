@@ -29,6 +29,7 @@ func (s *Server) Home(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
+// AUTH Handlers
 func (s *Server) LoginHanlder(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
 	response := s.Login(request)
@@ -56,6 +57,7 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 
+// POST Handlers
 func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)
@@ -74,5 +76,42 @@ func (s *Server) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)
 	response := s.GetPostData(request)
+	s.SendJson(w, response, err)
+}
+
+// PROFILE Handlers
+func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetProfile(request)
+	s.SendJson(w, response, err)
+}
+
+// Follow Handlers
+func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.RequestFollow(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.AcceptFollow(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) deleteFollowHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.DeleteFollow(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.setProfilePrivacy(request)
 	s.SendJson(w, response, err)
 }

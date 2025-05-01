@@ -103,7 +103,7 @@ export default function Navbar() {
     },
     {
       id: "profile",
-      label: "Profile",
+      label: "Profiles",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -119,7 +119,7 @@ export default function Navbar() {
           <path d="M20 21a8 8 0 1 0-16 0" />
         </svg>
       ),
-      link: "/app",
+      link: "/app/profiles",
     },
   ];
 

@@ -1,2 +1,18 @@
- - Should fix this query to getPostHandler back-end data based on (Is allowed to see), and use the endpoint in single post page.
- - Fix likes and comments front - back.
+# Single Profile Page
+ToDo :
+ - should implement birth date in profile only frontend.
+ - should fix currentUser can follow himself in followers/following.
+
+Doing
+
+Done :
+ - Add column is_accepted to followers table.
+ - Modify getProfile to contain is_accepted.
+ - Add to getProfileHandler the users info as (follower - following - and posts).
+ - Connect front end to data received from backend.
+ - Add a follow repository that should contains getfollowers - getfollowing - requestFollow - acceptFollow - deleteFollow
+ - Request Follow - Delete Follow working.
+ - fix posts not showing for followers (they should show).
+ - show pending follow requests in button front-end.
+ - setUserPrivacy front - back.
+
