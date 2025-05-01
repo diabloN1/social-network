@@ -1,7 +1,6 @@
 # Single Profile Page
 ToDo :
  - should implement birth date in profile only frontend.
- - should fix currentUser can follow himself in followers/following.
 
 Doing
 
@@ -15,4 +14,4 @@ Done :
  - fix posts not showing for followers (they should show).
  - show pending follow requests in button front-end.
  - setUserPrivacy front - back.
-
+ - When user sets acc public the pending requests get's accepted
