@@ -20,7 +20,7 @@ interface Follow {
   isAccepted: number;
 }
 
-interface User {
+export interface User {
   id: number;
   firstname: string;
   lastname: string;
@@ -109,7 +109,7 @@ export default function ProfilePage() {
   const handleFollowAction = async () => {
     try {
       if (isFollowing || isPending) {
-        const data = await deleteFollow(userId);
+        const data = await deleteFollow(userId, true);
         if (data.error) {
           alert(data.error);
           return;

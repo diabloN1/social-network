@@ -62,6 +62,8 @@ func Start() error {
 	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
 	s.router.HandleFunc("/setPrivacy", s.SetPrivacyHandler)
+	s.router.HandleFunc("/getProfiles", s.GetProfilesHanlder)
+	
 
 	go s.checkClientsLastActivity()
 	log.Println("Server started at http://localhost:8080/")

@@ -2,40 +2,47 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import "./styles.css"
+import { User } from "./[id]/page"
+import getProfiles from "@/app/api/_profiles/getProfiles"
+import acceptFollow from "@/app/api/_follow/acceptFollow"
+import deleteFollow from "@/app/api/_follow/deleteFollow"
 
-// Mock data for demonstration
-const MOCK_USERS = [
-  { id: 1, username: "john_doe", name: "John Doe", avatar: "/icons/placeholder.svg" },
-  { id: 2, username: "jane_smith", name: "Jane Smith", avatar: "/icons/placeholder.svg" },
-  { id: 3, username: "mike_johnson", name: "Mike Johnson", avatar: "/icons/placeholder.svg" },
-  { id: 4, username: "sarah_williams", name: "Sarah Williams", avatar: "/icons/placeholder.svg" },
-  { id: 5, username: "alex_brown", name: "Alex Brown", avatar: "/icons/placeholder.svg" },
-  { id: 6, username: "emily_davis", name: "Emily Davis", avatar: "/icons/placeholder.svg" },
-  { id: 7, username: "david_miller", name: "David Miller", avatar: "/icons/placeholder.svg" },
-  { id: 8, username: "olivia_wilson", name: "Olivia Wilson", avatar: "/icons/placeholder.svg" },
-]
+export default function ProfilesPage() {
 
-const MOCK_FOLLOW_REQUESTS = [
-  { id: 9, username: "robert_taylor", name: "Robert Taylor", avatar: "/icons/placeholder.svg" },
-  { id: 10, username: "sophia_anderson", name: "Sophia Anderson", avatar: "/icons/placeholder.svg" },
-  { id: 11, username: "james_thomas", name: "James Thomas", avatar: "/icons/placeholder.svg" },
-]
-
-export default function ProfilePage() {
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
-  const [followRequests, setFollowRequests] = useState(MOCK_FOLLOW_REQUESTS)
-  const [users, setUsers] = useState(MOCK_USERS)
-  const [followingStatus, setFollowingStatus] = useState<Record<number, string>>({})
+  const [followRequests, setFollowRequests] = useState<User[] | null>(null)
+  const [users, setUsers] = useState<User[] | null>(null)
+
+  const getData = async () => {
+    try {
+      const data = await getProfiles();
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+  
+      setUsers(data.allusers)
+      setFollowRequests(data.followrequests)
+
+      return data
+    } catch(error) {
+      alert(error)
+    }
+  }
+
+  useEffect(() => {
+    getData()
+  }, [])
 
   // Filter users based on search term
-  const filteredUsers = users.filter(
+  const filteredUsers = users?.filter(
     (user) =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()),
+      user.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.firstname.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   // Handle search input change
@@ -43,24 +50,35 @@ export default function ProfilePage() {
     setSearchTerm(e.target.value)
   }
 
-  // Handle follow request
-  const handleFollowRequest = (userId: number) => {
-    setFollowingStatus((prev) => ({
-      ...prev,
-      [userId]: "requested",
-    }))
-  }
 
   // Handle accept follow request
-  const handleAcceptRequest = (userId: number) => {
-    setFollowRequests((prev) => prev.filter((request) => request.id !== userId))
-    // In a real app, you would update the database here
+  const handleAcceptRequest = async (userId: number) => {
+    try {
+      const data = await acceptFollow(userId)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+
+      setFollowRequests((prev) => prev ? prev.filter((request) => request.id !== userId): null)
+    } catch(error) {
+      alert(error)
+    }
   }
 
   // Handle decline follow request
-  const handleDeclineRequest = (userId: number) => {
-    setFollowRequests((prev) => prev.filter((request) => request.id !== userId))
-    // In a real app, you would update the database here
+  const handleDeclineRequest = async (userId: number) => {
+    try {
+      const data = await deleteFollow(userId, false)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+
+      setFollowRequests((prev) => prev ? prev.filter((request) => request.id !== userId): null)
+    } catch(error) {
+      alert(error)
+    }
   }
 
   // Navigate to user profile
@@ -91,21 +109,21 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      {followRequests.length > 0 && (
+      {followRequests && followRequests.length > 0 && (
         <section className="follow-requests-section">
           <h2>Follow Requests</h2>
           <div className="follow-requests-list">
-            {followRequests.map((request) => (
+            {followRequests && followRequests.map((request) => (
               <div key={request.id} className="user-card request-card">
                 <div
                   className="user-info"
                   onClick={() => navigateToProfile(request.id)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img src={request.avatar || "/placeholder.svg"} alt={request.username} className="user-avatar" />
+                  <img src={request.avatar || "/placeholder.svg"} alt={request.nickname} className="user-avatar" />
                   <div className="user-details">
-                    <span className="user-name">{request.name}</span>
-                    <span className="username">@{request.username}</span>
+                    <span className="user-name">{request.firstname}</span>
+                    <span className="nickname">@{request.nickname}</span>
                   </div>
                 </div>
                 <div className="request-actions">
@@ -123,27 +141,20 @@ export default function ProfilePage() {
       )}
 
       <section className="users-section">
-        <h2>Suggested Users</h2>
+        <h2>Browse Users</h2>
         <div className="users-list">
-          {filteredUsers.map((user) => (
+          {filteredUsers?.map((user) => (
             <div key={user.id} className="user-card">
               <div className="user-info" onClick={() => navigateToProfile(user.id)} style={{ cursor: "pointer" }}>
-                <img src={user.avatar || "/placeholder.svg"} alt={user.username} className="user-avatar" />
+                <img src={user.avatar || "/placeholder.svg"} alt={user.nickname} className="user-avatar" />
                 <div className="user-details">
-                  <span className="user-name">{user.name}</span>
-                  <span className="username">@{user.username}</span>
+                  <span className="user-name">{user.firstname}</span>
+                  <span className="nickname">@{user.nickname}</span>
                 </div>
               </div>
-              <button
-                className={`follow-button ${followingStatus[user.id] ? "requested" : ""}`}
-                onClick={() => handleFollowRequest(user.id)}
-                disabled={followingStatus[user.id] === "requested"}
-              >
-                {followingStatus[user.id] === "requested" ? "Requested" : "Follow"}
-              </button>
             </div>
           ))}
-          {filteredUsers.length === 0 && searchTerm && (
+          {filteredUsers?.length === 0 && searchTerm && (
             <div className="no-results">No users found matching "{searchTerm}"</div>
           )}
         </div>

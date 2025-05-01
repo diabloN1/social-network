@@ -8,6 +8,7 @@ type Response struct {
 	Session            string      `json:"session"`
 	Error              string      `json:"error"`
 	AllUsers           []*User     `json:"allusers"`
+	FollowRequests     []*User     `json:"followrequests"`
 	Categories         []*Category `json:"categories"`
 	Posts              []*Post     `json:"posts"`
 	Postid             int         `json:"postid"`

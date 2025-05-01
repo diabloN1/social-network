@@ -19,6 +19,7 @@ interface Comment {
 interface PostProps {
   post: {
     id: number;
+    user_id: number;
     user: {
       firstname: string;
       lastname: string;
@@ -85,7 +86,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
   return (
     <article className="post">
       <div className="post-header">
-        <div className="post-user-avatar">
+        <div className="post-user-avatar" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
           <Image
             src={post.user.avatar || "/icons/placeholder.svg"}
             alt={post.user.avatar || "/icons/placeholder.svg"}
@@ -93,7 +94,7 @@ const Post: React.FC<PostProps> = ({ post }) => {
             height={40}
           />
         </div>
-        <div className="post-user-name">
+        <div className="post-user-name" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
           {post.user.firstname + " " + post.user.lastname}
         </div>
         <div className="post-privacy">

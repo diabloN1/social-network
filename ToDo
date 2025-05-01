@@ -1,6 +1,11 @@
 # Single Profile Page
 ToDo :
+ - GetFollowRequests followers repo
+ - GetProfiles that would use getFollowRequests and make it's own query to query rem3 users.
+ - remove session in all use server before sending data to front.
+
  - should implement birth date in profile only frontend.
+ - Add to on clicks for profile acc and for posts cursor pointer.
 
 Doing
 

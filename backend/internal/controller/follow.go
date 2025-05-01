@@ -96,7 +96,31 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 		return response
 	}
 
-	err := s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
+	var isFollower bool
+	isFollowerRaw, ok := request["isFollower"]
+	if !ok {
+		response.Error = "Missing 'isFollower' field"
+		return response
+	}
+	isFollower, ok = isFollowerRaw.(bool)
+	if !ok {
+		response.Error = "'isFollower' must be a bool"
+		return response
+	}
+
+	var err error
+
+	// isFollower or been followed.
+	if (isFollower) {
+		err = s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
+		
+	} else {
+		err = s.repository.Follow().DeleteFollow(res.Userid, int(profileId))
+		if err != nil {
+			response.Error = err.Error()
+			log.Println("Error deletting follow:", err)
+		}
+	}
 	if err != nil {
 		response.Error = err.Error()
 		log.Println("Error deletting follow:", err)

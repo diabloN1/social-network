@@ -90,7 +90,7 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 
 func (r *FollowRepository) AcceptFollow(profileId, userId int) error {
 
-	_, err := r.Repository.db.Exec("UPDATE followers SET is_accepted = TRUE, WHERE following_id = $1 AND follower_id = $2",
+	_, err := r.Repository.db.Exec("UPDATE followers SET is_accepted = TRUE WHERE following_id = $1 AND follower_id = $2",
 	userId, profileId)
 	if err != nil {
 		return err
@@ -109,4 +109,33 @@ func (r *FollowRepository) DeleteFollow(profileId, userId int) error {
 	}
 
 	return nil
+}
+
+func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
+	var users []*model.User
+
+	// Get follow requests
+	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
+			  FROM users u
+			  INNER JOIN followers f 
+			  ON u.id = f.follower_id
+			  WHERE f.following_id = $1 AND f.is_accepted = FALSE`
+	rows, err := r.Repository.db.Query(query, userid)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		user := &model.User{}
+		if err := rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Nickname, &user.Avatar); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

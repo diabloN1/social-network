@@ -115,3 +115,10 @@ func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.setProfilePrivacy(request)
 	s.SendJson(w, response, err)
 }
+
+func (s *Server) GetProfilesHanlder(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetProfiles(request)
+	s.SendJson(w, response, err)
+}

@@ -2,7 +2,7 @@
 
 import { cookies } from "next/headers";
 
-const deleteFollow = async (profileId?: number) => {
+const deleteFollow = async (profileId?: number, isFollower?: boolean) => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value || "";
@@ -13,8 +13,9 @@ const deleteFollow = async (profileId?: number) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        profileId: profileId,
         session: token,
+        profileId: profileId,
+        isFollower: isFollower,
       }),
     });
 

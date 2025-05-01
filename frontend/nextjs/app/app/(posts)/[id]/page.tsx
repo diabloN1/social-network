@@ -127,7 +127,7 @@ export default function SinglePostPage() {
         <div className="single-post-content">
           <div className="single-post-header">
             <div style={{ display: "flex", alignItems: "center" }}>
-              <div className="post-user-avatar">
+              <div className="post-user-avatar" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
                 <Image
                   src={post.user?.avatar || "/icons/placeholder.svg"}
                   alt="avatar"
@@ -135,7 +135,7 @@ export default function SinglePostPage() {
                   height={40}
                 />
               </div>
-              <div className="post-user-name">
+              <div className="post-user-name" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
                 {post.user?.firstname + " " + post.user?.lastname}
               </div>
               <div className="post-privacy">

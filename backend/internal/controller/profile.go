@@ -38,6 +38,34 @@ func (s *Server) GetProfile(request map[string]any) *model.Response {
 	return response
 }
 
+func (s *Server) GetProfiles(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "profiles feed",
+		Error: "",
+	}
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	var err error
+	response.FollowRequests, err = s.repository.Follow().GetFollowRequests(res.Userid)
+	if err != nil {
+		response.Error = err.Error()
+		return response
+	}
+
+	response.AllUsers, err = s.repository.User().GetAllUsers()
+	if err != nil {
+		response.Error = err.Error()
+		return response
+	}
+
+	return response
+}
+
 func (s *Server) setProfilePrivacy(request map[string]any) *model.Response {
 	response := &model.Response{
 		Type:  "privacy",

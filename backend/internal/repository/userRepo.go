@@ -63,6 +63,29 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 	return u, nil
 }
 
+func (r *UserRepository) GetAllUsers() ([]*model.User, error) {
+	var users []*model.User
+	query := `SELECT id, firstname, lastname, nickname, avatar FROM users`
+	rows, err := r.Repository.db.Query(query)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		user := &model.User{}
+		if err := rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Nickname, &user.Avatar); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 func (r *UserRepository) FindProfile(profileId, userId int) (*model.User, error) {
 
 	var fId int
