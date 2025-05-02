@@ -1,22 +1,18 @@
-# Single Profile Page
 ToDo :
- - GetFollowRequests followers repo
- - GetProfiles that would use getFollowRequests and make it's own query to query rem3 users.
- - remove session in all use server before sending data to front.
+ # Groups
+ - Create group repo
+ - Create event repo
+ - Add group (image optional)
+ - getGroups (PageData)
 
+ # Single Profile Page
  - should implement birth date in profile only frontend.
  - Add to on clicks for profile acc and for posts cursor pointer.
 
-Doing
+Doing :
+
 
 Done :
- - Add column is_accepted to followers table.
- - Modify getProfile to contain is_accepted.
- - Add to getProfileHandler the users info as (follower - following - and posts).
- - Connect front end to data received from backend.
- - Add a follow repository that should contains getfollowers - getfollowing - requestFollow - acceptFollow - deleteFollow
- - Request Follow - Delete Follow working.
- - fix posts not showing for followers (they should show).
- - show pending follow requests in button front-end.
- - setUserPrivacy front - back.
- - When user sets acc public the pending requests get's accepted
+ - GetFollowRequests followers repo
+ - GetProfiles that would use getFollowRequests and make it's own query to query rem users.
+ - remove session in all use server before sending data to front.

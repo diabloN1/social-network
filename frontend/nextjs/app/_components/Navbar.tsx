@@ -78,7 +78,7 @@ export default function Navbar() {
           <rect width="8" height="6" x="11" y="14" rx="1" />
         </svg>
       ),
-      link: "/app",
+      link: "/app/groups",
     },
     {
       id: "notification",

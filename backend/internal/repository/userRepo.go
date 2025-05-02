@@ -112,6 +112,7 @@ func (r *UserRepository) FindProfile(profileId, userId int) (*model.User, error)
 		u := &model.User{}
 		u.Firstname = user.Firstname
 		u.Lastname = user.Lastname
+		u.Nickname = user.Nickname
 		u.Avatar = user.Avatar
 		u.IsPrivate = user.IsPrivate
 		u.Follow.ID = fId

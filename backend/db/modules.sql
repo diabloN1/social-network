@@ -69,4 +69,52 @@ CREATE TABLE IF NOT EXISTS messages (
   FOREIGN KEY (recipient_id) REFERENCES users (id)
 );
 
+CREATE TABLE IF NOT EXISTS groups (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description VARCHAR(255) NOT NULL,
+    image VARCHAR(255) NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id)
+  );
+
+CREATE TABLE IF NOT EXISTS group_members (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    inviter_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    is_accepted BOOLEAN NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (inviter_id) REFERENCES users (id),
+    FOREIGN KEY (group_id) REFERENCES groups (id)
+);
+
+CREATE TABLE IF NOT EXISTS group_events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER,
+    user_id INTEGER,
+    title VARCHAR(255),
+    description VARCHAR(255),
+    option_1 VARCHAR(255),
+    option_2 VARCHAR(255),
+    date VARCHAR(255),
+    time VARCHAR(255),
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (group_id) REFERENCES groups (id)
+);
+
+CREATE TABLE IF NOT EXISTS event_options (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    event_id INTEGER NOT NULL,
+    user_id INTEGER NOT NULL,
+    is_going BOOLEAN NOT NULL,
+    creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users (id),
+    FOREIGN KEY (event_id) REFERENCES group_events (id)
+);
+
+
 -- INSERT INTO categories VALUES (1, 'Golang'), (2, 'JavaScirpt'), (3, 'Rust'), (4, 'Java');
