@@ -151,6 +151,13 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 	if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil && err != sql.ErrNoRows {
 		return nil, errors.New(err.Error())
 	}
+
+	reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	post.Reactions = reactions
 	post.User = user
 	return post, nil
 }
