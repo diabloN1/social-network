@@ -117,4 +117,16 @@ CREATE TABLE IF NOT EXISTS event_options (
 );
 
 
+CREATE TABLE IF NOT EXISTS post_reactions (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  post_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  is_like BOOLEAN,
+  creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (post_id) REFERENCES posts (id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  UNIQUE(post_id, user_id)
+);
+
+
 -- INSERT INTO categories VALUES (1, 'Golang'), (2, 'JavaScirpt'), (3, 'Rust'), (4, 'Java');

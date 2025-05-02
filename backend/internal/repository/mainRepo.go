@@ -5,13 +5,12 @@ import (
 )
 
 type Repository struct {
-	db                 *sql.DB
+	db *sql.DB
 }
 
 func New(db *sql.DB) *Repository {
 	return &Repository{db: db}
 }
-
 
 func (r *Repository) User() *UserRepository {
 	return &UserRepository{
@@ -51,6 +50,12 @@ func (r *Repository) Comment() *CommentRepository {
 
 func (r *Repository) Message() *MessageRepository {
 	return &MessageRepository{
+		Repository: r,
+	}
+}
+
+func (r *Repository) Reaction() *ReactionRepository {
+	return &ReactionRepository{
 		Repository: r,
 	}
 }

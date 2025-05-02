@@ -105,12 +105,14 @@
   margin-right: 12px;
   overflow: hidden;
   border: 2px solid #3a3b3c;
+  cursor: pointer;
 }
 
 .post-user-name {
   font-weight: 600;
   color: var(--text-color);
   font-size: 15px;
+  cursor: pointer;
 }
 
 .post-privacy {
@@ -164,6 +166,11 @@
 .post-action-btn:hover {
   color: var(--primary-color);
   background-color: rgba(67, 97, 238, 0.1);
+}
+
+.post-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .post-likes {
@@ -457,6 +464,25 @@
   cursor: pointer;
 }
 
+.loading {
+  color: var(--text-color);
+  text-align: center;
+  padding: 20px;
+  font-size: 16px;
+  grid-column: 1 / -1;
+}
+
+.no-posts {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 16px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  grid-column: 1 / -1;
+}
+
 @media (max-width: 600px) {
   .posts-container {
     padding: 12px;
@@ -580,4 +606,70 @@
   font-size: 14px;
   padding: 8px 16px;
   border-top: 1px solid var(--border-color);
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: calc(100vh - 120px);
+  width: 100%;
+}
+
+.loading,
+.error {
+  color: var(--text-color);
+  font-size: 18px;
+  background-color: var(--card-bg);
+  padding: 20px 30px;
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border-color);
+}
+
+.back-btn {
+  margin-top: 20px;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.back-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-2px);
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.back-button:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.no-comments {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 20px;
+  font-size: 15px;
 }

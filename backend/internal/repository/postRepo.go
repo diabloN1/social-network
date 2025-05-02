@@ -18,6 +18,7 @@ func (r *PostRepository) Add(p *model.Post) error {
 	).Scan(&p.ID)
 }
 
+
 func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 	var posts []*model.Post
 
@@ -46,6 +47,9 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
+	
+	postIds := []int{}
+	
 	for rows.Next() {
 		post := &model.Post{}
 		user := &model.User{}
@@ -56,12 +60,29 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 		post.CreationDate = newTime.Format("2006-01-02 15:04:05")
 		post.User = user
 		posts = append(posts, post)
+		postIds = append(postIds, post.ID)
 	}
+	
 	if len(posts) == 0 {
 		return []*model.Post{}, nil
 	}
+	
+	reactions, err := r.Repository.Reaction().GetReactionsForPosts(userId, postIds)
+	if err != nil {
+		return nil, err
+	}
+	
+	for _, post := range posts {
+		if counts, ok := reactions[post.ID]; ok {
+			post.Reactions = counts
+		}
+	}
+	
 	return posts, nil
 }
+
+
+
 func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, error) {
 	query := `SELECT p.id, p.image 
 				FROM posts p

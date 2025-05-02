@@ -53,6 +53,7 @@ func Start() error {
 	// Posts
 	s.router.HandleFunc("/getPosts", s.getPostsHandler)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
+	s.router.HandleFunc("/reactToPost", s.reactToPostHandler) 
 
 	// Profile
 	s.router.HandleFunc("/getProfile", s.getProfileHandler)
@@ -359,4 +360,23 @@ func (s *Server) SendIsTyping(response model.Response) {
 	for _, c := range clientsTargeted {
 		c.Connection.WriteJSON(response)
 	}
+}
+
+
+func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+        return
+    }
+
+    var request map[string]interface{}
+    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+        http.Error(w, "Invalid request body", http.StatusBadRequest)
+        return
+    }
+
+    response := s.ReactToPost(request)
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(response)
 }

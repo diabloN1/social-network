@@ -1,11 +1,11 @@
-'use server'
+"use server"
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers"
 
-const getPostData = async (postId?: number) => {
+const getPostData = async (postId: number) => {
   try {
     const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
+    const token = cookieStore.get("token")?.value || ""
 
     const response = await fetch("http://localhost:8080/getPost", {
       method: "POST",
@@ -14,20 +14,21 @@ const getPostData = async (postId?: number) => {
       },
       body: JSON.stringify({
         postId: postId,
-        session: token
+        session: token,
       }),
-    });
-    
-    const data = await response.json();
+    })
 
-    if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+    const data = await response.json()
+
+    if (data.error === "Invalid session") {
+      cookieStore.delete("token")
     }
-    
-    return data;
+
+    return data
   } catch (err) {
-    console.error(err);
+    console.error(err)
+    return { error: "Failed to fetch post data", posts: [] }
   }
-};
+}
 
 export default getPostData
