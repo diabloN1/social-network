@@ -59,3 +59,9 @@ func (r *Repository) Reaction() *ReactionRepository {
 		Repository: r,
 	}
 }
+
+func (r *Repository) Group() *GroupRepository {
+	return &GroupRepository{
+		Repository: r,
+	}	
+}

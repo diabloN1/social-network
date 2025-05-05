@@ -120,7 +120,7 @@ export default function ProfilesPage() {
                   onClick={() => navigateToProfile(request.id)}
                   style={{ cursor: "pointer" }}
                 >
-                  <img src={request.avatar || "/placeholder.svg"} alt={request.nickname} className="user-avatar" />
+                  <img src={request.avatar || "/icons/placeholder.svg"} alt={request.nickname} className="user-avatar" />
                   <div className="user-details">
                     <span className="user-name">{request.firstname}</span>
                     <span className="nickname">@{request.nickname}</span>
@@ -146,7 +146,7 @@ export default function ProfilesPage() {
           {filteredUsers?.map((user) => (
             <div key={user.id} className="user-card">
               <div className="user-info" onClick={() => navigateToProfile(user.id)} style={{ cursor: "pointer" }}>
-                <img src={user.avatar || "/placeholder.svg"} alt={user.nickname} className="user-avatar" />
+                <img src={user.avatar || "/icons/placeholder.svg"} alt={user.nickname} className="user-avatar" />
                 <div className="user-details">
                   <span className="user-name">{user.firstname}</span>
                   <span className="nickname">@{user.nickname}</span>

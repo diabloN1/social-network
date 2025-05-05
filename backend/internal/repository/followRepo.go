@@ -14,7 +14,7 @@ func (r *FollowRepository) GetFollowers(profileId int) ([]*model.User, error) {
 	var followers []*model.User
 	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
 	FROM followers f
-	JOIN users u ON f.follower_id = u.id
+	JOIN users u ON f.follower_id = u.id AND f.is_accepted = TRUE
 	WHERE f.following_id = $1`
 
 	rows, err := r.Repository.db.Query(query, profileId)
@@ -39,7 +39,7 @@ func (r *FollowRepository) GetFollowing(profileId int) ([]*model.User, error) {
 	var following []*model.User
 	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
 	FROM followers f
-	JOIN users u ON f.follower_id = $1
+	JOIN users u ON f.follower_id = $1 AND f.is_accepted = TRUE
 	WHERE f.following_id = u.id`
 
 	rows, err := r.Repository.db.Query(query, profileId)

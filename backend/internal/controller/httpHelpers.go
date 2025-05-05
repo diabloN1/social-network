@@ -5,9 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"real-time-forum/internal/model"
 )
-
 
 func (s *Server) ReadRequest(reqBody io.Reader) (map[string]any, error) {
 	request := make(map[string]any)
@@ -17,11 +15,11 @@ func (s *Server) ReadRequest(reqBody io.Reader) (map[string]any, error) {
 	}
 
 	json.Unmarshal(body, &request)
-	
+
 	return request, nil
 }
 
-func (s *Server) SendJson(w http.ResponseWriter, response *model.Response, err error) {
+func (s *Server) SendJson(w http.ResponseWriter, response any, err error) {
 	if err != nil {
 		w.WriteHeader(500)
 		fmt.Println(err)
@@ -35,7 +33,7 @@ func (s *Server) SendJson(w http.ResponseWriter, response *model.Response, err e
 		fmt.Println(err)
 		w.WriteHeader(500)
 		_, err = w.Write([]byte("Error Marshling Response"))
-		return	
+		return
 	}
 
 	w.WriteHeader(200)

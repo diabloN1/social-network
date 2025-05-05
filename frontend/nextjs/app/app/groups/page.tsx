@@ -2,9 +2,12 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import "./styles.css"
+import CreateGroupModal from "@/app/_components/create-group-modal"
+import createGroup from "@/app/api/_groups/createGroup"
+import getGroups from "@/app/api/_groups/getGroups"
 
 // Mock data for groups
 const MOCK_GROUPS = [
@@ -27,7 +30,7 @@ const MOCK_GROUPS = [
     events: 3,
     isMember: true,
     isCreator: true,
-    image: "/placeholder.svg?height=300&width=600", // Add this line
+    image: "/icons/placeholder.svg", // Add this line
   },
   {
     id: 2,
@@ -48,7 +51,7 @@ const MOCK_GROUPS = [
     events: 5,
     isMember: true,
     isCreator: false,
-    image: "/placeholder.svg?height=300&width=600", // Add this line
+    image: "/icons/placeholder.svg", // Add this line
   },
   {
     id: 3,
@@ -68,7 +71,7 @@ const MOCK_GROUPS = [
     events: 2,
     isMember: false,
     isCreator: false,
-    image: "/placeholder.svg?height=300&width=600", // Add this line
+    image: "/icons/placeholder.svg", // Add this line
   },
   {
     id: 4,
@@ -88,7 +91,7 @@ const MOCK_GROUPS = [
     events: 4,
     isMember: false,
     isCreator: false,
-    image: "/placeholder.svg?height=300&width=600", // Add this line
+    image: "/icons/placeholder.svg", // Add this line
   },
 ]
 
@@ -119,20 +122,38 @@ const MOCK_REQUESTS = [
 
 export default function GroupsPage() {
   const router = useRouter()
+  const [groups, setGroups] = useState<any>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newGroup, setNewGroup] = useState({ title: "", description: "" })
 
+  const initData = async () => {
+    try {
+      const data = await getGroups()
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+
+      console.log(data)
+      setGroups(data.all)
+    } catch(error) {
+      alert(error)
+    }
+  }
+
+  useEffect(() => {
+    initData()
+  }, [])
   // Filter groups based on search term and active tab
-  const filteredGroups = MOCK_GROUPS.filter((group) => {
+  const filteredGroups = groups?.filter((group: any) => {
     const matchesSearch =
       group.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       group.description.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (activeTab === "all") return matchesSearch
-    if (activeTab === "my-groups") return matchesSearch && group.isMember
-    if (activeTab === "created") return matchesSearch && group.isCreator
+    if (activeTab === "my-groups") return matchesSearch && group.is_accepted
+    if (activeTab === "created") return matchesSearch && group.is_owner
 
     return matchesSearch
   })
@@ -143,17 +164,19 @@ export default function GroupsPage() {
   }
 
   // Handle group creation
-  const handleCreateGroup = (e: React.FormEvent) => {
-    e.preventDefault()
-    // In a real app, you would send this to the backend
-    console.log("Creating group:", newGroup)
+  const handleCreateGroup = async (group: { image: string; title: string; description: string }) => {
 
-    // Reset form and close modal
-    setNewGroup({ title: "", description: "" })
-    setShowCreateModal(false)
+    try {
+      const data = await createGroup(group)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
 
-    // For demo purposes, we'll just close the modal
-    // Normally you would add the new group to the list
+      setShowCreateModal(false)
+    } catch(error) {
+      alert(error)
+    }
   }
 
   // Handle joining a group
@@ -297,39 +320,15 @@ export default function GroupsPage() {
       </div>
 
       <div className="groups-list">
-        {filteredGroups.length > 0 ? (
-          filteredGroups.map((group) => (
+        {filteredGroups?.length > 0 ? (
+          filteredGroups.map((group: any) => (
             <div key={group.id} className="group-card">
               <div className="group-image" onClick={() => navigateToGroup(group.id)}>
-                <img src={group.image || "/placeholder.svg"} alt={group.title} />
+                <img src={group.image || "/icons/placeholder.svg"} alt={group.title} />
               </div>
               <div className="group-info" onClick={() => navigateToGroup(group.id)}>
                 <h3 className="group-title">{group.title}</h3>
-                <p className="group-description">{group.description}</p>
-                <div className="group-meta">
-                  <span>{group.members.length} members</span>
-                  <span>{group.posts} posts</span>
-                  <span>{group.events} events</span>
-                </div>
-                <div className="group-members">
-                  {group.members.slice(0, 3).map((member) => (
-                    <img
-                      key={member.id}
-                      src={member.avatar || "/icons/placeholder.svg"}
-                      alt={member.name}
-                      className="member-avatar"
-                      title={member.name}
-                    />
-                  ))}
-                  {group.members.length > 3 && <span className="more-members">+{group.members.length - 3}</span>}
-                </div>
               </div>
-              {!group.isMember && (
-                <button className="join-button" onClick={() => handleJoinGroup(group.id)}>
-                  Request to Join
-                </button>
-              )}
-              {group.isMember && <div className="member-badge">Member</div>}
             </div>
           ))
         ) : (
@@ -346,45 +345,7 @@ export default function GroupsPage() {
       </div>
 
       {/* Create Group Modal */}
-      {showCreateModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Create New Group</h2>
-            <form onSubmit={handleCreateGroup}>
-              <div className="form-group">
-                <label htmlFor="group-title">Group Title</label>
-                <input
-                  type="text"
-                  id="group-title"
-                  value={newGroup.title}
-                  onChange={(e) => setNewGroup({ ...newGroup, title: e.target.value })}
-                  placeholder="Enter group title"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="group-description">Description</label>
-                <textarea
-                  id="group-description"
-                  value={newGroup.description}
-                  onChange={(e) => setNewGroup({ ...newGroup, description: e.target.value })}
-                  placeholder="What is this group about?"
-                  rows={4}
-                  required
-                />
-              </div>
-              <div className="modal-actions">
-                <button type="button" className="cancel-button" onClick={() => setShowCreateModal(false)}>
-                  Cancel
-                </button>
-                <button type="submit" className="submit-button">
-                  Create Group
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {showCreateModal && (<CreateGroupModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateGroup} />)}
     </div>
   )
 }

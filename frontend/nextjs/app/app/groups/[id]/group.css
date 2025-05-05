@@ -17,36 +17,6 @@
   display: inline-block;
 }
 
-.accept-button,
-.decline-button {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 14px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.accept-button {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-}
-
-.accept-button:hover {
-  background-color: var(--primary-hover);
-}
-
-.decline-button {
-  background-color: transparent;
-  color: var(--error-color);
-  border: 1px solid var(--error-color);
-}
-
-.decline-button:hover {
-  background-color: rgba(255, 77, 79, 0.1);
-}
-
 .back-button:hover {
   color: var(--primary-color);
 }
@@ -273,6 +243,14 @@
   box-shadow: var(--shadow);
 }
 
+.post-image {
+  width: 100%;
+  max-height: 500px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin-bottom: 16px;
+}
+
 .post-header {
   display: flex;
   justify-content: space-between;
@@ -451,34 +429,55 @@
   font-size: 14px;
   line-height: 1.6;
   margin-top: 12px;
+  margin-bottom: 12px;
   white-space: pre-line;
+}
+
+.event-options {
+  color: var(--text-color);
+  font-size: 14px;
+  line-height: 1.6;
+  margin-top: 12px;
+  background-color: var(--input-bg);
+  padding: 12px;
+  border-radius: 4px;
+}
+
+.event-options div {
+  margin-bottom: 8px;
 }
 
 .event-responses {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   padding: 16px 0;
   border-top: 1px solid var(--input-bg);
-  border-bottom: 1px solid var(--input-bg);
   margin-bottom: 16px;
-  flex-wrap: wrap;
   gap: 12px;
 }
 
+/* Response count styling */
 .response-count {
   display: flex;
   gap: 16px;
+  width: 100%;
+  margin-bottom: 8px;
 }
 
 .response-count span {
   color: var(--text-light);
   font-size: 14px;
+  background-color: var(--input-bg);
+  padding: 6px 12px;
+  border-radius: 4px;
+  flex: 1;
+  text-align: center;
 }
 
 .response-actions {
   display: flex;
   gap: 8px;
+  width: 100%;
 }
 
 .response-button {
@@ -491,6 +490,8 @@
   color: var(--text-light);
   border: 1px solid var(--border-color);
   transition: var(--transition);
+  flex: 1;
+  text-align: center;
 }
 
 .response-button:hover {
@@ -600,7 +601,7 @@
   font-weight: 500;
 }
 
-.member-username {
+.member-nickname {
   color: var(--text-light);
   font-size: 12px;
 }

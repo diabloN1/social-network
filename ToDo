@@ -1,13 +1,19 @@
 ToDo :
  # Groups
- - Create group repo
- - Create event repo
- - Add group (image optional)
- - getGroups (PageData)
+ - on event option click change ui of buttons dynamicly without trigring fetchgroupdata() (at line 200 in single group page)
+ - Invite user
+ - Accept invite
+ - Accept request
+ - Delete request/invite
+ - middleware to aply to all group actions
+ - middleware to aply to all post actions
+ - devide group repository
 
  # Single Profile Page
+ - don't show user as a follower until the following accepts.
  - should implement birth date in profile only frontend.
  - Add to on clicks for profile acc and for posts cursor pointer.
+
 
 Doing :
 
@@ -15,4 +21,12 @@ Doing :
 Done :
  - GetFollowRequests followers repo
  - GetProfiles that would use getFollowRequests and make it's own query to query rem users.
- - remove session in all use server before sending data to front.
+  - remove session in all use server before sending data to front.
+  - createPost handler
+  - createEvent handler
+  - inviteUser handler
+  - test getGroup api from nextjs
+  - aply data to front-end
+  - Insert event option
+  - add event options to events in getGroupData
+  - show event options

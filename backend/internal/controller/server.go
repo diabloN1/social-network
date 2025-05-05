@@ -55,18 +55,26 @@ func Start() error {
 	s.router.HandleFunc("/getPost", s.getPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler) 
 
-	// Profile
+	// Profiles
+	s.router.HandleFunc("/getProfiles", s.GetProfilesHanlder)
 	s.router.HandleFunc("/getProfile", s.getProfileHandler)
+	s.router.HandleFunc("/setPrivacy", s.SetPrivacyHandler)
 
-	// Follow
+	// Follows
 	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
 	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
-	s.router.HandleFunc("/setPrivacy", s.SetPrivacyHandler)
-	s.router.HandleFunc("/getProfiles", s.GetProfilesHanlder)
-	
 
-	go s.checkClientsLastActivity()
+	// Groups
+	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
+	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
+	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
+	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
+	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
+	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
+
+	// go s.checkClientsLastActivity()
+	
 	log.Println("Server started at http://localhost:8080/")
 	return http.ListenAndServe(":8080", s.corsMiddleware(s))
 }

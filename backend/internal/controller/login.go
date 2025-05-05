@@ -11,7 +11,7 @@ func (s *Server) Login(request map[string]any) *model.Response {
 		Error: "",
 	}
 
-	// Validate username
+	// Validate email
 	emailRaw, ok := request["email"]
 	if !ok {
 		response.Type = "email"

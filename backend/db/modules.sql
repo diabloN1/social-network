@@ -91,6 +91,16 @@ CREATE TABLE IF NOT EXISTS group_members (
     FOREIGN KEY (group_id) REFERENCES groups (id)
 );
 
+CREATE TABLE IF NOT EXISTS group_posts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER,
+  group_id INTEGER,
+  caption TEXT,
+  image varchar(255),
+  creation_date DATETIME  DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users (id)
+);
+
 CREATE TABLE IF NOT EXISTS group_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     group_id INTEGER,
@@ -99,8 +109,8 @@ CREATE TABLE IF NOT EXISTS group_events (
     description VARCHAR(255),
     option_1 VARCHAR(255),
     option_2 VARCHAR(255),
-    date VARCHAR(255),
-    time VARCHAR(255),
+    date DATETIME,
+    place VARCHAR(255),
     creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users (id),
     FOREIGN KEY (group_id) REFERENCES groups (id)

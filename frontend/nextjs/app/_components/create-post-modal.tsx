@@ -1,17 +1,24 @@
 "use client";
 
 import type React from "react";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { uploadFile } from "../api/_auth/uploadFile";
 
 interface CreatePostModalProps {
   onClose: () => void;
-  onSubmit: (post: { image: string; caption: string; privacy: string }) => void;
+  onSubmit: (post: {
+    image: string;
+    caption: string;
+    privacy?: string;
+    groupId?: number;
+  }) => void;
+  groupId?: number;
 }
 
 const CreatePostModal: React.FC<CreatePostModalProps> = ({
   onClose,
   onSubmit,
+  groupId,
 }) => {
   const [caption, setCaption] = useState("");
   const [privacy, setPrivacy] = useState("public");
@@ -42,11 +49,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         imageUrl = await uploadFile(formData, "/posts");
       }
 
-      onSubmit({
-        image: imageUrl,
-        caption,
-        privacy,
-      });
+      const data = groupId
+        ? {
+            image: imageUrl,
+            caption,
+            groupId,
+          }
+        : {
+            image: imageUrl,
+            caption,
+            privacy,
+          };
+
+      onSubmit(data);
     } catch (err) {
       alert(err);
       console.error(err);
@@ -102,25 +117,27 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="privacy">
-                Privacy
-              </label>
-              <select
-                id="privacy"
-                className="form-select"
-                value={privacy}
-                onChange={(e) => setPrivacy(e.target.value)}
-              >
-                <option value="public">Public - Everyone can see</option>
-                <option value="almost-private">
-                  Almost Private - Only followers can see
-                </option>
-                <option value="private">
-                  Private - Only selected followers can see
-                </option>
-              </select>
-            </div>
+            {!groupId ? (
+              <div className="form-group">
+                <label className="form-label" htmlFor="privacy">
+                  Privacy
+                </label>
+                <select
+                  id="privacy"
+                  className="form-select"
+                  value={privacy}
+                  onChange={(e) => setPrivacy(e.target.value)}
+                >
+                  <option value="public">Public - Everyone can see</option>
+                  <option value="almost-private">
+                    Almost Private - Only followers can see
+                  </option>
+                  <option value="private">
+                    Private - Only selected followers can see
+                  </option>
+                </select>
+              </div>
+            ): null}
           </div>
 
           <div className="modal-footer">

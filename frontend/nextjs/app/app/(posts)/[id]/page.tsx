@@ -156,7 +156,7 @@ export default function SinglePostPage() {
         id: comments.length + 1,
         user: {
           name: "Current User",
-          avatar: "/icons/placeholder.svg?height=30&width=30",
+          avatar: "/icons/placeholder.svg",
         },
         text: newComment,
         timestamp: "Just now",
