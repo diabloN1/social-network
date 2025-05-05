@@ -165,3 +165,26 @@ func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.AddEventOption(request)
 	s.SendJson(w, response, err)
 }
+
+
+func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+    response := s.ReactToPost(request)
+	s.SendJson(w, response, err)
+}
+
+
+func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.AddComment(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetComments(request)
+	s.SendJson(w, response, err)
+}

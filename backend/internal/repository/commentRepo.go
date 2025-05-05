@@ -19,7 +19,20 @@ func (r *CommentRepository) Add(c *model.Comment) error {
 func (r *CommentRepository) GetCommentsByPostId(Id int) ([]*model.Comment, error) {
 	var comments []*model.Comment
 
-	query := "SELECT comments.id, comments.user_id, users.username, comments.post_id, comments.text, comments.creation_date FROM comments JOIN users ON users.id=comments.user_id WHERE post_id = $1 ORDER BY creation_date DESC;"
+	// Updated query to use firstname and lastname instead of username
+	query := `
+		SELECT 
+			comments.id, 
+			comments.user_id, 
+			COALESCE(users.firstname || ' ' || users.lastname, '') AS author, 
+			comments.post_id, 
+			comments.text, 
+			comments.creation_date 
+		FROM comments 
+		JOIN users ON users.id = comments.user_id 
+		WHERE post_id = $1 
+		ORDER BY comments.creation_date DESC;
+	`
 
 	rows, err := r.Repository.db.Query(query, Id)
 

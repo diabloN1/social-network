@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"real-time-forum/internal/model"
 	"strings"
@@ -19,7 +18,6 @@ func (s *Server) Register(request map[string]any) *model.Response {
 	// Optional fields
 	var aboutMe, avatar string
 
-	fmt.Println(request)
 
 	// nickname validation (already in the code)
 	if nicknameRaw, ok := request["nickname"]; !ok {

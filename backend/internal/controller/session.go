@@ -26,6 +26,7 @@ func (s *Server) ValidateSession(request map[string]any) *model.Response {
 		return response
 	}
 
+
 	foundUser, err := s.repository.User().Find(uid)
 	if err != nil {
 		log.Println("User was not found!")

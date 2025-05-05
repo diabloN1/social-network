@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"real-time-forum/internal/model"
 	"time"
 )
@@ -124,6 +125,7 @@ func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, 
 
 func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 
+
 	// Should fix this query to get post data based on (comments, likes, and is allowed to see)
 	row := r.Repository.db.QueryRow(`SELECT 
 				p.id, p.privacy, p.user_id, p.caption, p.image, p.creation_date,
@@ -146,49 +148,30 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 					);`,
 		userId, postId)
-	post := &model.Post{}
-	user := &model.User{}
-	if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil && err != sql.ErrNoRows {
-		return nil, errors.New(err.Error())
-	}
+		post := &model.Post{}
+		user := &model.User{}
+		if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil && err != sql.ErrNoRows {
+			return nil, errors.New(err.Error())
+		}
 
-	reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
-	if err != nil {
-		return nil, err
-	}
+		reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
+		if err != nil {
+			return nil, err
+		}
 
-	post.Reactions = reactions
-	post.User = user
-	return post, nil
+		userReaction, err := r.Repository.Reaction().GetUserReaction(userId, post.ID)
+		if err != nil {
+			return nil, err
+		}
+
+		fmt.Println(userReaction)
+		reactions.UserReaction = userReaction
+
+		post.Reactions = reactions
+		post.User = user
+		return post, nil
 }
 
-// OLD :
-// func (r *PostRepository) GetPostsByCategoryId(Id int) ([]*model.Post, error) {
-// var posts []*model.Post
-
-// query := "SELECT posts.id, posts.user_id, users.username, posts.title, posts.text, posts.creation_date FROM posts JOIN users ON posts.user_id=users.id WHERE category_id = ? ORDER BY creation_date DESC"
-
-// rows, err := r.Repository.db.Query(query, Id)
-
-// if err != nil {
-// 	return nil, err
-// }
-// defer rows.Close()
-// for rows.Next() {
-// 	post := &model.Post{}
-// 	if err := rows.Scan(&post.ID, &post.UserId, &post.Author, &post.Title, &post.Text, &post.CreationDate); err != nil {
-// 		return nil, err
-// 	}
-// 	newTime, _ := time.Parse("2006-01-02T15:04:05Z", post.CreationDate)
-// 	post.CreationDate = newTime.Format("2006-01-02 15:04:05")
-// 	post.CategoryID = Id
-// 	posts = append(posts, post)
-// }
-// if len(posts) == 0 {
-// 	return []*model.Post{}, nil
-// }
-// return posts, nil
-// }
 
 func (r *PostRepository) Edit(p *model.Post) error {
 	if _, err := r.Repository.db.Exec("UPDATE posts SET user_id = ?, author = ?, title = ?, text = ?, creation_date = ?, WHERE id = ?",

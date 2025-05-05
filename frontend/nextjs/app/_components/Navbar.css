@@ -30,12 +30,18 @@
   color: white;
 }
 
+/* Remove underlines from links */
+.nav-item a {
+  text-decoration: none;
+  display: block;
+  color: inherit;
+}
+
 .nav-item-content {
   display: flex;
   align-items: center;
   justify-content: center;
   color: white;
-  text-decoration: none;
 }
 
 .icon {
@@ -43,13 +49,19 @@
   height: 20px;
 }
 
+/* Update the label display rules for mobile */
 .label {
   display: none;
   margin-left: 8px;
   font-size: 14px;
   font-weight: 500;
-  text-decoration: none;
   color: white;
+}
+
+/* Only show label for active items on mobile */
+.nav-item.active .label {
+  display: inline-block;
+  color: #1a1a24;
 }
 
 .nav-item.active {
@@ -58,9 +70,13 @@
   padding: 8px 16px;
 }
 
-.nav-item.active .label {
-  display: inline-block;
+/* Fix for the icon color when active */
+.nav-item.active .nav-item-content {
   color: #1a1a24;
+}
+
+.nav-item.active svg {
+  stroke: #1a1a24;
 }
 
 /* Desktop styles */
