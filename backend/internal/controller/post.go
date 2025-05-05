@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"log"
 	"real-time-forum/internal/model"
 )
@@ -32,7 +31,6 @@ func (s *Server) GetPosts(request map[string]any) *model.Response {
 	}
 
 
-	fmt.Println(res.Userid)
 	posts, err := s.repository.Post().GetPosts(res.Userid, int(startId))
 	if err != nil {
 		log.Println("Error in getting feed data:", err)

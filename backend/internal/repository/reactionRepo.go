@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"real-time-forum/internal/model"
 )
 
@@ -10,10 +11,9 @@ type ReactionRepository struct {
 	Repository *Repository
 }
 
-// Add or update a reaction
 func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) error {
-	// Check if post exists
 	var exists bool
+	fmt.Println("TEST REACT TO POST")
 	err := r.Repository.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1)", postId).Scan(&exists)
 	if err != nil {
 		return err
@@ -21,14 +21,12 @@ func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) er
 	if !exists {
 		return errors.New("post does not exist")
 	}
-
-	// If isLike is nil, delete the reaction (user is removing their reaction)
+	
 	if isLike == nil {
 		_, err := r.Repository.db.Exec("DELETE FROM post_reactions WHERE user_id = $1 AND post_id = $2", userId, postId)
 		return err
 	}
 
-	// Upsert the reaction
 	_, err = r.Repository.db.Exec(`
 		INSERT INTO post_reactions (user_id, post_id, is_like) 
 		VALUES ($1, $2, $3)
@@ -39,7 +37,6 @@ func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) er
 	return err
 }
 
-// Get user's reaction to a post
 func (r *ReactionRepository) GetUserReaction(userId, postId int) (*bool, error) {
 	var isLike sql.NullBool
 	err := r.Repository.db.QueryRow(
@@ -63,11 +60,9 @@ func (r *ReactionRepository) GetUserReaction(userId, postId int) (*bool, error) 
 	return &value, nil
 }
 
-// Get reaction counts for a post
 func (r *ReactionRepository) GetReactionCounts(postId int) (model.ReactionCounts, error) {
 	counts := model.ReactionCounts{}
 	
-	// Get likes count
 	err := r.Repository.db.QueryRow(
 		"SELECT COUNT(*) FROM post_reactions WHERE post_id = $1 AND is_like = TRUE",
 		postId,
@@ -77,7 +72,6 @@ func (r *ReactionRepository) GetReactionCounts(postId int) (model.ReactionCounts
 		return counts, err
 	}
 	
-	// Get dislikes count
 	err = r.Repository.db.QueryRow(
 		"SELECT COUNT(*) FROM post_reactions WHERE post_id = $1 AND is_like = FALSE",
 		postId,
@@ -86,7 +80,6 @@ func (r *ReactionRepository) GetReactionCounts(postId int) (model.ReactionCounts
 	return counts, err
 }
 
-// Get reaction counts for multiple posts
 func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (map[int]model.ReactionCounts, error) {
 	if len(postIds) == 0 {
 		return make(map[int]model.ReactionCounts), nil

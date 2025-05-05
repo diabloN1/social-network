@@ -54,6 +54,9 @@ func Start() error {
 	s.router.HandleFunc("/getPosts", s.getPostsHandler)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler) 
+	// Comments
+	s.router.HandleFunc("/addComment", s.addCommentHandler)
+	s.router.HandleFunc("/getComments", s.getCommentsHandler)
 
 	// Profile
 	s.router.HandleFunc("/getProfile", s.getProfileHandler)
@@ -260,8 +263,8 @@ func (s *Server) readMessage(client *websocket.Conn) {
 		// 	response = s.AddPost(request)
 		// 	s.BroadcastAddedContent(response)
 		case "addcomment":
-			response = s.AddComment(request)
-			s.BroadcastAddedContent(response)
+			// response = s.AddComment(request)
+			// s.BroadcastAddedContent(response)
 		case "getmessages":
 			response = s.GetMessages(request)
 			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
@@ -363,20 +366,3 @@ func (s *Server) SendIsTyping(response model.Response) {
 }
 
 
-func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-        return
-    }
-
-    var request map[string]interface{}
-    if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-        http.Error(w, "Invalid request body", http.StatusBadRequest)
-        return
-    }
-
-    response := s.ReactToPost(request)
-
-    w.Header().Set("Content-Type", "application/json")
-    json.NewEncoder(w).Encode(response)
-}

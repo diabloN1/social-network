@@ -5,65 +5,137 @@ import (
 	"real-time-forum/internal/model"
 )
 
-func (s *Server) AddComment(request map[string]any) model.Response {
-	c := &model.Comment{}
-	response := &model.Response{}
-	response.Type = "updatecomments"
+func (s *Server) AddComment(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "newComment",
+		Error: "",
+	}
 
-	var ok bool
-	var userIDFloat, postIDFloat float64
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	var postId float64
 	var text string
-	
-	// Validate userid
-	userIDRaw, ok := request["userid"]
+	var ok bool
+
+	// Validate postId
+	postIdRaw, ok := request["postId"]
 	if !ok {
-		response.Error = "Missing 'userid' field"
-		return *response
+		response.Error = "Missing 'postId' field"
+		return response
 	}
-	userIDFloat, ok = userIDRaw.(float64)
+	postId, ok = postIdRaw.(float64)
 	if !ok {
-		response.Error = "'userid' must be a number"
-		return *response
+		response.Error = "'postId' must be a float64"
+		return response
 	}
-	
-	// Validate postid
-	postIDRaw, ok := request["postid"]
-	if !ok {
-		response.Error = "Missing 'postid' field"
-		return *response
-	}
-	postIDFloat, ok = postIDRaw.(float64)
-	if !ok {
-		response.Error = "'postid' must be a number"
-		return *response
-	}
-	
+
 	// Validate text
 	textRaw, ok := request["text"]
 	if !ok {
 		response.Error = "Missing 'text' field"
-		return *response
+		return response
 	}
 	text, ok = textRaw.(string)
 	if !ok {
 		response.Error = "'text' must be a string"
-		return *response
-	}
-	
-	// Assign values after validation
-	c.UserId = int(userIDFloat)
-	c.PostId = int(postIDFloat)
-	c.Text = text
-	
-
-	if len(c.Text) > 1000 {
-		log.Println("Error comment exceed limited chars")
-		response.Error = "Message exceed limited chars"
-		return *response
+		return response
 	}
 
-	s.repository.Comment().Add(c)
+	if text == "" {
+		response.Error = "Comment text cannot be empty"
+		return response
+	}
 
-	response.Postid = c.PostId
-	return *response
+	if len(text) > 500 {
+		response.Error = "Comment text exceeds maximum length of 500 characters"
+		return response
+	}
+
+	// Create comment
+	comment := &model.Comment{
+		UserId: res.Userid,
+		PostId: int(postId),
+		Text:   text,
+		Author: res.User.Username,
+	}
+
+	// Add comment to database
+	err := s.repository.Comment().Add(comment)
+	if err != nil {
+		log.Println("Error adding comment:", err)
+		response.Error = "Error adding comment: " + err.Error()
+		return response
+	}
+
+	// Get the updated comments for the post
+	comments, err := s.repository.Comment().GetCommentsByPostId(int(postId))
+	if err != nil {
+		log.Println("Error getting comments:", err)
+		response.Error = "Error getting comments: " + err.Error()
+		return response
+	}
+
+	// Get post data to return with comments
+	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	if err != nil {
+		log.Println("Error getting post data:", err)
+		response.Error = "Error getting post data: " + err.Error()
+		return response
+	}
+
+	post.Comment = comments
+	response.Posts = []*model.Post{post}
+	return response
+}
+
+func (s *Server) GetComments(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "comments",
+		Error: "",
+	}
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	var postId float64
+	var ok bool
+
+	// Validate postId
+	postIdRaw, ok := request["postId"]
+	if !ok {
+		response.Error = "Missing 'postId' field"
+		return response
+	}
+	postId, ok = postIdRaw.(float64)
+	if !ok {
+		response.Error = "'postId' must be a float64"
+		return response
+	}
+
+	// Get comments for post
+	comments, err := s.repository.Comment().GetCommentsByPostId(int(postId))
+	if err != nil {
+		log.Println("Error getting comments:", err)
+		response.Error = "Error getting comments: " + err.Error()
+		return response
+	}
+
+	// Get post data to return with comments
+	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	if err != nil {
+		log.Println("Error getting post data:", err)
+		response.Error = "Error getting post data: " + err.Error()
+		return response
+	}
+
+	post.Comment = comments
+	response.Posts = []*model.Post{post}
+	return response
 }

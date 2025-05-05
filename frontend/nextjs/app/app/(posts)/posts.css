@@ -161,6 +161,7 @@
   justify-content: center;
   padding: 8px;
   border-radius: 8px;
+  position: relative;
 }
 
 .post-action-btn:hover {
@@ -171,6 +172,14 @@
 .post-action-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+.reaction-icon {
+  transition: transform 0.2s ease;
+}
+
+.post-action-btn:hover .reaction-icon {
+  transform: scale(1.1);
 }
 
 .post-likes {
@@ -672,4 +681,31 @@
   text-align: center;
   padding: 20px;
   font-size: 15px;
+}
+
+.comment-count {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--primary-color);
+  color: white;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.post-action-btn {
+  position: relative;
+}
+
+.no-comments {
+  color: var(--text-secondary);
+  text-align: center;
+  padding: 10px;
+  font-size: 14px;
 }

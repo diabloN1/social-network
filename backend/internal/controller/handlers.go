@@ -122,3 +122,26 @@ func (s *Server) GetProfilesHanlder(w http.ResponseWriter, r *http.Request) {
 	response := s.GetProfiles(request)
 	s.SendJson(w, response, err)
 }
+
+
+func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+    response := s.ReactToPost(request)
+	s.SendJson(w, response, err)
+}
+
+
+func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.AddComment(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetComments(request)
+	s.SendJson(w, response, err)
+}

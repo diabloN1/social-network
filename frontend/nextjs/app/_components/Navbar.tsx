@@ -1,22 +1,12 @@
 "use client";
-
-import type React from "react";
-
 import { useState } from "react";
 import "./Navbar.css";
 import Link from "next/link";
 
-type NavItem = {
-  id: string;
-  label: string;
-  icon: React.ReactNode;
-  link: string;
-};
-
 export default function Navbar() {
   const [activeTab, setActiveTab] = useState("home");
 
-  const navItems: NavItem[] = [
+  const navItems = [
     {
       id: "home",
       label: "Home",
@@ -51,6 +41,7 @@ export default function Navbar() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className="icon"
         >
           <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
           <path d="M13 8H7" />
@@ -73,6 +64,7 @@ export default function Navbar() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className="icon"
         >
           <rect width="8" height="6" x="5" y="4" rx="1" />
           <rect width="8" height="6" x="11" y="14" rx="1" />
@@ -94,6 +86,7 @@ export default function Navbar() {
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
+          className="icon"
         >
           <path d="M10.268 21a2 2 0 0 0 3.464 0" />
           <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
@@ -132,12 +125,12 @@ export default function Navbar() {
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}
             onClick={() => setActiveTab(item.id)}
           >
-              <Link href={item.link}>
-            <div className="nav-item-content">
-              {item.icon}
+            <Link href={item.link} className="nav-link">
+              <div className="nav-item-content">
+                {item.icon}
                 <span className="label">{item.label}</span>
-            </div>
-              </Link>
+              </div>
+            </Link>
           </li>
         ))}
       </ul>
