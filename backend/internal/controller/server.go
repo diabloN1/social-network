@@ -53,7 +53,7 @@ func Start() error {
 	// Posts
 	s.router.HandleFunc("/getPosts", s.getPostsHandler)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
-	s.router.HandleFunc("/reactToPost", s.reactToPostHandler) 
+	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
 	// Comments
 	s.router.HandleFunc("/addComment", s.addCommentHandler)
 	s.router.HandleFunc("/getComments", s.getCommentsHandler)
@@ -75,9 +75,11 @@ func Start() error {
 	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
 	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
 	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
+	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
+	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
 
 	// go s.checkClientsLastActivity()
-	
+
 	log.Println("Server started at http://localhost:8080/")
 	return http.ListenAndServe(":8080", s.corsMiddleware(s))
 }
@@ -100,7 +102,6 @@ func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 		clients:    []*Client{},
 	}
 }
-
 
 func (s *Server) addClient(userid int, session string, client *websocket.Conn, username string) {
 	s.mu.Lock()
@@ -172,13 +173,13 @@ func (s *Server) BroadcastOnlineUsers() {
 	wg.Add(len(s.clients))
 
 	for _, c := range s.clients {
-			go func(c *Client) {
-				if c.Online == true {
-					response.AllUsers = s.FindAllUsers(c.Userid)
-					c.Connection.WriteJSON(response)
-				}
-				wg.Done()
-			}(c)
+		go func(c *Client) {
+			if c.Online == true {
+				response.AllUsers = s.FindAllUsers(c.Userid)
+				c.Connection.WriteJSON(response)
+			}
+			wg.Done()
+		}(c)
 	}
 	wg.Wait()
 }
@@ -372,5 +373,3 @@ func (s *Server) SendIsTyping(response model.Response) {
 		c.Connection.WriteJSON(response)
 	}
 }
-
-
