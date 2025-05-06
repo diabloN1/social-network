@@ -65,11 +65,14 @@ export default function ProfilePage() {
         }
 
         const userData = response.user;
+        console.log(userData);
         setUser(userData);
         setIsPending(userData.follow?.id && !userData.follow?.isAccepted);
         setIsFollowing(userData.follow?.isAccepted);
         setCanViewProfile(
-          !userData.isprivate || userData.currentuser || isFollowing
+          !userData.isprivate ||
+            userData.currentuser ||
+            userData.follow?.isAccepted
         );
       } catch (error) {
         console.error("Error fetching profile data:", error);
@@ -79,17 +82,16 @@ export default function ProfilePage() {
     };
 
     fetchProfileData();
-  }, [userId, isFollowing]);
+  }, [userId]);
 
   // Toggle private/public profile
   const togglePrivateProfile = async () => {
     if (!user) return;
     try {
-
-      const data = await setPravicy(!user.isprivate)
+      const data = await setPravicy(!user.isprivate);
       if (data.error) {
-        alert(data.error)
-        return
+        alert(data.error);
+        return;
       }
 
       // Update local state
@@ -114,19 +116,28 @@ export default function ProfilePage() {
           alert(data.error);
           return;
         }
-        setIsFollowing(!isFollowing);
+
+        // Update local state
+        setIsFollowing(false);
+        setIsPending(false);
+        if (user?.isprivate) {
+          setCanViewProfile(false);
+        }
       } else if (!user?.follow?.id) {
         const data = await requestFollow(userId);
         if (data.error) {
           alert(data.error);
           return;
         }
-        setIsFollowing(!isFollowing);
+
+        // Update local state
+        setIsFollowing(true);
+        setCanViewProfile(true);
       }
     } catch (error) {
       alert(error);
+      return;
     }
-    setIsFollowing(!isFollowing);
   };
 
   // Go back to profile list
@@ -211,8 +222,13 @@ export default function ProfilePage() {
           </div>
 
           <div className="profile-bio">
-            <p>{user.about || "No bio yet"}</p>
+            {user.about && <p>{user.about}</p>}
             <p className="email">{user.email}</p>
+            {user.birth && (
+              <p className="birth-date">
+                Born: {new Date(user.birth).toLocaleDateString()}
+              </p>
+            )}
           </div>
         </div>
       </div>
@@ -280,7 +296,13 @@ export default function ProfilePage() {
               <div className="users-list">
                 {user.followers && user.followers.length > 0 ? (
                   user.followers.map((follower) => (
-                    <div key={follower.id} className="user-card" onClick={() => router.push(`/app/profiles/${follower.id}`)}>
+                    <div
+                      key={follower.id}
+                      className="user-card"
+                      onClick={() =>
+                        router.push(`/app/profiles/${follower.id}`)
+                      }
+                    >
                       <div className="user-info">
                         <img
                           src={follower.avatar || "/icons/placeholder.svg"}
@@ -307,7 +329,13 @@ export default function ProfilePage() {
               <div className="users-list">
                 {user.following && user.following.length > 0 ? (
                   user.following.map((following) => (
-                    <div key={following.id} className="user-card" onClick={() => router.push(`/app/profiles/${following.id}`)}>
+                    <div
+                      key={following.id}
+                      className="user-card"
+                      onClick={() =>
+                        router.push(`/app/profiles/${following.id}`)
+                      }
+                    >
                       <div className="user-info">
                         <img
                           src={following.avatar || "/icons/placeholder.svg"}

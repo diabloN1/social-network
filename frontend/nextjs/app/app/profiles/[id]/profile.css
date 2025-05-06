@@ -159,6 +159,12 @@
   font-size: 14px;
 }
 
+.birth-date {
+  font-size: 0.9rem;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
 /* Private Profile Message */
 .private-profile-message {
   display: flex;
@@ -233,6 +239,7 @@
   position: relative;
   aspect-ratio: 1 / 1;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .post-item img {

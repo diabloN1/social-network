@@ -362,7 +362,7 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 		}
 
 		if u.ID == userId {
-			if option == true {
+			if option {
 				e.CurrentOption = "option1"
 			} else {
 				e.CurrentOption = "option2"

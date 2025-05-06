@@ -15,7 +15,7 @@ func (r *UserRepository) Create(u *model.User) error {
 	foundUser, _ := r.Find(u.Email)
 
 	if foundUser != nil {
-		return errors.New("Email already taken")
+		return errors.New("email already taken")
 	}
 
 	return r.Repository.db.QueryRow(
@@ -37,13 +37,13 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 	var value interface{}
 	switch v := identifier.(type) {
 	case int:
-		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, is_private from users WHERE id = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE id = $1"
 		value = v
 	case string:
-		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, is_private from users WHERE email = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE email = $1"
 		value = v
 	default:
-		return nil, errors.New("Invalid identifier type")
+		return nil, errors.New("invalid identifier type")
 	}
 	if err := r.Repository.db.QueryRow(query, value).Scan(
 		&u.ID,
@@ -54,6 +54,7 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 		&u.Nickname,
 		&u.Avatar,
 		&u.Birth,
+		&u.About,
 		&u.IsPrivate); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, sql.ErrNoRows
@@ -199,7 +200,7 @@ func (r *UserRepository) FindUsernameByID(userid int) (string, error) {
 func (r *UserRepository) SetUserPrivacy(userId int, state bool) error {
 
 	// Accept older follow requests if pravicy set to Public
-	if state == false {
+	if !state {
 		query := "UPDATE followers SET is_accepted = TRUE WHERE following_id = $1"
 		if _, err := r.Repository.db.Exec(query, userId); err != nil && err != sql.ErrNoRows {
 			return err
