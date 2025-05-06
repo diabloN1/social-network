@@ -16,8 +16,8 @@ export default function Navbar() {
       setActiveTab("profile");
     } else if (pathname.includes("/app/groups")) {
       setActiveTab("groups");
-    } else if (pathname.includes("/app/messaging")) {
-      setActiveTab("messaging");
+    } else if (pathname.includes("/app/chat")) {
+      setActiveTab("chat");
     } else if (pathname.includes("/app/notifications")) {
       setActiveTab("notification");
     }
@@ -46,8 +46,8 @@ export default function Navbar() {
       notifications: 0,
     },
     {
-      id: "messaging",
-      label: "Messaging",
+      id: "chat",
+      label: "chat",
       icon: (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -66,7 +66,7 @@ export default function Navbar() {
           <path d="M17 12H7" />
         </svg>
       ),
-      link: "/app/",
+      link: "/app/chat",
       notifications: 2,
     },
     {
