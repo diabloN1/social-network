@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"database/sql"
 	"log"
 	"real-time-forum/internal/model"
 )
@@ -91,13 +92,13 @@ func (s *Server) GetGroups(request map[string]any) map[string]any {
 
 	response["join_requests"], err = s.repository.Group().GetJoinRequestsByOwnerId(res.Userid)
 	if err != nil {
-		response["error"] = "Can't get group invites :" + err.Error()
+		response["error"] = "Can't get join requests :" + err.Error()
 		return response
 	}
 
 	response["all"], err = s.repository.Group().GetGroups(res.Userid)
 	if err != nil {
-		response["error"] = "Can't get group invites :" + err.Error()
+		response["error"] = "Can't get groups :" + err.Error()
 		return response
 	}
 
@@ -403,5 +404,133 @@ func (s *Server) AddEventOption(request map[string]any) map[string]any {
 	}
 
 	response["option"] = opt
+	return response
+}
+
+func (s *Server) RequestJoinGroup(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response["error"] = "Missing 'groupId' field"
+		return response
+	}
+	groupId, ok := groupIdRaw.(float64)
+	if !ok {
+		response["error"] = "'groupId' must be a string"
+		return response
+	}
+
+
+	res := s.ValidateSession(request)
+
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	// Assign values after validation
+	m := &model.GroupMember{
+		UserId:     res.Userid,
+		GroupId:    int(groupId),
+		IsAccepted: false,
+	}
+
+	// Should pretect insertion fields
+	err := s.repository.Group().GetMember(m)
+	if err != sql.ErrNoRows {
+		response["error"] = "Error checking if member already exists"
+		return response
+	}
+
+	if m.ID != 0 {
+		response["error"] = "Request or membership already exists"
+		return response
+	}
+
+	err = s.repository.Group().AddMember(m)
+
+	if err != nil {
+		response["error"] = "Error adding member: " + err.Error()
+		return response
+	}
+
+	return response
+}
+
+func (s *Server) RespondToJoinRequest(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response["error"] = "Missing 'groupId' field"
+		return response
+	}
+	groupId, ok := groupIdRaw.(float64)
+	if !ok {
+		response["error"] = "'groupId' must be a string"
+		return response
+	}
+
+	userIdRaw, ok := request["userId"]
+	if !ok {
+		response["error"] = "Missing 'userId' field"
+		return response
+	}
+	userId, ok := userIdRaw.(float64)
+	if !ok {
+		response["error"] = "'userId' must be a string"
+		return response
+	}
+
+	isAcceptedRaw, ok := request["isAccepted"]
+	if !ok {
+		response["error"] = "Missing 'isAccepted' field"
+		return response
+	}
+	isAccepted, ok := isAcceptedRaw.(bool)
+	if !ok {
+		response["error"] = "'isAccepted' must be a string"
+		return response
+	}
+
+	res := s.ValidateSession(request)
+
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	// Assign values after validation
+	m := &model.GroupMember{
+		UserId:     int(userId),
+		GroupId:    int(groupId),
+	}
+
+	// Check if Owner
+	ownerId, err := s.repository.Group().GetGroupOwner(m.GroupId)
+	if err != nil || ownerId != res.Userid {
+		response["error"] = "Error checking if user is an admin" + err.Error()
+		return response
+	}
+
+	if isAccepted == true {
+		err := s.repository.Group().AcceptMember(m)
+
+		if err != nil {
+			response["error"] = "Error accepting member: " + err.Error()
+			return response
+		}
+	} else {
+		err := s.repository.Group().RemoveMember(m)
+
+		if err != nil {
+			response["error"] = "Error removing member: " + err.Error()
+			return response
+		}
+	}
+
 	return response
 }

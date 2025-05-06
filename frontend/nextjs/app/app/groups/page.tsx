@@ -8,126 +8,67 @@ import "./styles.css"
 import CreateGroupModal from "@/app/_components/create-group-modal"
 import createGroup from "@/app/api/_groups/createGroup"
 import getGroups from "@/app/api/_groups/getGroups"
+import requestJoinGroup from "@/app/api/_groups/requestJoinGroup"
+import respondToJoinRequest from "@/app/api/_groups/respondeToJoinRequest"
 
-// Mock data for groups
-const MOCK_GROUPS = [
-  {
-    id: 1,
-    title: "Photography Enthusiasts",
-    description: "A group for sharing photography tips and showcasing your best shots.",
-    creator: {
-      id: 1,
-      username: "john_doe",
-      name: "John Doe",
-      avatar: "/icons/placeholder.svg",
-    },
-    members: [
-      { id: 1, username: "john_doe", name: "John Doe", avatar: "/icons/placeholder.svg" },
-      { id: 2, username: "jane_smith", name: "Jane Smith", avatar: "/icons/placeholder.svg" },
-      { id: 7, username: "david_miller", name: "David Miller", avatar: "/icons/placeholder.svg" },
-    ],
-    posts: 24,
-    events: 3,
-    isMember: true,
-    isCreator: true,
-    image: "/icons/placeholder.svg", // Add this line
-  },
-  {
-    id: 2,
-    title: "Web Development",
-    description: "Discussions about web development, frameworks, and best practices.",
-    creator: {
-      id: 3,
-      username: "mike_johnson",
-      name: "Mike Johnson",
-      avatar: "/icons/placeholder.svg",
-    },
-    members: [
-      { id: 3, username: "mike_johnson", name: "Mike Johnson", avatar: "/icons/placeholder.svg" },
-      { id: 1, username: "john_doe", name: "John Doe", avatar: "/icons/placeholder.svg" },
-      { id: 5, username: "alex_brown", name: "Alex Brown", avatar: "/icons/placeholder.svg" },
-    ],
-    posts: 42,
-    events: 5,
-    isMember: true,
-    isCreator: false,
-    image: "/icons/placeholder.svg", // Add this line
-  },
-  {
-    id: 3,
-    title: "Fitness Motivation",
-    description: "Share your fitness journey, workouts, and motivate each other.",
-    creator: {
-      id: 4,
-      username: "sarah_williams",
-      name: "Sarah Williams",
-      avatar: "/icons/placeholder.svg",
-    },
-    members: [
-      { id: 4, username: "sarah_williams", name: "Sarah Williams", avatar: "/icons/placeholder.svg" },
-      { id: 6, username: "emily_davis", name: "Emily Davis", avatar: "/icons/placeholder.svg" },
-    ],
-    posts: 18,
-    events: 2,
-    isMember: false,
-    isCreator: false,
-    image: "/icons/placeholder.svg", // Add this line
-  },
-  {
-    id: 4,
-    title: "Book Club",
-    description: "Discuss your favorite books and find new reading recommendations.",
-    creator: {
-      id: 2,
-      username: "jane_smith",
-      name: "Jane Smith",
-      avatar: "/icons/placeholder.svg",
-    },
-    members: [
-      { id: 2, username: "jane_smith", name: "Jane Smith", avatar: "/icons/placeholder.svg" },
-      { id: 8, username: "olivia_wilson", name: "Olivia Wilson", avatar: "/icons/placeholder.svg" },
-    ],
-    posts: 31,
-    events: 4,
-    isMember: false,
-    isCreator: false,
-    image: "/icons/placeholder.svg", // Add this line
-  },
-]
+// Types for API response
+interface User {
+  id: number
+  username: string
+  firstname: string
+  lastname: string
+  nickname: string
+  avatar?: string
+}
 
-// Mock data for group invitations
-const MOCK_INVITATIONS = [
-  {
-    id: 1,
-    group: {
-      id: 5,
-      title: "Travel Enthusiasts",
-      description: "Share travel experiences, tips, and destinations.",
-      creator: { id: 5, username: "alex_brown", name: "Alex Brown", avatar: "/icons/placeholder.svg" },
-    },
-    invitedBy: { id: 5, username: "alex_brown", name: "Alex Brown", avatar: "/icons/placeholder.svg" },
-    date: "2023-10-15T09:30:00Z",
-  },
-]
+interface Group {
+  id: number
+  title: string
+  description: string
+  owner_id: number
+  image: string
+  creation_date: string
+  is_accepted: boolean
+  is_owner: boolean
+  members: User[]
+}
 
-// Mock data for join requests (only visible to group creators)
-const MOCK_REQUESTS = [
-  {
-    id: 1,
-    user: { id: 6, username: "emily_davis", name: "Emily Davis", avatar: "/icons/placeholder.svg" },
-    group: { id: 1, title: "Photography Enthusiasts" },
-    date: "2023-10-17T14:22:00Z",
-  },
-]
+interface GroupInvite {
+  id: number
+  group_id: number
+  user_id: number
+  creation_date: string
+  group: Group
+  user: User
+}
+
+interface JoinRequest {
+  id: number
+  title: string
+  description: string
+  image: string
+  creation_date: string
+  is_accepted: boolean
+  is_owner: boolean
+  members: User[]
+}
+
+interface GroupsData {
+  all: Group[]
+  error: string
+  group_invites: GroupInvite[] | null
+  join_requests: JoinRequest[] | null
+}
 
 export default function GroupsPage() {
   const router = useRouter()
-  const [groups, setGroups] = useState<any>(null)
+  const [groupsData, setGroupsData] = useState<GroupsData | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [pendingJoinRequests, setPendingJoinRequests] = useState<number[]>([])
 
-  const initData = async () => {
+  const fetchGroupsData = async () => {
     try {
       const data = await getGroups()
       if (data.error) {
@@ -136,17 +77,24 @@ export default function GroupsPage() {
       }
 
       console.log(data)
-      setGroups(data.all)
+      setGroupsData(data)
+      
+      // Extract group IDs from join_requests to track pending requests
+      if (data.join_requests && data.join_requests.length > 0) {
+        const requestedGroupIds = data.join_requests.map((request: any) => request.id)
+        setPendingJoinRequests(requestedGroupIds)
+      }
     } catch(error) {
       alert(error)
     }
   }
 
   useEffect(() => {
-    initData()
+    fetchGroupsData()
   }, [])
+
   // Filter groups based on search term and active tab
-  const filteredGroups = groups?.filter((group: any) => {
+  const filteredGroups = groupsData?.all?.filter((group) => {
     const matchesSearch =
       group.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       group.description.toLowerCase().includes(searchTerm.toLowerCase())
@@ -165,7 +113,6 @@ export default function GroupsPage() {
 
   // Handle group creation
   const handleCreateGroup = async (group: { image: string; title: string; description: string }) => {
-
     try {
       const data = await createGroup(group)
       if (data.error) {
@@ -174,18 +121,29 @@ export default function GroupsPage() {
       }
 
       setShowCreateModal(false)
+      // Refresh groups data
+      fetchGroupsData()
     } catch(error) {
       alert(error)
     }
   }
 
   // Handle joining a group
-  const handleJoinGroup = (groupId: number) => {
-    // In a real app, you would send this to the backend
-    console.log("Requesting to join group:", groupId)
-
-    // For demo purposes, we'll just log it
-    // Normally you would update the UI to show a pending request
+  const handleJoinGroup = async (groupId: number) => {
+    try {
+      const data = await requestJoinGroup(groupId)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+      
+      // Add this group to pending requests
+      setPendingJoinRequests(prev => [...prev, groupId])
+      
+      console.log("Join request sent successfully")
+    } catch(error) {
+      alert(error)
+    }
   }
 
   // Handle responding to invitations
@@ -198,16 +156,22 @@ export default function GroupsPage() {
   }
 
   // Handle responding to join requests (as group creator)
-  const handleRequestResponse = (requestId: number, accept: boolean) => {
-    // In a real app, you would send this to the backend
-    console.log(`${accept ? "Accepting" : "Declining"} join request:`, requestId)
-
-    // For demo purposes, we'll just remove the request from the list
+  const handleRequestResponse = async(userId: number, groupId: number, accept: boolean) => {
+    try {
+      const data = await respondToJoinRequest(userId, groupId, accept)
+    } catch(error) {
+      alert(error)
+    }
   }
 
   // Navigate to group detail page
   const navigateToGroup = (groupId: number) => {
     router.push(`/app/groups/${groupId}`)
+  }
+
+  // Check if a join request is pending for a group
+  const isJoinRequestPending = (groupId: number) => {
+    return pendingJoinRequests.includes(groupId)
   }
 
   return (
@@ -236,32 +200,31 @@ export default function GroupsPage() {
         </div>
       </section>
 
-      {MOCK_INVITATIONS.length > 0 && (
+      {/* Group Invitations Section */}
+      {groupsData?.group_invites && groupsData.group_invites.length > 0 && (
         <section className="invitations-section">
           <h2>Group Invitations</h2>
           <div className="invitations-list">
-            {MOCK_INVITATIONS.map((invitation) => (
-              <div key={invitation.id} className="invitation-card">
+            {groupsData.group_invites.map((invite) => (
+              <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
                   <img
-                    src={invitation.group.creator.avatar || "/icons/placeholder.svg"}
-                    alt={invitation.group.creator.name}
+                    src={invite.user.avatar || "/icons/placeholder.svg"}
+                    alt={`${invite.user.firstname} ${invite.user.lastname}`}
                     className="user-avatar"
                   />
                   <div className="invitation-details">
                     <span className="invitation-title">
-                      <strong>{invitation.invitedBy.name}</strong> invited you to join{" "}
-                      <strong>{invitation.group.title}</strong>
+                      <strong>{`${invite.user.firstname} ${invite.user.lastname}`}</strong> invited you to join{" "}
+                      <strong>{invite.group.title}</strong>
                     </span>
-                    <span className="invitation-description">{invitation.group.description}</span>
-                    <span className="invitation-date">{new Date(invitation.date).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="invitation-actions">
-                  <button className="accept-button" onClick={() => handleInvitationResponse(invitation.id, true)}>
+                  <button className="accept-button" onClick={() => handleInvitationResponse(invite.id, true)}>
                     Accept
                   </button>
-                  <button className="decline-button" onClick={() => handleInvitationResponse(invitation.id, false)}>
+                  <button className="decline-button" onClick={() => handleInvitationResponse(invite.id, false)}>
                     Decline
                   </button>
                 </div>
@@ -271,30 +234,30 @@ export default function GroupsPage() {
         </section>
       )}
 
-      {MOCK_REQUESTS.length > 0 && (
+      {/* Join Requests Section (for group owners) */}
+      {groupsData?.join_requests && groupsData.join_requests.length > 0 && (
         <section className="requests-section">
           <h2>Join Requests</h2>
           <div className="requests-list">
-            {MOCK_REQUESTS.map((request) => (
+            {groupsData.join_requests.map((request) => (
               <div key={request.id} className="request-card">
                 <div className="request-info">
                   <img
-                    src={request.user.avatar || "/icons/placeholder.svg"}
-                    alt={request.user.name}
+                    src={request.members[0]?.avatar || "/icons/placeholder.svg"}
+                    alt={`${request.members[0]?.firstname} ${request.members[0]?.lastname}`}
                     className="user-avatar"
                   />
                   <div className="request-details">
                     <span className="request-title">
-                      <strong>{request.user.name}</strong> wants to join <strong>{request.group.title}</strong>
+                      <strong>{`${request.members[0]?.firstname} ${request.members[0]?.lastname}`}</strong> wants to join <strong>{request.title}</strong>
                     </span>
-                    <span className="request-date">{new Date(request.date).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="request-actions">
-                  <button className="accept-button" onClick={() => handleRequestResponse(request.id, true)}>
+                  <button className="accept-button" onClick={() => handleRequestResponse(request.members[0]?.id, request.id, true)}>
                     Accept
                   </button>
-                  <button className="decline-button" onClick={() => handleRequestResponse(request.id, false)}>
+                  <button className="decline-button" onClick={() => handleRequestResponse(request.members[0]?.id, request.id, false)}>
                     Decline
                   </button>
                 </div>
@@ -320,8 +283,8 @@ export default function GroupsPage() {
       </div>
 
       <div className="groups-list">
-        {filteredGroups?.length > 0 ? (
-          filteredGroups.map((group: any) => (
+        {filteredGroups && filteredGroups.length > 0 ? (
+          filteredGroups?.map((group) => (
             <div key={group.id} className="group-card">
               <div className="group-image" onClick={() => navigateToGroup(group.id)}>
                 <img src={group.image || "/icons/placeholder.svg"} alt={group.title} />
@@ -329,6 +292,15 @@ export default function GroupsPage() {
               <div className="group-info" onClick={() => navigateToGroup(group.id)}>
                 <h3 className="group-title">{group.title}</h3>
               </div>
+              {!group.is_accepted && !isJoinRequestPending(group.id) && (
+                <button className="join-button" onClick={() => handleJoinGroup(group.id)}>
+                  Request to Join
+                </button>
+              )}
+              {!group.is_accepted && isJoinRequestPending(group.id) && (
+                <div className="member-badge requested">Request Pending</div>
+              )}
+              {group.is_accepted && <div className="member-badge">Member</div>}
             </div>
           ))
         ) : (

@@ -188,3 +188,18 @@ func (s *Server) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.GetComments(request)
 	s.SendJson(w, response, err)
 }
+
+// Group requests and invites
+func (s *Server) RequestJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.RequestJoinGroup(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) RespondToJoinRequestHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.RespondToJoinRequest(request)
+	s.SendJson(w, response, err)
+}

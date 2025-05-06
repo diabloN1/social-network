@@ -35,11 +35,46 @@ func (r *GroupRepository) Create(g *model.Group) error {
 	return nil
 }
 
+func (r *GroupRepository) GetGroupOwner(groupId int) (int, error) {
+	var ownerId int
+	err := r.Repository.db.QueryRow(
+		"SELECT COALESCE(user_id, 0) FROM groups WHERE id = $2",
+		groupId,
+	).Scan(&ownerId)
+	if err != nil {
+		return 0, err
+	}
+
+	return ownerId, nil
+}
+
 func (r *GroupRepository) AddMember(m *model.GroupMember) error {
 	return r.Repository.db.QueryRow(
 		"INSERT INTO group_members (user_id, inviter_id, group_id, is_accepted) VALUES ($1, $2, $3, $4) RETURNING (id)",
 		m.UserId, m.InviterId, m.GroupId, m.IsAccepted,
 	).Scan(&m.ID)
+}
+
+func (r *GroupRepository) GetMember(m *model.GroupMember) error {
+	return r.Repository.db.QueryRow(
+		"SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2",
+		m.UserId, m.GroupId,
+	).Scan(&m.ID, &m.IsAccepted)
+}
+
+func (r *GroupRepository) AcceptMember(m *model.GroupMember) error {
+	return r.Repository.db.QueryRow(
+		"UPDATE group_members SET is_accepted = TRUE WHERE user_id = $1 AND group_id = $2",
+		m.UserId, m.GroupId,
+	).Scan(&m.ID, &m.IsAccepted)
+}
+
+func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
+	_, err := r.Repository.db.Exec(
+		"DELETE FROM group_members WHERE user_id = $1 AND group_id = $2",
+		m.UserId, m.GroupId,
+	)
+	return err
 }
 
 func (r *GroupRepository) AddGroupPost(p *model.Post, groupId int) error {
@@ -99,9 +134,10 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 				FROM group_members m
 				LEFT JOIN groups g ON m.group_id = g.id
 				LEFT JOIN users u ON m.inviter_id = u.id
-				WHERE m.user_id = $1 AND m.is_accepted = FALSE AND m.inviter_id IS NOT NULL`
+				WHERE m.user_id = $1 AND m.is_accepted = FALSE AND m.inviter_id != 0`
 	rows, err := r.Repository.db.Query(query, userId)
 	if err != nil {
+		fmt.Println("here")
 		return nil, err
 	}
 
@@ -110,6 +146,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		inviter := &model.User{}
 
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
+		fmt.Println("heree")
 			return nil, err
 		}
 
@@ -118,6 +155,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 	}
 
 	if err := rows.Err(); err != nil {
+		fmt.Println("hereee")
 		return nil, err
 	}
 
@@ -130,7 +168,7 @@ func (r *GroupRepository) GetJoinRequestsByOwnerId(ownerId int) ([]*model.Group,
 				FROM group_members m
 				LEFT JOIN groups g ON m.group_id = g.id
 				LEFT JOIN users u ON m.user_id = u.id
-				WHERE g.user_id = $1 AND m.is_accepted = FALSE AND m.inviter_id IS NULL`
+				WHERE g.user_id = $1 AND m.is_accepted = FALSE AND m.inviter_id = 0`
 	rows, err := r.Repository.db.Query(query, ownerId)
 	if err != nil {
 		return nil, err
@@ -357,12 +395,12 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 	for rows.Next() {
 		u := &model.User{}
 
-		if err := rows.Scan(&u.ID, &u.Firstname, &u.Lastname, &u.Nickname, &u.Avatar,); err != nil {
+		if err := rows.Scan(&u.ID, &u.Firstname, &u.Lastname, &u.Nickname, &u.Avatar); err != nil {
 			return nil, err
 		}
 
 		if u.ID == userId {
-			if option {
+			if option == true {
 				e.CurrentOption = "option1"
 			} else {
 				e.CurrentOption = "option2"

@@ -11,6 +11,7 @@ import addGroupPost from "@/app/api/_groups/addGroupPost"
 import CreateEventModal from "@/app/_components/create-event-modal"
 import addGroupEvent from "@/app/api/_groups/addGroupEvent"
 import addEventOption from "@/app/api/_groups/addEventOption"
+import requestJoinGroup from "@/app/api/_groups/requestJoinGroup"
 
 // Types for API response
 interface User {
@@ -219,13 +220,17 @@ export default function GroupPage() {
   }
 
   // Handle joining a group
-  const handleJoinGroup = (groupId: number) => {
-    // In a real app, you would send this to the backend
-    console.log("Requesting to join group:", groupId)
-
-    // For demo purposes, we'll just log it
-    // Normally you would update the UI to show a pending request
-    alert("Join request sent! Waiting for approval.")
+  const handleJoinGroup = async () => {
+    try {
+      const data = await requestJoinGroup(groupId)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+      console.log("request Sended succesfuly")
+    } catch(error) {
+      alert(error)
+    }
   }
 
   if (loading) {
@@ -278,7 +283,7 @@ export default function GroupPage() {
             </>
           )}
           {!group.is_accepted && (
-            <button className="action-button" onClick={() => handleJoinGroup(group.id)}>
+            <button className="action-button" onClick={() => handleJoinGroup()}>
               Request to Join
             </button>
           )}
@@ -312,7 +317,7 @@ export default function GroupPage() {
           <div className="join-message">
             <h3>This is a private group</h3>
             <p>Join this group to see posts, events, and interact with members.</p>
-            <button className="join-button" onClick={() => handleJoinGroup(group.id)}>
+            <button className="join-button" onClick={() => handleJoinGroup()}>
               Request to Join
             </button>
           </div>
