@@ -1,10 +1,27 @@
 "use client";
-import { useState } from "react";
-import "./Navbar.css";
+
+import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
+import "./Navbar.css";
 
 export default function Navbar() {
+  const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
+
+  useEffect(() => {
+    if (pathname === "/app") {
+      setActiveTab("home");
+    } else if (pathname.includes("/app/profiles")) {
+      setActiveTab("profile");
+    } else if (pathname.includes("/app/groups")) {
+      setActiveTab("groups");
+    } else if (pathname.includes("/app/messaging")) {
+      setActiveTab("messaging");
+    } else if (pathname.includes("/app/notifications")) {
+      setActiveTab("notification");
+    }
+  }, [pathname]);
 
   const navItems = [
     {
@@ -26,6 +43,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app",
+      notifications: 0,
     },
     {
       id: "messaging",
@@ -48,7 +66,8 @@ export default function Navbar() {
           <path d="M17 12H7" />
         </svg>
       ),
-      link: "/app",
+      link: "/app/",
+      notifications: 2,
     },
     {
       id: "groups",
@@ -71,28 +90,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/groups",
-    },
-    {
-      id: "notification",
-      label: "Notification",
-      icon: (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="icon"
-        >
-          <path d="M10.268 21a2 2 0 0 0 3.464 0" />
-          <path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326" />
-        </svg>
-      ),
-      link: "/app",
+      notifications: 0,
     },
     {
       id: "profile",
@@ -113,6 +111,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/profiles",
+      notifications: 0,
     },
   ];
 
@@ -123,12 +122,21 @@ export default function Navbar() {
           <li
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}
-            onClick={() => setActiveTab(item.id)}
           >
-            <Link href={item.link} className="nav-link">
+            <Link
+              href={item.link}
+              className="nav-link"
+              onClick={() => setActiveTab(item.id)}
+              aria-label={item.label}
+            >
               <div className="nav-item-content">
                 {item.icon}
                 <span className="label">{item.label}</span>
+                {item.notifications > 0 && (
+                  <span className="notification-badge">
+                    {item.notifications}
+                  </span>
+                )}
               </div>
             </Link>
           </li>
