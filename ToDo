@@ -1,13 +1,13 @@
 ToDo :
  # Groups
- - on event option click change ui of buttons dynamicly without trigring fetchgroupdata() (at line 200 in single group page)
  - Invite user
  - Accept invite
  - Accept request
  - Delete request/invite
+ - devide group repository
  - middleware to aply to all group actions
  - middleware to aply to all post actions
- - devide group repository
+ - on event option click change ui of buttons dynamicly without trigring fetchgroupdata() (at line 200 in single group page)
 
  # Single Profile Page
  - don't show user as a follower until the following accepts.

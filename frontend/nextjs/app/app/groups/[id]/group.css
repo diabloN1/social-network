@@ -85,6 +85,12 @@
   background-color: var(--primary-hover);
 }
 
+.action-button.requested {
+  background-color: var(--input-bg);
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
 .group-meta {
   display: flex;
   flex-wrap: wrap;
@@ -746,6 +752,16 @@
 
 .join-button:hover {
   background-color: var(--primary-hover);
+}
+
+.request-pending-message {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background-color: var(--input-bg);
+  color: var(--text-light);
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
 }
 
 /* Responsive Styles */

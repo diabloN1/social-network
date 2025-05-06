@@ -51,6 +51,7 @@ interface Event {
   opt2_users?: User[] | null
 }
 
+// Update the GroupData interface to include is_pending
 interface GroupData {
   id: number
   title: string
@@ -60,6 +61,7 @@ interface GroupData {
   creation_date: string
   is_accepted: boolean
   is_owner: boolean
+  is_pending?: boolean
   members: User[]
   posts: Post[]
   events: Event[]
@@ -104,7 +106,7 @@ const getMockComments = (postId: number): any[] => {
 export default function GroupPage() {
   const params = useParams()
   const router = useRouter()
-  const groupId = Number.parseInt(params.id as string, 10)
+  const groupId = Number(params.id)
 
   const [group, setGroup] = useState<GroupData | null>(null)
   const [activeTab, setActiveTab] = useState("posts")
@@ -227,7 +229,10 @@ export default function GroupPage() {
         alert(data.error)
         return
       }
-      console.log("request Sended succesfuly")
+      
+      // Refresh group data to update the is_pending status
+      fetchGroupData()
+      console.log("Request sent successfully")
     } catch(error) {
       alert(error)
     }
@@ -282,9 +287,14 @@ export default function GroupPage() {
               </button>
             </>
           )}
-          {!group.is_accepted && (
+          {!group.is_accepted && !group.is_pending && (
             <button className="action-button" onClick={() => handleJoinGroup()}>
               Request to Join
+            </button>
+          )}
+          {!group.is_accepted && group.is_pending && (
+            <button className="action-button requested" disabled>
+              Request Pending
             </button>
           )}
         </div>
@@ -317,9 +327,15 @@ export default function GroupPage() {
           <div className="join-message">
             <h3>This is a private group</h3>
             <p>Join this group to see posts, events, and interact with members.</p>
-            <button className="join-button" onClick={() => handleJoinGroup()}>
-              Request to Join
-            </button>
+            {!group.is_pending ? (
+              <button className="join-button" onClick={() => handleJoinGroup()}>
+                Request to Join
+              </button>
+            ) : (
+              <div className="request-pending-message">
+                Your join request is pending approval
+              </div>
+            )}
           </div>
         </div>
       ) : (

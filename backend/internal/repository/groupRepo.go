@@ -195,7 +195,7 @@ func (r *GroupRepository) GetJoinRequestsByOwnerId(ownerId int) ([]*model.Group,
 func (r *GroupRepository) GetGroups(userId int) ([]*model.Group, error) {
 
 	var groups []*model.Group
-	query := `SELECT g.id, g.user_id, g.title, g.image, COALESCE(m.is_accepted, false) as is_accepted
+	query := `SELECT g.id, g.user_id, g.title, g.image, COALESCE(m.id, 0) as mId, COALESCE(m.is_accepted, false) as is_accepted
 	FROM groups g
 	LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id`
 
@@ -207,12 +207,17 @@ func (r *GroupRepository) GetGroups(userId int) ([]*model.Group, error) {
 	for rows.Next() {
 		group := &model.Group{}
 
-		if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &group.IsAccepted); err != nil {
+		var memberId int
+		if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted); err != nil {
 			return nil, err
 		}
 
 		if group.OwnerId == userId {
 			group.IsOwner = true
+		}
+
+		if memberId != 0 && !group.IsAccepted {
+			group.IsPending = true
 		}
 
 		groups = append(groups, group)
@@ -243,6 +248,10 @@ func (r *GroupRepository) GetGroupData(groupId, userId int) (*model.Group, error
 	}
 
 	group.IsOwner = group.OwnerId == userId
+
+	if member.ID != 0 && !group.IsAccepted {
+		group.IsPending = true
+	}
 
 	if !group.IsAccepted {
 		group.OwnerId = 0

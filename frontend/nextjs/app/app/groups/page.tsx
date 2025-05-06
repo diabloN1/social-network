@@ -1,3 +1,4 @@
+
 "use client"
 
 import type React from "react"
@@ -30,6 +31,7 @@ interface Group {
   creation_date: string
   is_accepted: boolean
   is_owner: boolean
+  is_pending?: boolean
   members: User[]
 }
 
@@ -66,7 +68,6 @@ export default function GroupsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [activeTab, setActiveTab] = useState("all")
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [pendingJoinRequests, setPendingJoinRequests] = useState<number[]>([])
 
   const fetchGroupsData = async () => {
     try {
@@ -78,13 +79,9 @@ export default function GroupsPage() {
 
       console.log(data)
       setGroupsData(data)
-      
+
       // Extract group IDs from join_requests to track pending requests
-      if (data.join_requests && data.join_requests.length > 0) {
-        const requestedGroupIds = data.join_requests.map((request: any) => request.id)
-        setPendingJoinRequests(requestedGroupIds)
-      }
-    } catch(error) {
+    } catch (error) {
       alert(error)
     }
   }
@@ -123,7 +120,7 @@ export default function GroupsPage() {
       setShowCreateModal(false)
       // Refresh groups data
       fetchGroupsData()
-    } catch(error) {
+    } catch (error) {
       alert(error)
     }
   }
@@ -136,12 +133,11 @@ export default function GroupsPage() {
         alert(data.error)
         return
       }
-      
-      // Add this group to pending requests
-      setPendingJoinRequests(prev => [...prev, groupId])
-      
+
+      // Refresh groups data to update the is_pending status
+      fetchGroupsData()
       console.log("Join request sent successfully")
-    } catch(error) {
+    } catch (error) {
       alert(error)
     }
   }
@@ -156,13 +152,20 @@ export default function GroupsPage() {
   }
 
   // Handle responding to join requests (as group creator)
-  const handleRequestResponse = async(userId: number, groupId: number, accept: boolean) => {
+  const handleRequestResponse = async (userId: number, groupId: number, accept: boolean) => {
     try {
       const data = await respondToJoinRequest(userId, groupId, accept)
+      if (data.error) {
+        alert(data.error)
+        return
+      }
+
+      
     } catch(error) {
       alert(error)
     }
   }
+
 
   // Navigate to group detail page
   const navigateToGroup = (groupId: number) => {
@@ -170,9 +173,6 @@ export default function GroupsPage() {
   }
 
   // Check if a join request is pending for a group
-  const isJoinRequestPending = (groupId: number) => {
-    return pendingJoinRequests.includes(groupId)
-  }
 
   return (
     <div className="groups-container">
@@ -218,6 +218,8 @@ export default function GroupsPage() {
                       <strong>{`${invite.user.firstname} ${invite.user.lastname}`}</strong> invited you to join{" "}
                       <strong>{invite.group.title}</strong>
                     </span>
+                    <span className="invitation-description">{invite.group.description}</span>
+                    <span className="invitation-date">{new Date(invite.creation_date).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="invitation-actions">
@@ -249,12 +251,14 @@ export default function GroupsPage() {
                   />
                   <div className="request-details">
                     <span className="request-title">
-                      <strong>{`${request.members[0]?.firstname} ${request.members[0]?.lastname}`}</strong> wants to join <strong>{request.title}</strong>
+                      <strong>{`${request.members[0]?.firstname} ${request.members[0]?.lastname}`}</strong> wants to
+                      join <strong>{request.title}</strong>
                     </span>
+                    <span className="request-date">{new Date(request.creation_date).toLocaleDateString()}</span>
                   </div>
                 </div>
                 <div className="request-actions">
-                  <button className="accept-button" onClick={() => handleRequestResponse(request.members[0]?.id, request.id, true)}>
+                <button className="accept-button" onClick={() => handleRequestResponse(request.members[0]?.id, request.id, true)}>
                     Accept
                   </button>
                   <button className="decline-button" onClick={() => handleRequestResponse(request.members[0]?.id, request.id, false)}>
@@ -284,7 +288,7 @@ export default function GroupsPage() {
 
       <div className="groups-list">
         {filteredGroups && filteredGroups.length > 0 ? (
-          filteredGroups?.map((group) => (
+          filteredGroups.map((group) => (
             <div key={group.id} className="group-card">
               <div className="group-image" onClick={() => navigateToGroup(group.id)}>
                 <img src={group.image || "/icons/placeholder.svg"} alt={group.title} />
@@ -292,14 +296,12 @@ export default function GroupsPage() {
               <div className="group-info" onClick={() => navigateToGroup(group.id)}>
                 <h3 className="group-title">{group.title}</h3>
               </div>
-              {!group.is_accepted && !isJoinRequestPending(group.id) && (
+              {!group.is_accepted && !group.is_pending && (
                 <button className="join-button" onClick={() => handleJoinGroup(group.id)}>
                   Request to Join
                 </button>
               )}
-              {!group.is_accepted && isJoinRequestPending(group.id) && (
-                <div className="member-badge requested">Request Pending</div>
-              )}
+              {!group.is_accepted && group.is_pending && <div className="member-badge requested">Request Pending</div>}
               {group.is_accepted && <div className="member-badge">Member</div>}
             </div>
           ))
@@ -317,7 +319,7 @@ export default function GroupsPage() {
       </div>
 
       {/* Create Group Modal */}
-      {showCreateModal && (<CreateGroupModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateGroup} />)}
+      {showCreateModal && <CreateGroupModal onClose={() => setShowCreateModal(false)} onSubmit={handleCreateGroup} />}
     </div>
   )
 }
