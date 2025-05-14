@@ -14,7 +14,7 @@ interface Conv {
 
 // Chat interface for the component
 export interface Chat {
-  id: string // user_id or group_id prefixed with "user_" or "group_"
+  id: string // as "user_" or "group_"
   name: string
   avatar: string
   lastMessage?: string
@@ -62,7 +62,6 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
             lastMessage: "No messages yet",
             lastMessageTime: priv.lastmessagedate || "No activity",
             unreadCount: 0,
-            isGroup: false,
             isOnline: false, // We don't have online status for now
           })),
 
@@ -75,7 +74,7 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
             lastMessageTime: newConv.lastmessagedate || "No activity",
             unreadCount: 1, // Mark new conversations with an unread count
             isNew: true,
-            isOnline: true,
+            isOnline: false,
           })),
         ]
 
@@ -94,8 +93,8 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
     const matchesSearch = chat.name.toLowerCase().includes(filter.toLowerCase())
 
     if (activeTab === "+") return matchesSearch && chat.isNew // No chats shown when "+" tab is active
-    if (activeTab === "all") return matchesSearch
-    if (activeTab === "private") return matchesSearch && !chat.isGroup
+    if (activeTab === "all") return matchesSearch && !chat.isNew
+    if (activeTab === "private") return matchesSearch && !chat.isGroup && !chat.isNew
     if (activeTab === "groups") return matchesSearch && chat.isGroup
 
     return matchesSearch
