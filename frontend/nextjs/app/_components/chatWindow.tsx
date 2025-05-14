@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useRef, useEffect } from "react"
+import { Chat } from "./chatList"
 
 interface User {
   id: number
@@ -11,18 +12,6 @@ interface User {
   nickname: string
   avatar?: string
   online: boolean
-}
-
-interface Chat {
-  id: string
-  name: string
-  avatar: string
-  lastMessage?: string
-  lastMessageTime?: string
-  unreadCount: number
-  isGroup: boolean
-  isOnline?: boolean
-  members?: User[]
 }
 
 interface Message {
@@ -39,13 +28,12 @@ interface ChatWindowProps {
   chat: Chat | null
   messages: Message[]
   onSendMessage: (content: string) => void
-  loading: boolean
 }
 
 // Simple emoji list using Unicode characters
 const EMOJI_LIST = ["😊", "😂", "❤️", "👍", "😍", "😒", "😘", "🙄", "😁", "👋"]
 
-export default function ChatWindow({ chat, messages, onSendMessage, loading }: ChatWindowProps) {
+export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindowProps) {
   const [messageInput, setMessageInput] = useState("")
   const [showEmojis, setShowEmojis] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -127,27 +115,6 @@ export default function ChatWindow({ chat, messages, onSendMessage, loading }: C
     )
   }
 
-  if (loading) {
-    return (
-      <div className="chat-window">
-        <div className="chat-header">
-          <div className="chat-header-info">
-            <div className="chat-avatar">
-              <img src={chat.avatar || "/placeholder.svg"} alt={chat.name} />
-              {!chat.isGroup && chat.isOnline && <span className="online-indicator"></span>}
-            </div>
-            <div className="chat-header-details">
-              <h3>{chat.name}</h3>
-              {!chat.isGroup && <span className="chat-status">{chat.isOnline ? "Online" : "Offline"}</span>}
-              {chat.isGroup && chat.members && <span className="chat-members">{chat.members.length} members</span>}
-            </div>
-          </div>
-        </div>
-        <div className="loading-spinner">Loading messages...</div>
-      </div>
-    )
-  }
-
   const messageGroups = groupMessagesByDate()
 
   return (
@@ -161,7 +128,6 @@ export default function ChatWindow({ chat, messages, onSendMessage, loading }: C
           <div className="chat-header-details">
             <h3>{chat.name}</h3>
             {!chat.isGroup && <span className="chat-status">{chat.isOnline ? "Online" : "Offline"}</span>}
-            {chat.isGroup && chat.members && <span className="chat-members">{chat.members.length} members</span>}
           </div>
         </div>
       </div>

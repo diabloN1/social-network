@@ -1,50 +1,112 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import getChatData from "@/app/api/_messages/getChatData"
 
-interface User {
-  id: number
-  username: string
-  firstname: string
-  lastname: string
-  nickname: string
-  avatar?: string
-  online: boolean
+// API response interfaces
+interface Conv {
+  groupId: number
+  userId: number
+  image: string
+  fullName: string
+  lastmessagedate: string
 }
 
-interface Chat {
-  id: string
+// Chat interface for the component
+export interface Chat {
+  id: string // user_id or group_id prefixed with "user_" or "group_"
   name: string
   avatar: string
   lastMessage?: string
   lastMessageTime?: string
   unreadCount: number
   isGroup: boolean
+  isNew: boolean
   isOnline?: boolean
-  members?: User[]
 }
 
 interface ChatListProps {
-  chats: Chat[]
   activeChat: Chat | null
   onSelectChat: (chat: Chat) => void
-  loading: boolean
 }
 
-export default function ChatList({ chats, activeChat, onSelectChat, loading }: ChatListProps) {
+export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
+  const [chats, setChats] = useState<Chat[]>([])
   const [filter, setFilter] = useState("")
-  const [activeTab, setActiveTab] = useState<"all" | "private" | "groups">("all")
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<"+" | "all" | "private" | "groups">("all")
+
+  useEffect(() => {
+    const getChat = async () => {
+      try {
+        const data = await getChatData()
+        console.log(data)
+
+        const transformedChats: Chat[] = [
+          // Transform group conversations
+          ...data.groupConvs.map((group: Conv) => ({
+            id: `group_${group.groupId}`,
+            name: group.fullName,
+            avatar: group.image || "/placeholder.svg?height=50&width=50",
+            lastMessage: "No messages yet",
+            lastMessageTime: group.lastmessagedate || "No activity",
+            unreadCount: 0,
+            isGroup: true,
+          })),
+
+          // Transform private conversations
+          ...data.privateConvs.map((priv: Conv) => ({
+            id: `user_${priv.userId}`,
+            name: priv.fullName,
+            avatar: priv.image || "/placeholder.svg?height=50&width=50",
+            lastMessage: "No messages yet",
+            lastMessageTime: priv.lastmessagedate || "No activity",
+            unreadCount: 0,
+            isGroup: false,
+            isOnline: false, // We don't have online status for now
+          })),
+
+          // Transform new conversations
+          ...data.newConvs.map((newConv: Conv) => ({
+            id: `user_${newConv.userId}`,
+            name: newConv.fullName,
+            avatar: newConv.image || "/placeholder.svg?height=50&width=50",
+            lastMessage: "New conversation",
+            lastMessageTime: newConv.lastmessagedate || "No activity",
+            unreadCount: 1, // Mark new conversations with an unread count
+            isNew: true,
+            isOnline: true,
+          })),
+        ]
+
+        setChats(transformedChats)
+        setLoading(false)
+      } catch (error) {
+        console.error("Error fetching chat data:", error)
+        setLoading(false)
+      }
+    }
+    getChat()
+  }, [])
 
   // Filter chats based on search term and active tab
   const filteredChats = chats.filter((chat) => {
     const matchesSearch = chat.name.toLowerCase().includes(filter.toLowerCase())
 
+    if (activeTab === "+") return matchesSearch && chat.isNew // No chats shown when "+" tab is active
     if (activeTab === "all") return matchesSearch
     if (activeTab === "private") return matchesSearch && !chat.isGroup
     if (activeTab === "groups") return matchesSearch && chat.isGroup
 
     return matchesSearch
   })
+
+  // Handle new chat button click
+  const handleNewChat = () => {
+    setActiveTab("+")
+    // Here you would implement the logic to create a new chat
+    console.log("Create new chat")
+  }
 
   if (loading) {
     return (
@@ -74,6 +136,9 @@ export default function ChatList({ chats, activeChat, onSelectChat, loading }: C
       </div>
 
       <div className="chat-tabs">
+        <button className={`chat-tab ${activeTab === "+" ? "active" : ""}`} onClick={handleNewChat}>
+          +
+        </button>
         <button className={`chat-tab ${activeTab === "all" ? "active" : ""}`} onClick={() => setActiveTab("all")}>
           All
         </button>

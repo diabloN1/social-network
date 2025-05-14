@@ -1,32 +1,21 @@
 package controller
 
 import (
+	"log"
 	"net/http"
 )
 
-func (s *Server) Home(w http.ResponseWriter, r *http.Request) {
-	// if r.Header.Get("Upgrade") == "websocket" {
-	// 	conn, err := s.upgrader.Upgrade(w, r, nil)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return
-	// 	}
+func (s *Server) WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Header.Get("Upgrade") == "websocket" {
+		conn, err := s.upgrader.Upgrade(w, r, nil)
+		if err != nil {
+			log.Println(err)
+			return
+		}
 
-	// 	go s.readMessage(conn)
+		go s.readMessage(conn)
 
-	// } else {
-	// 	// Render the HTML template with the data
-	// 	tmpl, err := template.ParseFiles("index.html")
-	// 	if err != nil {
-	// 		log.Println("Server Could not parse templates", 500)
-	// 		return
-	// 	}
-	// 	err = tmpl.Execute(w, r)
-	// 	if err != nil {
-	// 		log.Println(err)
-	// 		return
-	// 	}
-	// }
+	}
 }
 
 // AUTH Handlers
@@ -166,14 +155,12 @@ func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 
-
 func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)
-    response := s.ReactToPost(request)
+	response := s.ReactToPost(request)
 	s.SendJson(w, response, err)
 }
-
 
 func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -201,5 +188,12 @@ func (s *Server) RespondToJoinRequestHandler(w http.ResponseWriter, r *http.Requ
 
 	request, err := s.ReadRequest(r.Body)
 	response := s.RespondToJoinRequest(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) GetChatHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetChat(request)
 	s.SendJson(w, response, err)
 }

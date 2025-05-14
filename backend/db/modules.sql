@@ -61,12 +61,14 @@ CREATE TABLE IF NOT EXISTS comments (
 CREATE TABLE IF NOT EXISTS messages (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   sender_id INTEGER,
-  recipient_id INTEGER,
+  recipient_id INTEGER, -- For Private messages
+  group_id INTEGER, -- For group messages
   is_seen INTEGER DEFAULT 0,
   text TEXT,
   creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (sender_id) REFERENCES users (id),
   FOREIGN KEY (recipient_id) REFERENCES users (id)
+  FOREIGN KEY (group_id) REFERENCES groups (id)
 );
 
 CREATE TABLE IF NOT EXISTS groups (

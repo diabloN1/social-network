@@ -78,6 +78,13 @@ func Start() error {
 	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
 	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
 
+	// Chat
+	s.router.HandleFunc("/getChatData", s.GetChatHandler)
+
+	// ws
+	s.router.HandleFunc("/ws", s.WebSocketHandler)
+
+
 	// go s.checkClientsLastActivity()
 
 	log.Println("Server started at http://localhost:8080/")
@@ -90,6 +97,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 	upgrader := &websocket.Upgrader{
+		CheckOrigin: func(r *http.Request) bool {
+			// origin := r.Header.Get("Origin")
+			// return origin == "http://localhost:3000"
+			return true
+		},
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}

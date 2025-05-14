@@ -11,6 +11,122 @@ type MessageRepository struct {
 	Repository *Repository
 }
 
+func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, error) {
+	var conversations []*model.Conv
+	query := `SELECT 
+			u.id,
+			u.firstname || ' ' || u.lastname AS full_name,
+			u.avatar
+			FROM messages m
+			INNER JOIN users u ON (
+			(m.sender_id = $1 AND u.id = m.recipient_id) OR
+			(m.recipient_id = $1 AND u.id = m.sender_id)
+			)
+			WHERE m.group_id IS NULL
+			GROUP BY u.id;
+	`
+	rows, err := r.Repository.db.Query(query, userId)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		conv := &model.Conv{}
+		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image); err != nil {
+			return nil, err
+		}
+		conversations = append(conversations, conv)
+	}
+	if len(conversations) == 0 {
+		return []*model.Conv{}, nil
+	}
+
+
+	return conversations, nil
+}
+
+func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, error) {
+	var conversations []*model.Conv
+	query := `SELECT 
+			g.id,
+			g.title,
+			g.image
+			FROM groups g
+			JOIN group_members gm ON gm.group_id = g.id
+			WHERE gm.user_id = $1
+			GROUP BY g.id;
+			`
+	rows, err := r.Repository.db.Query(query, userId)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		conv := &model.Conv{}
+		if err := rows.Scan(&conv.GroupId, &conv.FullName, &conv.Image); err != nil {
+			return nil, err
+		}
+		conversations = append(conversations, conv)
+	}
+	if len(conversations) == 0 {
+		return []*model.Conv{}, nil
+	}
+
+
+	return conversations, nil
+}
+
+func (r *MessageRepository) GetNewConversations(userId int) ([]*model.Conv, error) {
+	var conversations []*model.Conv
+	// (current follow u2) OR (u2 follow current AND u2 Public profile)
+	query := `SELECT 
+				u.id,
+				u.firstname || ' ' || u.lastname AS full_name,
+				u.avatar
+				FROM users u
+				LEFT JOIN followers f1 ON f1.follower_id = $1 AND f1.following_id = u.id AND f1.is_accepted = TRUE  
+				LEFT JOIN followers f2 ON f2.follower_id = u.id AND f2.following_id = $1 AND f2.is_accepted = TRUE  
+				LEFT JOIN messages m ON (
+				(m.sender_id = $1 AND m.recipient_id = u.id) OR 
+				(m.recipient_id = $1 AND m.sender_id = u.id)
+				)
+				WHERE 
+				(f1.follower_id = $1 OR (f2.follower_id = u.id AND u.is_private = FALSE))  
+				AND m.id IS NULL 
+				AND u.id != $1 
+				GROUP BY u.id;
+	`
+	rows, err := r.Repository.db.Query(query, userId)
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		conv := &model.Conv{}
+		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image); err != nil {
+			return nil, err
+		}
+		conversations = append(conversations, conv)
+	}
+	if len(conversations) == 0 {
+		return []*model.Conv{}, nil
+	}
+
+
+	return conversations, nil
+}
+
+
+
+
+
+
+
+
+// OLD
 func (r *MessageRepository) Add(m *model.Message) error {
 	err := r.Repository.db.QueryRow(
 		"INSERT INTO messages (sender_id, recipient_id, is_seen, text) VALUES ($1, $2, $3, $4) RETURNING id, creation_date",

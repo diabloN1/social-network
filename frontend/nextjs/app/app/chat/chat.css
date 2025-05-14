@@ -8,7 +8,7 @@
 
 .chat-container {
   display: flex;
-  height: calc(95vh - 100px);
+  height: calc(100vh - 100px);
   background-color: var(--card-bg);
   border-radius: 8px;
   overflow: hidden;
@@ -33,6 +33,26 @@
   color: var(--text-color);
   font-size: 20px;
   margin: 0;
+}
+
+.new-chat-button {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 10px;
+  transition: var(--transition);
+}
+
+.new-chat-button:hover {
+  background-color: var(--primary-hover);
 }
 
 .chat-search {
@@ -481,4 +501,65 @@
   .message {
     max-width: 90%;
   }
+}
+
+/* New Chat View Styles */
+.new-chat-view {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.new-chat-view h3 {
+  color: var(--text-color);
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.new-chat-view p {
+  color: var(--text-light);
+  font-size: 14px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.user-list {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.user-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--input-bg);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.user-item:hover {
+  background-color: rgba(108, 99, 255, 0.1);
+}
+
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+.user-name {
+  color: var(--text-color);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+/* Make the + tab button more prominent */
+.chat-tab:first-child {
+  font-size: 18px;
+  font-weight: bold;
 }

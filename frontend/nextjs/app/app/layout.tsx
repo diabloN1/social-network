@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Navbar from "../_components/Navbar";
+import { connectWebSocket } from "../api/_ws/initWebsocket";
 
 export default async function AppLayout({
   children,
@@ -26,7 +27,8 @@ export default async function AppLayout({
   if (!data.session) {
     redirect("/auth");
   }
-
+  connectWebSocket();  
+  
   return (
     <>
       <Navbar />
