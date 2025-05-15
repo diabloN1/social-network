@@ -1,34 +1,20 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import Navbar from "../_components/Navbar";
-import { connectWebSocket } from "../api/_ws/initWebsocket";
+import getToken from "../api/_auth/getToken";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const token = (await cookies()).get("token")?.value;
-  if (!token) {
-    redirect("/auth");
-  }
 
-  const res = await fetch("http://localhost:8080/session", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ session: token }),
-    cache: "no-store",
-  });
-
-  const data = await res.json();
+  const data = await getToken()
 
   if (!data.session) {
     redirect("/auth");
   }
-  connectWebSocket();  
-  
+
   return (
     <>
       <Navbar />

@@ -42,31 +42,6 @@ func (s *Server) ValidateSession(request map[string]any) *model.Response {
 	return response
 }
 
-func (s *Server) FindAllUsers(userid int) []*model.User {
-	users, err := s.repository.User().GetAll(userid)
-	if err != nil {
-		log.Println(err)
-	}
-
-	for i := 0; i < len(users); i++ {
-		if s.findIfUserOnline(users[i].Username) {
-			users[i].Online = true
-		}
-	}
-	return users
-
-}
-func (s *Server) findIfUserOnline(username string) bool {
-	for _, c := range s.clients {
-		if c != nil && c.Online {
-			if c.Username == username {
-				return true
-			}
-		}
-	}
-	return false
-}
-
-func RemoveUser(users []*model.User, index int) []*model.User {
-	return append(users[:index], users[index+1:]...)
+func (s *Server) findIfUserOnline(userId int) bool {
+	return len(s.clients[userId]) > 0
 }

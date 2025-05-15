@@ -18,17 +18,15 @@ type Server struct {
 	router     *http.ServeMux
 	repository repository.Repository
 	upgrader   *websocket.Upgrader
-	clients    []*Client
+	clients    map[int][]*Client
 	mu         sync.RWMutex
 }
 
 type Client struct {
 	Session    string
 	ActiveTime time.Time
+	UserId 	   int
 	Connection *websocket.Conn
-	Userid     int
-	Username   string
-	Online     bool
 }
 
 func Start() error {
@@ -39,9 +37,6 @@ func Start() error {
 	defer db.Close()
 
 	s := NewServer(http.NewServeMux(), db)
-
-	// s.router.Handle("/view/", http.StripPrefix("/view/", http.FileServer(http.Dir("./view"))))
-	// s.router.HandleFunc("/", s.Home)
 
 	// Login
 	s.router.HandleFunc("/login", s.LoginHanlder)
@@ -80,6 +75,7 @@ func Start() error {
 
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)
+	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
 
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
@@ -111,44 +107,30 @@ func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 		router:     router,
 		repository: *r,
 		upgrader:   upgrader,
-		clients:    []*Client{},
+		clients:    make(map[int][]*Client),
 	}
 }
 
-func (s *Server) addClient(userid int, session string, client *websocket.Conn, username string) {
+func (s *Server) addClient(userid int, session string, client *websocket.Conn) *Client {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	c := &Client{Userid: userid, Session: session, ActiveTime: time.Now(), Connection: client, Username: username, Online: true}
-	s.clients = append(s.clients, c)
+	c := &Client{UserId: userid, Session: session, ActiveTime: time.Now(), Connection: client}
+	s.clients[userid] = append(s.clients[userid], c)
+	return c
 }
 
-func (s *Server) removeClient(sessionAny any, client *websocket.Conn) {
+func (s *Server) removeClient(client *Client) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	response := model.Response{}
 
-	response.Type = "logout"
-	response.Session = ""
-	response.Error = "Session was removed!"
+	
+	for i, c := range s.clients[client.UserId] {
+		if c == client {
 
-	var session string
-	var ok bool
-	if session, ok = sessionAny.(string); !ok {
-		fmt.Println("'session' must be a string!")
-		return
-	}
-
-	for i, c := range s.clients {
-		if c.Session == session {
-			err := client.WriteJSON(response)
-			if err != nil {
-				return
-			}
-
-			if i == len(s.clients)-1 {
-				s.clients = s.clients[:i]
+			if i == len(s.clients[client.UserId])-1 {
+				s.clients[client.UserId] = s.clients[client.UserId][:i]
 			} else {
-				s.clients = append(s.clients[:i], s.clients[i+1:]...)
+				s.clients[client.UserId] = append(s.clients[client.UserId][:i], s.clients[client.UserId][i+1:]...)
 			}
 			s.BroadcastOnlineUsers()
 			return
@@ -156,79 +138,39 @@ func (s *Server) removeClient(sessionAny any, client *websocket.Conn) {
 	}
 }
 
-func (s *Server) checkClientsLastActivity() {
-	for {
-		currentTime := time.Now()
-		for _, client := range s.clients {
-			if currentTime.Sub(client.ActiveTime).Minutes() > 30 {
-				client.Online = false
-				s.BroadcastOnlineUsers()
-			}
-		}
-		time.Sleep(time.Second)
-	}
-}
-
-func (s *Server) updateClientTime(client *websocket.Conn) {
-	for _, c := range s.clients {
-		if c.Connection == client {
-			c.ActiveTime = time.Now()
-			c.Online = true
-		}
-	}
-}
-
 func (s *Server) BroadcastOnlineUsers() {
-	response := model.Response{}
-	response.Type = "online"
-	wg := sync.WaitGroup{}
-	wg.Add(len(s.clients))
+	// response := model.Response{}
+	// response.Type = "online"
+	// wg := sync.WaitGroup{}
+	// wg.Add(len(s.clients))
 
-	for _, c := range s.clients {
-		go func(c *Client) {
-			if c.Online == true {
-				response.AllUsers = s.FindAllUsers(c.Userid)
-				c.Connection.WriteJSON(response)
-			}
-			wg.Done()
-		}(c)
-	}
-	wg.Wait()
+	// for _, c := range s.clients {
+	// 	go func(c *Client) {
+	// 		if c.Online == true {
+	// 			response.AllUsers = s.FindAllUsers(c.Userid)
+	// 			c.Connection.WriteJSON(response)
+	// 		}
+	// 		wg.Done()
+	// 	}(c)
+	// }
+	// wg.Wait()
 }
 
-func (s *Server) BroadcastAddedContent(response model.Response) {
-	if response.Error != "" {
-		return
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(len(s.clients))
-	for _, c := range s.clients {
-		go func(c *Client) {
-			if c.Online == true {
-				response.AllUsers = s.FindAllUsers(c.Userid)
-				c.Connection.WriteJSON(response)
-			}
-			wg.Done()
-		}(c)
-	}
-	wg.Wait()
-}
-
-func (s *Server) readMessage(client *websocket.Conn) {
+func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 	for {
 
-		_, payload, err := client.ReadMessage()
+		_, payload, err := conn.ReadMessage()
 		if err != nil {
 			s.BroadcastOnlineUsers()
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("Error reading message: %v", err)
 			}
+			s.removeClient(client)
 			break
 		}
 
 		var request map[string]any
-		response := model.Response{}
+		response := make(map[string]any)
 
 		err = json.Unmarshal(payload, &request)
 
@@ -244,143 +186,101 @@ func (s *Server) readMessage(client *websocket.Conn) {
 		}
 
 		switch requestType {
-
-		// case "register":
-		// 	response = s.Register(request)
-		// 	if response.Error == "" {
-		// 		s.addClient(response.Userid, response.Session, client, response.Username)
-		// 	}
-		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-		// 	if err != nil {
-		// 		log.Println("Notifications error:", err)
-		// 	}
-		// 	response.TotalNotifications = notifications
-		// case "login":
-		// 	response = s.Login(request)
-		// 	if response.Error == "" {
-		// 		s.addClient(response.Userid, response.Session, client, response.Username)
-		// 	}
-		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-		// 	if err != nil {
-		// 		log.Println("Notifications error:", err)
-		// 	}
-		// 	response.TotalNotifications = notifications
-		// case "session":
-		// 	response = s.ValidateSession(request)
-		// 	if response.Session != "" {
-		// 		s.addClient(response.Userid, response.Session, client, response.Username)
-		// 	} else {
-		// 		response.Type = "logout"
-		// 	}
-		// 	notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-		// 	if err != nil {
-		// 		log.Println("Notifications error:", err)
-		// 	}
-		// 	response.TotalNotifications = notifications
-		// case "logout":
-		// 	response = s.Logout(request)
-		// 	s.removeClient(request["session"], client)
-		// case "addpost":
-		// 	response = s.AddPost(request)
-		// 	s.BroadcastAddedContent(response)
-		case "addcomment":
-			// response = s.AddComment(request)
-			// s.BroadcastAddedContent(response)
-		case "getmessages":
-			response = s.GetMessages(request)
-			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-			if err != nil {
-				log.Println("Notifications error:", err)
-			}
-			response.TotalNotifications = notifications
-		case "moremessages":
-			response = s.GetMessages(request)
-			notifications, err := s.repository.Message().GetTotalNotifications(response.Userid)
-			if err != nil {
-				log.Println("Notifications error:", err)
-			}
-			response.Type = "loadmoremssages"
-			response.TotalNotifications = notifications
 		case "sendmessage":
 			response = s.AddMessage(request)
+			if response["error"] != "" {
+				fmt.Println(response["error"])
+			}
 			s.SentToActiveRecipient(response)
-		case "updateseenmessage":
-			s.UpdateSeenMessage(request)
-			response.Type = "updatetotal"
-			userid := int(request["userid"].(float64))
-			notifications, err := s.repository.Message().GetTotalNotifications(userid)
-			if err != nil {
-				log.Println("Error in Get Total:", err)
-			}
-			response.TotalNotifications = notifications
-		case "typing":
-			response = s.UpdateIsTyping(request)
-			if response.Error == "" {
-				s.SendIsTyping(response)
-			}
-		}
-		s.updateClientTime(client)
-
-		s.mu.Lock()
-
-		if response.Session != "" {
-			// response.Categories = s.GetCategoryAllData()
-			response.AllUsers = s.FindAllUsers(response.Userid)
+		// case "updateseenmessage":
+		// 	s.UpdateSeenMessage(request)
+		// 	response.Type = "updatetotal"
+		// 	userid := int(request["userid"].(float64))
+		// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
+		// 	if err != nil {
+		// 		log.Println("Error in Get Total:", err)
+		// 	}
+		// 	response.TotalNotifications = notifications
+		// case "typing":
+		// 	response = s.UpdateIsTyping(request)
+		// 	if response.Error == "" {
+		// 		s.SendIsTyping(response)
+		// 	}
 		}
 
-		if response.Error != "" || (response.Type != "newmessage" && response.Type != "updatetyping") {
-			client.WriteJSON(response)
-		}
-		if response.Type != "updatetyping" {
-			s.BroadcastOnlineUsers()
-		}
+		// s.mu.Lock()
 
-		s.mu.Unlock()
+		// if response.Session != "" {
+		// 	// response.Categories = s.GetCategoryAllData()
+		// 	response.AllUsers = s.FindAllUsers(response.Userid)
+		// }
+
+		// if response.Error != "" || (response.Type != "newmessage" && response.Type != "updatetyping") {
+		// 	client.WriteJSON(response)
+		// }
+		// if response.Type != "updatetyping" {
+		// 	s.BroadcastOnlineUsers()
+		// }
+
+		// s.mu.Unlock()
 	}
 }
 
-func (s *Server) getClientConnections(userId int) []*Client {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	targetedClients := []*Client{}
-	for _, c := range s.clients {
-		if c.Userid == userId {
-			targetedClients = append(targetedClients, c)
-		}
-	}
-	return targetedClients
-}
-
-func (s *Server) SentToActiveRecipient(response model.Response) {
-	if response.Error != "" {
+func (s *Server) SentToActiveRecipient(response map[string]any) {
+	if response["error"] != "" {
 		return
 	}
 
-	for _, c := range s.getClientConnections(response.Message.SenderId) {
+	senderId := response["message"].(*model.Message).SenderId
+	receiverId := response["message"].(*model.Message).RecipientId
+	groupId := response["message"].(*model.Message).GroupId
+
+	for _, c := range s.clients[senderId] {
+		response["isOwned"] = true
 		s.ShowMessage(c, response)
 	}
 
-	for _, c := range s.getClientConnections(response.Message.RecipientId) {
-		s.ShowMessage(c, response)
+	if receiverId != 0 {
+		// Brodcast to receiver
+		for _, c := range s.clients[receiverId] {
+			response["isOwned"] = false
+			s.ShowMessage(c, response)
+		}
+	} else {
+		// Brodcast to group members
+		users, err := s.repository.Group().GetGroupMembers(groupId)
+		if err != nil {
+			fmt.Println("Error broadcasting to group members:", err)
+			return
+		}
+
+		for _, u := range users {
+			if u.ID != senderId {
+				for _, c := range s.clients[u.ID] {
+					response["isOwned"] = false
+					s.ShowMessage(c, response)
+				}
+			}
+		}
 	}
+
 }
 
-func (s *Server) ShowMessage(client *Client, response model.Response) {
+func (s *Server) ShowMessage(client *Client, response map[string]any) {
 	if client == nil {
 		return
 	}
 
-	notifications, err := s.repository.Message().GetTotalNotifications(client.Userid)
-	if err != nil {
-		log.Println("Error: ", err)
-	}
-	response.TotalNotifications = notifications
+	// notifications, err := s.repository.Message().GetTotalNotifications(client.Userid)
+	// if err != nil {
+	// 	log.Println("Error: ", err)
+	// }
+	// response.TotalNotifications = notifications
 	client.Connection.WriteJSON(response)
 }
 
 func (s *Server) SendIsTyping(response model.Response) {
-	clientsTargeted := s.getClientConnections(response.Userid)
+	clientsTargeted := s.clients[response.Userid]
 	for _, c := range clientsTargeted {
 		c.Connection.WriteJSON(response)
 	}

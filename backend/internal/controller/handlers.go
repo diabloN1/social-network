@@ -6,14 +6,24 @@ import (
 )
 
 func (s *Server) WebSocketHandler(w http.ResponseWriter, r *http.Request) {
+
 	if r.Header.Get("Upgrade") == "websocket" {
 		conn, err := s.upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			log.Println(err)
+			log.Println(err.Error())
 			return
 		}
 
-		go s.readMessage(conn)
+		token := r.FormValue("session")
+		uid, err := s.repository.Session().FindUserIDBySession(token)
+		if err != nil {
+			log.Println("Session was not found!")
+			return
+		}
+
+		client := s.addClient(uid, token, conn)
+
+		go s.readMessage(conn, client)
 
 	}
 }
@@ -195,5 +205,12 @@ func (s *Server) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)
 	response := s.GetChat(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetMessages(request)
 	s.SendJson(w, response, err)
 }

@@ -1,108 +1,135 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useRef, useEffect } from "react"
-import { Chat } from "./chatList"
+import type React from "react";
+import { useState, useRef, useEffect } from "react";
+import { Chat } from "./chatList";
+import getMessages from "../api/_messages/getMesages";
+import { addMessage } from "../_helpers/addMessage";
+import { onMessageType } from "../_helpers/webSocket";
 
 interface User {
-  id: number
-  username: string
-  firstname: string
-  lastname: string
-  nickname: string
-  avatar?: string
-  online: boolean
+  id: number;
+  username: string;
+  firstname: string;
+  lastname: string;
+  nickname: string;
+  avatar?: string;
+  online: boolean;
 }
 
 interface Message {
-  id: number
-  sender_id: number
-  receiver_id?: number
-  group_id?: number
-  content: string
-  created_at: string
-  sender: User
+  id: number;
+  sender_id: number;
+  receiver_id?: number;
+  group_id?: number;
+  text: string;
+  created_at: string;
+  isOwned: boolean;
+  user: User;
 }
 
 interface ChatWindowProps {
-  chat: Chat | null
-  messages: Message[]
-  onSendMessage: (content: string) => void
+  chat: Chat | null;
 }
 
 // Simple emoji list using Unicode characters
-const EMOJI_LIST = ["😊", "😂", "❤️", "👍", "😍", "😒", "😘", "🙄", "😁", "👋"]
+const EMOJI_LIST = ["😊", "😂", "❤️", "👍", "😍", "😒", "😘", "🙄", "😁", "👋"];
 
-export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindowProps) {
-  const [messageInput, setMessageInput] = useState("")
-  const [showEmojis, setShowEmojis] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-  const messageInputRef = useRef<HTMLTextAreaElement>(null)
+export default function ChatWindow({ chat }: ChatWindowProps) {
+  const [messageInput, setMessageInput] = useState("");
+  const [showEmojis, setShowEmojis] = useState(false);
+  const [messages, setMessages] = useState<Message[] | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    const initMessages = async () => {
+      const id = Number(chat?.id.split("_")[1]);
+      if (!id) return;
+      try {
+        const data = await getMessages(id, chat?.isGroup || false);
+        if (data.error) {
+          alert(data.error);
+          return;
+        }
+        console.log("--------", data);
+
+        setMessages(data?.messages);
+      } catch (error) {
+        alert(error);
+      }
+    };
+    initMessages();
+
+    onMessageType("addMessage", (data: any) => {
+      const currentChatId = Number(chat?.id.split("_")[1]);
+      const isGroup = chat?.isGroup;
+
+      const isMatch = isGroup
+        ? data.message.group_id === currentChatId
+        : data.message.sender_id === currentChatId ||
+          data.message.recipient_id === currentChatId;
+
+      data.message.isOwned = data.isOwned;
+
+      if (isMatch) {
+        setMessages((prev) =>
+          prev != null ? [...prev, data.message] : [data.message]
+        );
+      }
+    });
+  }, [chat]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [messages]);
 
   // Handle sending a message
-  const handleSendMessage = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!messageInput.trim()) return;
+    const id = Number(chat?.id.split("_")[1]);
 
-    if (!messageInput.trim()) return
+    try {
+      await addMessage(id, chat?.isGroup ?? false, messageInput);
 
-    onSendMessage(messageInput)
-    setMessageInput("")
-    setShowEmojis(false)
-  }
+      setMessageInput("");
+      setShowEmojis(false);
+    } catch (error) {
+      alert(error);
+    }
+  };
 
   // Add emoji to message input
   const addEmoji = (emoji: string) => {
-    setMessageInput((prev) => prev + emoji)
-    messageInputRef.current?.focus()
-  }
-
-  // Format timestamp
-  const formatMessageTime = (timestamp: string) => {
-    const date = new Date(timestamp)
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
-  }
-
-  // Format date for message groups
-  const formatMessageDate = (timestamp: string) => {
-    const date = new Date(timestamp)
-    const today = new Date()
-    const yesterday = new Date(today)
-    yesterday.setDate(yesterday.getDate() - 1)
-
-    if (date.toDateString() === today.toDateString()) {
-      return "Today"
-    } else if (date.toDateString() === yesterday.toDateString()) {
-      return "Yesterday"
-    } else {
-      return date.toLocaleDateString()
-    }
-  }
+    setMessageInput(messageInput + emoji);
+    messageInputRef.current?.focus();
+  };
 
   // Group messages by date
   const groupMessagesByDate = () => {
-    const groups: { date: string; messages: Message[] }[] = []
+    const groups: { date: string; messages: Message[] }[] = [];
 
-    messages.forEach((message) => {
-      const messageDate = new Date(message.created_at).toDateString()
-      const existingGroup = groups.find((group) => group.date === messageDate)
+    messages?.forEach((message) => {
+      const messageDate = new Date(message.created_at).toDateString();
+      const existingGroup = groups.find((group) => group.date === messageDate);
 
       if (existingGroup) {
-        existingGroup.messages.push(message)
+        existingGroup.messages.push(message);
       } else {
         groups.push({
           date: messageDate,
           messages: [message],
-        })
+        });
       }
-    })
+    });
 
-    return groups
-  }
+    return groups;
+  };
 
   if (!chat) {
     return (
@@ -112,22 +139,28 @@ export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindow
           <p>Choose a chat from the list to start messaging</p>
         </div>
       </div>
-    )
+    );
   }
 
-  const messageGroups = groupMessagesByDate()
+  const messageGroups = groupMessagesByDate();
 
   return (
     <div className="chat-window">
       <div className="chat-header">
         <div className="chat-header-info">
           <div className="chat-avatar">
-            <img src={chat.avatar || "/placeholder.svg"} alt={chat.name} />
-            {!chat.isGroup && chat.isOnline && <span className="online-indicator"></span>}
+            <img src={chat.avatar || "/icons/placeholder.svg"} alt={chat.name} />
+            {!chat.isGroup && chat.isOnline && (
+              <span className="online-indicator"></span>
+            )}
           </div>
           <div className="chat-header-details">
             <h3>{chat.name}</h3>
-            {!chat.isGroup && <span className="chat-status">{chat.isOnline ? "Online" : "Offline"}</span>}
+            {!chat.isGroup && (
+              <span className="chat-status">
+                {chat.isOnline ? "Online" : "Offline"}
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -136,30 +169,44 @@ export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindow
         {messageGroups.map((group, groupIndex) => (
           <div key={groupIndex} className="message-group">
             <div className="message-date">
-              <span>{formatMessageDate(group.messages[0].created_at)}</span>
+              <span>{group.messages[0].created_at}</span>
             </div>
 
             {group.messages.map((message, messageIndex) => {
-              const isCurrentUser = message.sender_id === 0
-              const showAvatar = messageIndex === 0 || group.messages[messageIndex - 1].sender_id !== message.sender_id
+              const showAvatar =
+                messageIndex === 0 ||
+                group.messages[messageIndex - 1].sender_id !==
+                  message.sender_id;
 
               return (
-                <div key={message.id} className={`message ${isCurrentUser ? "outgoing" : "incoming"}`}>
-                  {!isCurrentUser && showAvatar && (
+                <div
+                  key={message.id}
+                  className={`message ${
+                    message.isOwned ? "outgoing" : "incoming"
+                  }`}
+                >
+                  {!message.isOwned && showAvatar && (
                     <div className="message-avatar">
-                      <img src={message.sender.avatar || "/placeholder.svg"} alt={message.sender.nickname} />
+                      <img
+                        src={message.user.avatar || "/icons/placeholder.svg"}
+                        alt={message.user.nickname}
+                      />
                     </div>
                   )}
 
                   <div className="message-content">
-                    {!isCurrentUser && showAvatar && <div className="message-sender">{message.sender.nickname}</div>}
+                    {!message.isOwned && showAvatar && (
+                      <div className="message-user">
+                        {message.user.nickname}
+                      </div>
+                    )}
                     <div className="message-bubble">
-                      <p>{message.content}</p>
-                      <span className="message-time">{formatMessageTime(message.created_at)}</span>
+                      <p>{message.text}</p>
+                      <span className="message-time">{message.created_at}</span>
                     </div>
                   </div>
                 </div>
-              )
+              );
             })}
           </div>
         ))}
@@ -169,14 +216,14 @@ export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindow
 
       <form className="chat-input" onSubmit={handleSendMessage}>
         <div className="emoji-container">
-          <button 
-            type="button" 
-            className="emoji-toggle" 
+          <button
+            type="button"
+            className="emoji-toggle"
             onClick={() => setShowEmojis(!showEmojis)}
           >
             &#128512;
           </button>
-          
+
           {showEmojis && (
             <div className="emoji-list">
               {EMOJI_LIST.map((emoji, index) => (
@@ -201,16 +248,20 @@ export default function ChatWindow({ chat, messages, onSendMessage }: ChatWindow
           className="message-input"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault()
-              handleSendMessage(e)
+              e.preventDefault();
+              handleSendMessage(e);
             }
           }}
         />
 
-        <button type="submit" className="send-button" disabled={!messageInput.trim()}>
+        <button
+          type="submit"
+          className="send-button"
+          disabled={!messageInput.trim()}
+        >
           &#10148;
         </button>
       </form>
     </div>
-  )
+  );
 }

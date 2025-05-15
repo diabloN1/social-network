@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"real-time-forum/internal/model"
 	"time"
@@ -9,6 +11,74 @@ import (
 
 type MessageRepository struct {
 	Repository *Repository
+}
+
+func (r *MessageRepository) Add(m *model.Message) error {
+	err := r.Repository.db.QueryRow(
+		"INSERT INTO messages (sender_id, recipient_id, group_id, is_seen, text) VALUES ($1, $2, $3, $4, $5) RETURNING id, creation_date",
+		m.SenderId, m.RecipientId, m.GroupId, m.IsSeen, m.Text,
+	).Scan(&m.ID, &m.CreationDate)
+
+	if err != nil {
+		log.Println("Error adding message:", err)
+		return err
+	}
+	newTime, _ := time.Parse("2006-01-02T15:04:05Z", m.CreationDate)
+	m.CreationDate = newTime.Format("2006-01-02 15:04:05")
+
+	u, err := r.Repository.User().Find(m.SenderId)
+	m.User = u
+
+	return nil
+}
+
+func (r *MessageRepository) GetMessages(m *model.Message) ([]*model.Message, error) {
+	var messages []*model.Message
+	var rows *sql.Rows
+	var err error
+	if m.RecipientId != 0 {
+		rows, err = r.Repository.db.Query(
+			`SELECT m.id, m.sender_id, m.recipient_id, m.group_id, m.text, m.creation_date, u.firstname, u.lastname, u.nickname, u.avatar
+			FROM messages m 
+			LEFT JOIN users u ON m.sender_id = u.id
+			WHERE (m.sender_id = $1 AND m.recipient_id = $2) OR (m.sender_id = $2 AND m.recipient_id = $1)`,
+			m.SenderId, m.RecipientId,
+		)
+	} else {
+		rows, err = r.Repository.db.Query(
+			`SELECT m.id, m.sender_id, m.recipient_id, m.group_id, m.text, m.creation_date, u.firstname, u.lastname, u.nickname, u.avatar
+			FROM messages m 
+			LEFT JOIN users u ON m.sender_id = u.id
+			WHERE m.group_id = $1`,
+			m.GroupId,
+		)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		message := &model.Message{
+			User: &model.User{},
+		}
+
+		if err := rows.Scan(&message.ID, &message.SenderId, &message.RecipientId, &message.GroupId, &message.Text, &message.CreationDate, &message.User.Firstname, &message.User.Lastname, &message.User.Nickname, &message.User.Avatar); err != nil {
+			return nil, err
+		}
+		
+		if message.SenderId == m.SenderId {
+			message.IsOwned = true
+		}
+
+		messages = append(messages, message)
+	}
+	if len(messages) == 0 {
+		return []*model.Message{}, nil
+	}
+	newTime, _ := time.Parse("2006-01-02T15:04:05Z", m.CreationDate)
+	m.CreationDate = newTime.Format("2006-01-02 15:04:05")
+	return messages, err
 }
 
 func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, error) {
@@ -22,18 +92,20 @@ func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, 
 			(m.sender_id = $1 AND u.id = m.recipient_id) OR
 			(m.recipient_id = $1 AND u.id = m.sender_id)
 			)
-			WHERE m.group_id IS NULL
+			WHERE m.group_id = 0
 			GROUP BY u.id;
 	`
 	rows, err := r.Repository.db.Query(query, userId)
 
 	if err != nil {
+		fmt.Println(err)
 		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		conv := &model.Conv{}
 		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image); err != nil {
+		fmt.Println(err)
 			return nil, err
 		}
 		conversations = append(conversations, conv)
@@ -41,7 +113,6 @@ func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, 
 	if len(conversations) == 0 {
 		return []*model.Conv{}, nil
 	}
-
 
 	return conversations, nil
 }
@@ -73,7 +144,6 @@ func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, er
 	if len(conversations) == 0 {
 		return []*model.Conv{}, nil
 	}
-
 
 	return conversations, nil
 }
@@ -115,30 +185,10 @@ func (r *MessageRepository) GetNewConversations(userId int) ([]*model.Conv, erro
 		return []*model.Conv{}, nil
 	}
 
-
 	return conversations, nil
 }
 
-
-
-
-
-
-
-
 // OLD
-func (r *MessageRepository) Add(m *model.Message) error {
-	err := r.Repository.db.QueryRow(
-		"INSERT INTO messages (sender_id, recipient_id, is_seen, text) VALUES ($1, $2, $3, $4) RETURNING id, creation_date",
-		m.SenderId, m.RecipientId, m.IsSeen, m.Text,
-	).Scan(&m.ID, &m.CreationDate)
-	if err != nil {
-		log.Println("Error returning values:", err)
-	}
-	newTime, _ := time.Parse("2006-01-02T15:04:05Z", m.CreationDate)
-	m.CreationDate = newTime.Format("2006-01-02 15:04:05")
-	return err
-}
 
 func (r *MessageRepository) GetTotalNotifications(recipient_id int) (int, error) {
 	var totalNotifications = 0
@@ -155,54 +205,4 @@ func (r *MessageRepository) UpdateSeenMessages(recipieint_id int, sender_id int)
 		return err
 	}
 	return nil
-}
-
-func (r *MessageRepository) Get(sender_id int, recipient_id int, offset int) ([]*model.Message, error) {
-	var messages []*model.Message
-
-	query := `	SELECT *
-				FROM (
-					SELECT
-						messages.id,
-						sender_id,
-						sender.username,
-						recipient_id,
-						recipient.username,
-						is_seen,
-						text,
-						creation_date
-					FROM
-						messages
-					JOIN
-						users AS sender ON messages.sender_id = sender.id
-					JOIN
-						users AS recipient ON messages.recipient_id = recipient.id
-					WHERE
-						(sender_id = $1 AND recipient_id = $2) OR (sender_id = $2 AND recipient_id = $1)
-					ORDER BY
-						creation_date DESC
-					LIMIT 10 OFFSET $3
-				) AS subquery
-				ORDER BY
-					creation_date ASC`
-
-	rows, err := r.Repository.db.Query(query, sender_id, recipient_id, offset)
-
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	for rows.Next() {
-		message := &model.Message{}
-		if err := rows.Scan(&message.ID, &message.SenderId, &message.SenderUsername, &message.RecipientId, &message.RecipientUsername, &message.IsSeen, &message.Text, &message.CreationDate); err != nil {
-			return nil, err
-		}
-		newTime, _ := time.Parse("2006-01-02T15:04:05Z", message.CreationDate)
-		message.CreationDate = newTime.Format("2006-01-02 15:04:05")
-		messages = append(messages, message)
-	}
-	if len(messages) == 0 {
-		return []*model.Message{}, nil
-	}
-	return messages, nil
 }
