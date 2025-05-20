@@ -26,21 +26,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [option2, setOption2] = useState("");
   const [date, setDate] = useState("");
   const [place, setPlace] = useState("");
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [image, setImage] = useState<File | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    try {
-      let imageUrl = "";
-
-      if (image) {
-        const formData = new FormData();
-        formData.append("file", image);
-        imageUrl = await uploadFile(formData, "/events");
-      }
-
       onSubmit({
         title,
         description,
@@ -49,10 +37,6 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         date,
         place,
       });
-    } catch (err) {
-      alert(err);
-      console.error(err);
-    }
   };
 
   return (
@@ -171,5 +155,4 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     </div>
   );
 };
-
 export default CreateEventModal;

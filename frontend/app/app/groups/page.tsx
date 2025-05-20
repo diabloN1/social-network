@@ -147,14 +147,10 @@ export default function GroupsPage() {
 
   // Handle responding to invitations
   const handleInvitationResponse = (invitationId: number, accept: boolean) => {
-    // In a real app, you would send this to the backend
     console.log(
       `${accept ? "Accepting" : "Declining"} invitation:`,
       invitationId
     );
-
-    // For demo purposes, we'll just remove the invitation from the list
-    // Normally you would update the groups list as well
   };
 
   // Handle responding to join requests (as group creator)
@@ -178,8 +174,6 @@ export default function GroupsPage() {
   const navigateToGroup = (groupId: number) => {
     router.push(`/app/groups/${groupId}`);
   };
-
-  // Check if a join request is pending for a group
 
   return (
     <div className="groups-container">
