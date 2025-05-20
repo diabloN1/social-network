@@ -4,8 +4,8 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import reactToPost from "@/api/posts/reactToPost";
-import addComment from "@/api/posts/addComment";
+import reactToPost from "../api/posts/reactToPost";
+import addComment from "../api/posts/addComment";
 
 interface Comment {
   id: number;

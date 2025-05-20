@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import getChatData from "@/api/_messages/getChatData";
+import getChatData from "@/api/messages/getChatData";
 import { onMessageType } from "@/helpers/webSocket";
 
 // API response interfaces

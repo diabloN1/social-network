@@ -6,10 +6,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
 import CreateGroupModal from "@/components/create-group-modal";
-import createGroup from "@/api/_groups/createGroup";
-import getGroups from "@/api/_groups/getGroups";
-import requestJoinGroup from "@/api/_groups/requestJoinGroup";
-import respondToJoinRequest from "@/api/_groups/respondeToJoinRequest";
+import createGroup from "@/api/groups/createGroup";
+import getGroups from "@/api/groups/getGroups";
+import requestJoinGroup from "@/api/groups/requestJoinGroup";
+import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
 
 // Types for API response
 interface User {

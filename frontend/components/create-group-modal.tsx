@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { uploadFile } from "@/api/_auth/uploadFile";
+import { uploadFile } from "@/api/auth/uploadFile";
 
 interface CreateGroupModalProps {
   onClose: () => void;

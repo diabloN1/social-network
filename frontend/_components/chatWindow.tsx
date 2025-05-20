@@ -3,10 +3,10 @@
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Chat } from "./chatList";
-import getMessages from "@/api/messages/getMesages";
-import { addMessage } from "@/helpers/addMessage";
-import { onMessageType, socket } from "@/helpers/webSocket";
-import getToken from "@/api/auth/getToken";
+import getMessages from "../api/messages/getMesages";
+import { addMessage } from "../_ws/addMessage";
+import { onMessageType, socket } from "../_ws/webSocket";
+import getToken from "../api/auth/getToken";
 
 interface User {
   id: number;

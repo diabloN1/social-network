@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import "./profile.css";
-import getProfileData from "@/api/_profiles/getProfileData";
-import deleteFollow from "@/api/_follow/deleteFollow";
-import requestFollow from "@/api/_follow/requestFollow";
-import setPravicy from "@/api/_profiles/setPrivacy";
+import getProfileData from "@/api/profiles/getProfileData";
+import deleteFollow from "@/api/follow/deleteFollow";
+import requestFollow from "@/api/follow/requestFollow";
+import setPravicy from "@/api/profiles/setPrivacy";
 
 interface Post {
   id: number;

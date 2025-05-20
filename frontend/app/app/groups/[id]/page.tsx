@@ -5,13 +5,13 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import "./group.css";
-import getGroupData from "@/api/_groups/getGroupData";
+import getGroupData from "@/api/groups/getGroupData";
 import CreatePostModal from "@/components/create-post-modal";
-import addGroupPost from "@/api/_groups/addGroupPost";
+import addGroupPost from "@/api/groups/addGroupPost";
 import CreateEventModal from "@/components/create-event-modal";
-import addGroupEvent from "@/api/_groups/addGroupEvent";
-import addEventOption from "@/api/_groups/addEventOption";
-import requestJoinGroup from "@/api/_groups/requestJoinGroup";
+import addGroupEvent from "@/api/groups/addGroupEvent";
+import addEventOption from "@/api/groups/addEventOption";
+import requestJoinGroup from "@/api/groups/requestJoinGroup";
 
 // Types for API response
 interface User {

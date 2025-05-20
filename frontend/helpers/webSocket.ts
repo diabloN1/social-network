@@ -1,6 +1,6 @@
 "use client";
 
-import getToken from "@/api/_auth/getToken";
+import getToken from "@/api/auth/getToken";
 
 export let socket: WebSocket | null = null;
 

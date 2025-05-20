@@ -6,9 +6,9 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
 import { User } from "./[id]/page";
-import getProfiles from "@/api/_profiles/getProfiles";
-import acceptFollow from "@/api/_follow/acceptFollow";
-import deleteFollow from "@/api/_follow/deleteFollow";
+import getProfiles from "@/api/profiles/getProfiles";
+import acceptFollow from "@/api/follow/acceptFollow";
+import deleteFollow from "@/api/follow/deleteFollow";
 
 export default function ProfilesPage() {
   const router = useRouter();

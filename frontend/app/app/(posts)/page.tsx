@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import CreatePostModal from "@/components/create-post-modal";
 import Post from "@/components/post";
 import "./posts.css";
-import addPost from "@/api/_posts/addPost";
-import getPosts from "@/api/_posts/getPosts";
+import addPost from "@/api/posts/addPost";
+import getPosts from "@/api/posts/getPosts";
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
