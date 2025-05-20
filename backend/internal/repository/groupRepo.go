@@ -63,10 +63,11 @@ func (r *GroupRepository) GetMember(m *model.GroupMember) error {
 }
 
 func (r *GroupRepository) AcceptMember(m *model.GroupMember) error {
-	return r.Repository.db.QueryRow(
+	_, err := r.Repository.db.Exec(
 		"UPDATE group_members SET is_accepted = TRUE WHERE user_id = $1 AND group_id = $2",
 		m.UserId, m.GroupId,
-	).Scan(&m.ID, &m.IsAccepted)
+	)
+	return err
 }
 
 func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
@@ -409,7 +410,7 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 		}
 
 		if u.ID == userId {
-			if option == true {
+			if option {
 				e.CurrentOption = "option1"
 			} else {
 				e.CurrentOption = "option2"

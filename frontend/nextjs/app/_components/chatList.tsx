@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import getChatData from "@/app/api/_messages/getChatData";
+import { onMessageType } from "../_ws/webSocket";
 
 // API response interfaces
 interface Conv {
@@ -9,6 +10,7 @@ interface Conv {
   userId: number;
   image: string;
   fullName: string;
+  unreadcount: number;
   lastmessagedate: string;
 }
 
@@ -27,10 +29,10 @@ export interface Chat {
 
 interface ChatListProps {
   activeChat: Chat | null;
-  onSelectChat: (chat: Chat) => void;
+  setActiveChat: (chat: Chat) => void;
 }
 
-export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
+export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
   const [chats, setChats] = useState<Chat[]>([]);
   const [filter, setFilter] = useState("");
   const [loading, setLoading] = useState(true);
@@ -55,9 +57,9 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
             id: `group_${group.groupId}`,
             name: group.fullName,
             avatar: group.image || "/icons/placeholder.svg",
-            lastMessage: "No messages yet",
-            lastMessageTime: group.lastmessagedate || "No activity",
-            unreadCount: 0,
+            lastMessage: "",
+            lastMessageTime: group.lastmessagedate || "",
+            unreadCount: group.unreadcount || 0,
             isGroup: true,
           })),
 
@@ -66,9 +68,9 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
             id: `user_${priv.userId}`,
             name: priv.fullName,
             avatar: priv.image || "/icons/placeholder.svg",
-            lastMessage: "No messages yet",
-            lastMessageTime: priv.lastmessagedate || "No activity",
-            unreadCount: 0,
+            lastMessage: "",
+            lastMessageTime: priv.lastmessagedate || "",
+            unreadCount: priv.unreadcount || 0,
             isOnline: false, // We don't have online status for now
           })),
 
@@ -78,8 +80,8 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
             name: newConv.fullName,
             avatar: newConv.image || "/icons/placeholder.svg",
             lastMessage: "New conversation",
-            lastMessageTime: newConv.lastmessagedate || "No activity",
-            unreadCount: 1, // Mark new conversations with an unread count
+            lastMessageTime: newConv.lastmessagedate || "",
+            unreadCount: 0,
             isNew: true,
             isOnline: false,
           })),
@@ -95,13 +97,68 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
     getChat();
   }, []);
 
+  useEffect(() => {
+    const unsubscribe = onMessageType("addMessage", (data: any) => {
+      const currentChatId = activeChat?.id.split("_")[1];
+      const isGroup = activeChat?.isGroup;
+
+      const matchesCurrentChat = isGroup
+        ? data.message.group_id === Number(currentChatId)
+        : data.message.sender_id === Number(currentChatId) ||
+          data.message.receiver_id === Number(currentChatId);
+
+      // Only show notification if it's NOT the active chat
+      if (!matchesCurrentChat) {
+        setChats((prevChats) => {
+          const updatedChats = [...prevChats];
+
+          const index = updatedChats.findIndex(
+            (chat) =>
+              chat.id ===
+              (data.message.group_id
+                ? "group_" + data.message.group_id
+                : "user_" + data.message.sender_id)
+          );
+
+          if (index === -1) return prevChats;
+
+          const updatedChat = {
+            ...updatedChats[index],
+            unreadCount: updatedChats[index].unreadCount + 1,
+            lastMessage: data.message.text,
+            lastMessageTime: new Date().toISOString(),
+          };
+
+          updatedChats.splice(index, 1);
+          return [updatedChat, ...updatedChats];
+        });
+      }
+    });
+
+    return () => {
+      unsubscribe(); // Clean up listener when chat change or component unmounts
+    };
+  }, [activeChat]);
+
+  const onSelectChat = (chat: Chat) => {
+    setActiveChat(chat);
+
+    setChats((prevChats) =>
+      prevChats.map((c) =>
+        c.id === chat.id
+          ? { ...c, unreadCount: 0, lastMessage: "", lastMessageTime: "" }
+          : c
+      )
+    );
+  };
+
   // Filter chats based on search term and active tab
   const filteredChats = chats.filter((chat) => {
     const matchesSearch = chat.name
       .toLowerCase()
       .includes(filter.toLowerCase());
 
-    if (activeTab === "+") return matchesSearch && chat.isNew; // No chats shown when "+" tab is active
+    if (activeTab === "+") return matchesSearch && chat.isNew;
     if (activeTab === "all") return matchesSearch && !chat.isNew;
     if (activeTab === "private")
       return matchesSearch && !chat.isGroup && !chat.isNew;
@@ -109,13 +166,6 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
 
     return matchesSearch;
   });
-
-  // Handle new chat button click
-  const handleNewChat = () => {
-    setActiveTab("+");
-    // Here you would implement the logic to create a new chat
-    console.log("Create new chat");
-  };
 
   if (loading) {
     return (
@@ -147,7 +197,7 @@ export default function ChatList({ activeChat, onSelectChat }: ChatListProps) {
       <div className="chat-tabs">
         <button
           className={`chat-tab ${activeTab === "+" ? "active" : ""}`}
-          onClick={handleNewChat}
+          onClick={() => setActiveTab("+")}
         >
           +
         </button>

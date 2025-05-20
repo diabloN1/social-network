@@ -94,8 +94,6 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 	upgrader := &websocket.Upgrader{
 		CheckOrigin: func(r *http.Request) bool {
-			// origin := r.Header.Get("Origin")
-			// return origin == "http://localhost:3000"
 			return true
 		},
 		ReadBufferSize:  1024,
@@ -170,7 +168,6 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 		}
 
 		var request map[string]any
-		response := make(map[string]any)
 
 		err = json.Unmarshal(payload, &request)
 
@@ -186,8 +183,10 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 		}
 
 		switch requestType {
+		case "updateseenmessages":
+			s.UpdateSeenMessageWS(request)
 		case "sendmessage":
-			response = s.AddMessage(request)
+			response := s.AddMessage(request)
 			if response["error"] != "" {
 				fmt.Println(response["error"])
 			}

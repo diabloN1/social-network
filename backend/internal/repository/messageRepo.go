@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"log"
 	"real-time-forum/internal/model"
@@ -29,7 +28,7 @@ func (r *MessageRepository) Add(m *model.Message) error {
 	u, err := r.Repository.User().Find(m.SenderId)
 	m.User = u
 
-	return nil
+	return err
 }
 
 func (r *MessageRepository) GetMessages(m *model.Message) ([]*model.Message, error) {
@@ -66,7 +65,7 @@ func (r *MessageRepository) GetMessages(m *model.Message) ([]*model.Message, err
 		if err := rows.Scan(&message.ID, &message.SenderId, &message.RecipientId, &message.GroupId, &message.Text, &message.CreationDate, &message.User.Firstname, &message.User.Lastname, &message.User.Nickname, &message.User.Avatar); err != nil {
 			return nil, err
 		}
-		
+
 		if message.SenderId == m.SenderId {
 			message.IsOwned = true
 		}
@@ -105,11 +104,16 @@ func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, 
 	for rows.Next() {
 		conv := &model.Conv{}
 		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image); err != nil {
-		fmt.Println(err)
+			fmt.Println(err)
 			return nil, err
+		}
+		conv.Unreadcount, err = r.Repository.Message().GetPmUnreadMessages(userId, conv.UserId)
+		if err != nil {
+			fmt.Println("Error counting pm conv notfi. count:", err)
 		}
 		conversations = append(conversations, conv)
 	}
+
 	if len(conversations) == 0 {
 		return []*model.Conv{}, nil
 	}
@@ -138,6 +142,11 @@ func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, er
 		conv := &model.Conv{}
 		if err := rows.Scan(&conv.GroupId, &conv.FullName, &conv.Image); err != nil {
 			return nil, err
+		}
+
+		conv.Unreadcount, err = r.Repository.Message().GetGroupUnreadMessages(userId, conv.GroupId)
+		if err != nil {
+			fmt.Println("Error counting pm conv notfi. count:", err)
 		}
 		conversations = append(conversations, conv)
 	}
@@ -188,21 +197,84 @@ func (r *MessageRepository) GetNewConversations(userId int) ([]*model.Conv, erro
 	return conversations, nil
 }
 
+func (r *MessageRepository) UpdatePmSeenMessages(m *model.Message) error {
+	if _, err := r.Repository.db.Exec("UPDATE messages SET is_seen = 1 WHERE sender_id = $1 AND recipient_id = $2",
+		m.SenderId, m.RecipientId); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *MessageRepository) UpdateGroupSeenMessages(m *model.Message) error {
+	if _, err := r.Repository.db.Exec("UPDATE group_message_notifications SET is_seen = 1 WHERE user_id = $1 AND group_id = $2",
+		m.RecipientId, m.GroupId); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (r *MessageRepository) AddGroupMessageNotifications(m *model.Message) error {
+	users, err := r.Repository.Group().GetGroupMembers(m.GroupId)
+	if err != nil {
+		fmt.Println(1)
+		return err
+	}
+
+	for _, u := range users {
+		if u.ID != m.SenderId {
+			if _, err := r.Repository.db.Exec("INSERT INTO group_message_notifications (user_id, group_id) values ($1, $2)",
+				u.ID, m.GroupId); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *MessageRepository) GetPmUnreadMessages(currentId, userId int) (int, error) {
+	var unreadCount int
+	err := r.Repository.db.QueryRow(`
+    SELECT COUNT(*) AS unread_count
+    FROM messages
+    WHERE recipient_id = $1 AND sender_id = $2 AND is_seen = FALSE`,
+		currentId, userId).Scan(&unreadCount)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+	return unreadCount, nil
+}
+
+func (r *MessageRepository) GetGroupUnreadMessages(currentId, groupId int) (int, error) {
+	var unreadCount int
+	err := r.Repository.db.QueryRow(`
+    SELECT COUNT(*) AS unread_count
+    FROM group_message_notifications
+    WHERE user_id = $1 AND group_id = $2 AND is_seen = FALSE`,
+		currentId, groupId).Scan(&unreadCount)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, nil
+		} else {
+			return 0, err
+		}
+	}
+	return unreadCount, nil
+}
+
 // OLD
 
 func (r *MessageRepository) GetTotalNotifications(recipient_id int) (int, error) {
 	var totalNotifications = 0
 	row := r.Repository.db.QueryRow("SELECT COUNT(*) FROM messages where recipient_id = $1 AND is_seen = 0", recipient_id)
 	if err := row.Scan(&totalNotifications); err != nil {
-		return 0, errors.New(err.Error())
+		return 0, err
 	}
 	return totalNotifications, nil
-}
-
-func (r *MessageRepository) UpdateSeenMessages(recipieint_id int, sender_id int) error {
-	if _, err := r.Repository.db.Exec("UPDATE messages SET is_seen = 1 WHERE recipient_id = $1 AND sender_id = $2",
-		recipieint_id, sender_id); err != nil {
-		return err
-	}
-	return nil
 }

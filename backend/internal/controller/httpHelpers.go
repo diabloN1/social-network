@@ -24,6 +24,9 @@ func (s *Server) SendJson(w http.ResponseWriter, response any, err error) {
 		w.WriteHeader(500)
 		fmt.Println(err)
 		_, err = w.Write([]byte(err.Error()))
+		if err != nil {
+			fmt.Println(err)
+		}
 		return
 	}
 
@@ -33,6 +36,10 @@ func (s *Server) SendJson(w http.ResponseWriter, response any, err error) {
 		fmt.Println(err)
 		w.WriteHeader(500)
 		_, err = w.Write([]byte("Error Marshling Response"))
+		if err != nil {
+			fmt.Println(err)
+
+		}
 		return
 	}
 

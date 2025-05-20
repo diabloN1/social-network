@@ -94,7 +94,6 @@ export default function ProfilePage() {
         return;
       }
 
-      // Update local state
       setUser((prev) => {
         if (!prev) return prev;
         return {
@@ -109,6 +108,7 @@ export default function ProfilePage() {
 
   // Handle follow/unfollow
   const handleFollowAction = async () => {
+    console.log(1111111)
     try {
       if (isFollowing || isPending) {
         const data = await deleteFollow(userId, true);
@@ -117,9 +117,9 @@ export default function ProfilePage() {
           return;
         }
 
-        // Update local state
         setIsFollowing(false);
         setIsPending(false);
+
         if (user?.isprivate) {
           setCanViewProfile(false);
         }
@@ -130,9 +130,12 @@ export default function ProfilePage() {
           return;
         }
 
-        // Update local state
-        setIsFollowing(true);
-        setCanViewProfile(true);
+        if (user?.isprivate) {
+          setIsPending(true)
+        } else {
+          setIsFollowing(true);
+          setCanViewProfile(true);
+        }
       }
     } catch (error) {
       alert(error);

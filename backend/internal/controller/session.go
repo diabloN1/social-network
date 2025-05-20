@@ -42,6 +42,6 @@ func (s *Server) ValidateSession(request map[string]any) *model.Response {
 	return response
 }
 
-func (s *Server) findIfUserOnline(userId int) bool {
-	return len(s.clients[userId]) > 0
-}
+// func (s *Server) findIfUserOnline(userId int) bool {
+// 	return len(s.clients[userId]) > 0
+// }

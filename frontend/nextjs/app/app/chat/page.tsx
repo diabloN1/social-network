@@ -14,7 +14,7 @@ export default function ChatPage() {
       <div className="chat-container">
         <ChatList
           activeChat={activeChat}
-          onSelectChat={setActiveChat}
+          setActiveChat={setActiveChat}
         />
         <ChatWindow
           chat={activeChat}

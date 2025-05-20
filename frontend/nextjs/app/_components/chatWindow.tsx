@@ -4,8 +4,9 @@ import type React from "react";
 import { useState, useRef, useEffect } from "react";
 import { Chat } from "./chatList";
 import getMessages from "../api/_messages/getMesages";
-import { addMessage } from "../_helpers/addMessage";
-import { onMessageType } from "../_helpers/webSocket";
+import { addMessage } from "../_ws/addMessage";
+import { onMessageType, socket } from "../_ws/webSocket";
+import getToken from "../api/_auth/getToken";
 
 interface User {
   id: number;
@@ -62,10 +63,10 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
     };
     initMessages();
 
-    onMessageType("addMessage", (data: any) => {
-      const currentChatId = Number(chat?.id.split("_")[1]);
-      const isGroup = chat?.isGroup;
+    const currentChatId = Number(chat?.id.split("_")[1]);
+    const isGroup = chat?.isGroup;
 
+    const unsubscribe = onMessageType("addMessage", async (data: any) => {
       const isMatch = isGroup
         ? data.message.group_id === currentChatId
         : data.message.sender_id === currentChatId ||
@@ -74,11 +75,28 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       data.message.isOwned = data.isOwned;
 
       if (isMatch) {
-        setMessages((prev) =>
-          prev != null ? [...prev, data.message] : [data.message]
-        );
+        try {
+          setMessages((prev) =>
+            prev != null ? [...prev, data.message] : [data.message]
+          );
+
+          socket?.send(
+            JSON.stringify({
+              type: "updateseenmessages",
+              id: currentChatId,
+              isGroup,
+              session: (await getToken()).session,
+            })
+          );
+        } catch (error) {
+          alert(error);
+        }
       }
     });
+
+    return () => {
+      unsubscribe(); // Clean up listener when chat change or component unmounts
+    };
   }, [chat]);
 
   useEffect(() => {
@@ -149,7 +167,10 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       <div className="chat-header">
         <div className="chat-header-info">
           <div className="chat-avatar">
-            <img src={chat.avatar || "/icons/placeholder.svg"} alt={chat.name} />
+            <img
+              src={chat.avatar || "/icons/placeholder.svg"}
+              alt={chat.name}
+            />
             {!chat.isGroup && chat.isOnline && (
               <span className="online-indicator"></span>
             )}

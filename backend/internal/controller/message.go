@@ -6,54 +6,72 @@ import (
 	"real-time-forum/internal/model"
 )
 
-
-// Old
-func (s *Server) UpdateSeenMessage(request map[string]any) {
+func (s *Server) UpdateSeenMessage(isGroup bool, currentId, targetId int) {
 	m := &model.Message{}
-	var ok bool
-	var recipientIDFloat, senderIDFloat float64
-	
-	// Validate recipientid
-	recipientIDRaw, ok := request["recipientid"]
-	if !ok {
-		fmt.Println("Missing 'recipientid' field")
-		return
-	}
-	recipientIDFloat, ok = recipientIDRaw.(float64)
-	if !ok {
-		fmt.Println("'recipientid' must be a number")
-		return
-	}
-	
-	// Validate senderid
-	senderIDRaw, ok := request["senderid"]
-	if !ok {
-		fmt.Println("Missing 'senderid' field")
-		return
-	}
-	senderIDFloat, ok = senderIDRaw.(float64)
-	if !ok {
-		fmt.Println("'senderid' must be a number")
-		return
-	}
-	
+
 	// Assign after validation
-	m.RecipientId = int(recipientIDFloat)
-	m.SenderId = int(senderIDFloat)
+	m.RecipientId = int(currentId)
 
-	err := s.repository.Message().UpdateSeenMessages(m.RecipientId, m.SenderId)
-	if err != nil {
-		log.Println("Error in updating seen messages!")
+	if isGroup {
+		m.GroupId = int(targetId)
+		err := s.repository.Message().UpdateGroupSeenMessages(m)
+		if err != nil {
+			log.Println("Error in updating seen messages!")
+		}
+	} else {
+		m.SenderId = int(targetId)
+
+		err := s.repository.Message().UpdatePmSeenMessages(m)
+		if err != nil {
+			log.Println("Error in updating seen messages!")
+		}
 	}
-
 }
 
+func (s *Server) UpdateSeenMessageWS(request map[string]any) {
+	var ok bool
+
+	res := s.ValidateSession(request)
+
+	if res.Error != "" {
+		fmt.Println("Error updating seen message:", res.Error)
+		return
+	}
+
+	// Validate id
+	idRaw, ok := request["id"]
+	if !ok {
+		fmt.Println("Missing 'id' field")
+		return
+	}
+	id, ok := idRaw.(float64)
+	if !ok {
+		fmt.Println("'id' must be a number")
+		return
+	}
+
+	// Validate senderid
+	isGroupRaw, ok := request["isGroup"]
+	if !ok {
+		fmt.Println("Missing 'isGroup' field")
+		return
+	}
+	isGroup, ok := isGroupRaw.(bool)
+	if !ok {
+		fmt.Println("'isGroup' must be a number")
+		return
+	}
+
+	s.UpdateSeenMessage(isGroup, res.Userid, int(id))
+}
+
+// Old
 func (s *Server) UpdateIsTyping(request map[string]any) model.Response {
 	response := &model.Response{}
 
 	var ok bool
 	var recidFloat, partidFloat float64
-	
+
 	recidRaw, ok := request["recipientid"]
 	if !ok {
 		response.Error = "Missing 'recipientid' field"
@@ -64,7 +82,7 @@ func (s *Server) UpdateIsTyping(request map[string]any) model.Response {
 		response.Error = "'recipientid' must be a number"
 		return *response
 	}
-	
+
 	partidRaw, ok := request["senderid"]
 	if !ok {
 		response.Error = "Missing 'senderid' field"
@@ -75,7 +93,7 @@ func (s *Server) UpdateIsTyping(request map[string]any) model.Response {
 		response.Error = "'senderid' must be a number"
 		return *response
 	}
-	
+
 	response.Userid = int(recidFloat)
 	response.Partnerid = int(partidFloat)
 

@@ -85,7 +85,7 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 	query = `INSERT INTO followers (follower_id, following_id, is_accepted) VALUES ($1, $2, $3) RETURNING id`
 	err = r.Repository.db.QueryRow(query, userId, profileId, !res.IsPrivate).Scan(&id)
 
-	return nil
+	return err
 }
 
 func (r *FollowRepository) AcceptFollow(profileId, userId int) error {

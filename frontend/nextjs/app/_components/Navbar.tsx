@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
-import { connectWebSocket } from "../_helpers/webSocket";
+import { connectWebSocket } from "../_ws/webSocket";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -118,7 +118,7 @@ export default function Navbar() {
 
   useEffect(() => {
     connectWebSocket();
-  }, [])
+  }, []);
 
   return (
     <nav className="navbar">

@@ -4,8 +4,8 @@ import getToken from "../api/_auth/getToken"
 
 export let socket: WebSocket | null = null
 
-// One listener per message type (e.g. 'sendMessage', 'statusUpdate')
-const listeners: { [key: string]: (data: any) => void } = {} = {}
+// One listener per message type
+const listeners: { [key: string]: ((data: any) => void)[] } = {} = {}
 
 // Connect WebSocket and set up event handlers
 export const connectWebSocket = async (): Promise<WebSocket | null> => {
@@ -26,9 +26,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
         const type = data.type
 
         if (type && listeners[type]) {
-          listeners[type](data)
-        } else {
-          console.error("No listener registered for message type:", type)
+          listeners[type].forEach(callback => callback(data))
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error)
@@ -52,6 +50,23 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
 }
 
 // Register a callback for a given message type
-export const onMessageType = (type: string, callback: (data: any) => void) => {
-  listeners[type] = callback
+export const onMessageType = (
+  type: string,
+  callback: (data: any) => void
+): (() => void) => {
+  if (!listeners[type]) {
+    listeners[type] = []
+  }
+
+  listeners[type].push(callback)
+
+  // Return an unsubscribe function
+  return () => {
+    listeners[type] = listeners[type].filter(cb => cb !== callback)
+
+    // Clean up if no more listeners
+    if (listeners[type].length === 0) {
+      delete listeners[type]
+    }
+  }
 }

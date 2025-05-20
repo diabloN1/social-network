@@ -516,7 +516,7 @@ func (s *Server) RespondToJoinRequest(request map[string]any) map[string]any {
 		return response
 	}
 
-	if isAccepted == true {
+	if isAccepted {
 		err := s.repository.Group().AcceptMember(m)
 
 		if err != nil {

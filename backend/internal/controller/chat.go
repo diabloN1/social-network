@@ -92,6 +92,7 @@ func (s *Server) GetMessages(request map[string]any) map[string]any {
 	}
 
 	response["messages"] = messages
+	s.UpdateSeenMessage(isGroup, res.Userid, int(id))
 
 	return response
 }
@@ -150,6 +151,7 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 	m := &model.Message{}
 	if isGroup {
 		m.GroupId = int(id)
+
 	} else {
 		m.RecipientId = int(id)
 	}
@@ -161,6 +163,13 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 	err := s.repository.Message().Add(m)
 	if err != nil {
 		response["error"] = err.Error()
+		return response
+	}
+	
+	err = s.repository.Message().AddGroupMessageNotifications(m)
+	if err != nil {
+		response["error"] = err.Error()
+		return response
 	}
 
 	response["message"] = m

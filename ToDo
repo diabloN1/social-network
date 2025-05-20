@@ -1,8 +1,8 @@
 ToDo :
  # Chat
+ - On log-out Or auth page redirect clear socket.
 
  # Groups
- - Fix error when accepting join request
  - Invite user
  - Accept invite
  - Accept request
@@ -18,20 +18,6 @@ ToDo :
  - Add to on clicks for profile acc and for posts cursor pointer.
 
 
-Doing :
- - Make websocket shema
- - Establish web socket backend - front
- - Pass web socket as param
 
-Done :
- - GetFollowRequests followers repo
- - GetProfiles that would use getFollowRequests and make it's own query to query rem users.
- - remove session in all use server before sending data to front.
- - createPost handler
- - createEvent handler
- - inviteUser handler
- - test getGroup api from nextjs
- - aply data to front-end
- - Insert event option
- - add event options to events in getGroupData
- - show event options
+golangci-lint run ./...
+gocritic check ./...
