@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
-import getPostData from "@/app/api/_posts/getPostData";
-import reactToPost from "@/app/api/_posts/reactToPost";
-import addComment from "@/app/api/_posts/addComment";
-import getComments from "@/app/api/_posts/getComments";
+import getPostData from "@/api/_posts/getPostData";
+import reactToPost from "@/api/_posts/reactToPost";
+import addComment from "@/api/_posts/addComment";
+import getComments from "@/api/_posts/getComments";
 
 export default function SinglePostPage() {
   const params = useParams();

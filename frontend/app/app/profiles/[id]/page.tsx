@@ -3,10 +3,10 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import "./profile.css";
-import getProfileData from "@/app/api/_profiles/getProfileData";
-import deleteFollow from "@/app/api/_follow/deleteFollow";
-import requestFollow from "@/app/api/_follow/requestFollow";
-import setPravicy from "@/app/api/_profiles/setPrivacy";
+import getProfileData from "@/api/_profiles/getProfileData";
+import deleteFollow from "@/api/_follow/deleteFollow";
+import requestFollow from "@/api/_follow/requestFollow";
+import setPravicy from "@/api/_profiles/setPrivacy";
 
 interface Post {
   id: number;
@@ -108,7 +108,7 @@ export default function ProfilePage() {
 
   // Handle follow/unfollow
   const handleFollowAction = async () => {
-    console.log(1111111)
+    console.log(1111111);
     try {
       if (isFollowing || isPending) {
         const data = await deleteFollow(userId, true);
@@ -131,7 +131,7 @@ export default function ProfilePage() {
         }
 
         if (user?.isprivate) {
-          setIsPending(true)
+          setIsPending(true);
         } else {
           setIsFollowing(true);
           setCanViewProfile(true);

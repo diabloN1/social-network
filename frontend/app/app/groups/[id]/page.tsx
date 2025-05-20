@@ -1,70 +1,70 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState, useEffect } from "react"
-import { useParams, useRouter } from "next/navigation"
-import "./group.css"
-import getGroupData from "@/app/api/_groups/getGroupData"
-import CreatePostModal from "@/app/_components/create-post-modal"
-import addGroupPost from "@/app/api/_groups/addGroupPost"
-import CreateEventModal from "@/app/_components/create-event-modal"
-import addGroupEvent from "@/app/api/_groups/addGroupEvent"
-import addEventOption from "@/app/api/_groups/addEventOption"
-import requestJoinGroup from "@/app/api/_groups/requestJoinGroup"
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import "./group.css";
+import getGroupData from "@/api/_groups/getGroupData";
+import CreatePostModal from "@/components/create-post-modal";
+import addGroupPost from "@/api/_groups/addGroupPost";
+import CreateEventModal from "@/components/create-event-modal";
+import addGroupEvent from "@/api/_groups/addGroupEvent";
+import addEventOption from "@/api/_groups/addEventOption";
+import requestJoinGroup from "@/api/_groups/requestJoinGroup";
 
 // Types for API response
 interface User {
-  id: number
-  username: string
-  firstname: string
-  lastname: string
-  nickname: string
-  avatar?: string
+  id: number;
+  username: string;
+  firstname: string;
+  lastname: string;
+  nickname: string;
+  avatar?: string;
 }
 
 interface Post {
-  id: number
-  user: User
-  image?: string
-  caption?: string
-  creation_date?: string
-  likes?: number
-  comments?: number
+  id: number;
+  user: User;
+  image?: string;
+  caption?: string;
+  creation_date?: string;
+  likes?: number;
+  comments?: number;
 }
 
 // Updated Event interface to include the new fields
 interface Event {
-  id: number
-  title: string
-  description: string
-  user_id: number
-  group_id: number
-  date: string
-  place: string
-  option_1: string
-  option_2: string
-  creation_date: string
-  user: User
-  current_option?: string
-  opt1_users?: User[] | null
-  opt2_users?: User[] | null
+  id: number;
+  title: string;
+  description: string;
+  user_id: number;
+  group_id: number;
+  date: string;
+  place: string;
+  option_1: string;
+  option_2: string;
+  creation_date: string;
+  user: User;
+  current_option?: string;
+  opt1_users?: User[] | null;
+  opt2_users?: User[] | null;
 }
 
 // Update the GroupData interface to include is_pending
 interface GroupData {
-  id: number
-  title: string
-  description: string
-  owner_id: number
-  image: string
-  creation_date: string
-  is_accepted: boolean
-  is_owner: boolean
-  is_pending?: boolean
-  members: User[]
-  posts: Post[]
-  events: Event[]
+  id: number;
+  title: string;
+  description: string;
+  owner_id: number;
+  image: string;
+  creation_date: string;
+  is_accepted: boolean;
+  is_owner: boolean;
+  is_pending?: boolean;
+  members: User[];
+  posts: Post[];
+  events: Event[];
 }
 
 // Mock function to get post comments
@@ -72,7 +72,8 @@ const getMockComments = (postId: number): any[] => {
   return [
     {
       id: 1,
-      content: "I've been thinking about getting one too! How's the battery life?",
+      content:
+        "I've been thinking about getting one too! How's the battery life?",
       creator: {
         id: 2,
         nickname: "jane_smith",
@@ -82,7 +83,8 @@ const getMockComments = (postId: number): any[] => {
     },
     {
       id: 2,
-      content: "Great tip! I always carry a polarizing filter with me. Makes a huge difference.",
+      content:
+        "Great tip! I always carry a polarizing filter with me. Makes a huge difference.",
       creator: {
         id: 7,
         nickname: "david_miller",
@@ -100,150 +102,154 @@ const getMockComments = (postId: number): any[] => {
         avatar: "/icons/placeholder.svg",
       },
     },
-  ]
-}
+  ];
+};
 
 export default function GroupPage() {
-  const params = useParams()
-  const router = useRouter()
-  const groupId = Number(params.id)
+  const params = useParams();
+  const router = useRouter();
+  const groupId = Number(params.id);
 
-  const [group, setGroup] = useState<GroupData | null>(null)
-  const [activeTab, setActiveTab] = useState("posts")
-  const [showMembersModal, setShowMembersModal] = useState(false)
-  const [showInviteModal, setShowInviteModal] = useState(false)
-  const [showCreatePostModal, setShowCreatePostModal] = useState(false)
-  const [showCreateEventModal, setShowCreateEventModal] = useState(false)
-  const [showComments, setShowComments] = useState<Record<number, boolean>>({})
+  const [group, setGroup] = useState<GroupData | null>(null);
+  const [activeTab, setActiveTab] = useState("posts");
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCreatePostModal, setShowCreatePostModal] = useState(false);
+  const [showCreateEventModal, setShowCreateEventModal] = useState(false);
+  const [showComments, setShowComments] = useState<Record<number, boolean>>({});
 
-  const [loading, setLoading] = useState(true)
-  const [inviteUsername, setInviteUsername] = useState("")
+  const [loading, setLoading] = useState(true);
+  const [inviteUsername, setInviteUsername] = useState("");
 
   const fetchGroupData = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const data = await getGroupData(groupId)
-      console.log(data)
-      setGroup(data.group)
+      const data = await getGroupData(groupId);
+      console.log(data);
+      setGroup(data.group);
     } catch (error) {
-      console.error("Error fetching group data:", error)
+      console.error("Error fetching group data:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchGroupData()
-  }, [groupId])
+    fetchGroupData();
+  }, [groupId]);
 
   // Go back to groups list
   const goBack = () => {
-    router.push("/app/groups")
-  }
+    router.push("/app/groups");
+  };
 
   // Toggle comments visibility
   const toggleComments = (postId: number) => {
     setShowComments((prev) => ({
       ...prev,
       [postId]: !prev[postId],
-    }))
-  }
+    }));
+  };
 
   // Handle creating a new post
-  const handleCreatePost = async (group: { image: string; caption: string; groupId?: number }) => {
+  const handleCreatePost = async (group: {
+    image: string;
+    caption: string;
+    groupId?: number;
+  }) => {
     try {
-      const data = await addGroupPost(group)
+      const data = await addGroupPost(group);
       if (data.error) {
-        alert(data.error)
-        return
+        alert(data.error);
+        return;
       }
 
-      setShowCreatePostModal(false)
+      setShowCreatePostModal(false);
       // Refresh group data to show the new post
-      fetchGroupData()
+      fetchGroupData();
     } catch (error) {
-      alert(error)
+      alert(error);
     }
-  }
+  };
 
   // Handle creating a new event
   const handleCreateEvent = async (event: {
-    title: string
-    description: string
-    option1: string
-    option2: string
-    date: string
-    place: string
+    title: string;
+    description: string;
+    option1: string;
+    option2: string;
+    date: string;
+    place: string;
   }) => {
     try {
       const data = await addGroupEvent({
         groupId,
         ...event,
-      })
+      });
       if (data.error) {
-        alert(data.error)
-        return
+        alert(data.error);
+        return;
       }
 
-      setShowCreateEventModal(false)
+      setShowCreateEventModal(false);
       // Refresh group data to show the new event
-      fetchGroupData()
+      fetchGroupData();
     } catch (error) {
-      alert(error)
+      alert(error);
     }
-  }
+  };
 
   // Handle responding to an event
   const handleEventResponse = async (eventId: number, going: boolean) => {
-    if (!group) return
+    if (!group) return;
     try {
-      const data = await addEventOption(groupId, eventId, going)
-      console.log(data)
-      
+      const data = await addEventOption(groupId, eventId, going);
+      console.log(data);
+
       // Refresh group data to update event responses
-      fetchGroupData()
+      fetchGroupData();
     } catch (error) {
-      alert(error)
+      alert(error);
     }
-  }
+  };
 
   // Handle inviting a user
   const handleInviteUser = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!inviteUsername.trim()) return
+    if (!inviteUsername.trim()) return;
 
     // In a real app, you would send this to your API
-    console.log("Inviting user:", inviteUsername)
+    console.log("Inviting user:", inviteUsername);
 
     // For demo purposes, we'll just close the modal
-    setInviteUsername("")
-    setShowInviteModal(false)
-  }
+    setInviteUsername("");
+    setShowInviteModal(false);
+  };
 
   // Handle joining a group
   const handleJoinGroup = async () => {
     try {
-      const data = await requestJoinGroup(groupId)
+      const data = await requestJoinGroup(groupId);
       if (data.error) {
-        alert(data.error)
-        return
+        alert(data.error);
+        return;
       }
-      
+
       // Refresh group data to update the is_pending status
-      fetchGroupData()
-      console.log("Request sent successfully")
-    } catch(error) {
-      alert(error)
+      fetchGroupData();
+      console.log("Request sent successfully");
+    } catch (error) {
+      alert(error);
     }
-  }
+  };
 
   if (loading) {
     return (
       <div className="group-container">
         <div className="loading-spinner">Loading...</div>
       </div>
-    )
+    );
   }
 
   if (!group) {
@@ -251,12 +257,12 @@ export default function GroupPage() {
       <div className="group-container">
         <div className="error-message">Group not found</div>
       </div>
-    )
+    );
   }
 
   // Get the owner from members array
-  const owner = group.members?.find((member) => member.id === group.owner_id)
-  const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown"
+  const owner = group.members?.find((member) => member.id === group.owner_id);
+  const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown";
 
   return (
     <div className="group-container">
@@ -266,7 +272,10 @@ export default function GroupPage() {
 
       <div className="group-header">
         <div className="group-image">
-          <img src={group.image || "/icons/placeholder.svg"} alt={group.title} />
+          <img
+            src={group.image || "/icons/placeholder.svg"}
+            alt={group.title}
+          />
         </div>
         <div className="group-title-section">
           <h1>{group.title}</h1>
@@ -276,13 +285,22 @@ export default function GroupPage() {
         <div className="group-actions">
           {group.is_accepted && (
             <>
-              <button className="action-button" onClick={() => setShowCreatePostModal(true)}>
+              <button
+                className="action-button"
+                onClick={() => setShowCreatePostModal(true)}
+              >
                 Create Post
               </button>
-              <button className="action-button" onClick={() => setShowCreateEventModal(true)}>
+              <button
+                className="action-button"
+                onClick={() => setShowCreateEventModal(true)}
+              >
                 Create Event
               </button>
-              <button className="action-button" onClick={() => setShowInviteModal(true)}>
+              <button
+                className="action-button"
+                onClick={() => setShowInviteModal(true)}
+              >
                 Invite Users
               </button>
             </>
@@ -300,11 +318,14 @@ export default function GroupPage() {
         </div>
 
         <div className="group-meta">
-          <div className="group-members-preview" onClick={() => setShowMembersModal(true)}>
+          <div
+            className="group-members-preview"
+            onClick={() => setShowMembersModal(true)}
+          >
             <span>Members ({group.members?.length})</span>
             <div className="members-avatars">
               {group.members?.slice(0, 3).map((member) => (
-                <img  
+                <img
                   key={member.id}
                   src={member.avatar || "/icons/placeholder.svg"}
                   alt={`${member.firstname} ${member.lastname}`}
@@ -312,7 +333,11 @@ export default function GroupPage() {
                   title={`${member.firstname} ${member.lastname}`}
                 />
               ))}
-              {group.members?.length > 3 && <span className="more-members">+{group.members?.length - 3}</span>}
+              {group.members?.length > 3 && (
+                <span className="more-members">
+                  +{group.members?.length - 3}
+                </span>
+              )}
             </div>
           </div>
 
@@ -326,7 +351,9 @@ export default function GroupPage() {
         <div className="non-member-view">
           <div className="join-message">
             <h3>This is a private group</h3>
-            <p>Join this group to see posts, events, and interact with members.</p>
+            <p>
+              Join this group to see posts, events, and interact with members.
+            </p>
             {!group.is_pending ? (
               <button className="join-button" onClick={() => handleJoinGroup()}>
                 Request to Join
@@ -342,10 +369,16 @@ export default function GroupPage() {
         <>
           {/* Content Tabs */}
           <div className="group-tabs">
-            <button className={`tab ${activeTab === "posts" ? "active" : ""}`} onClick={() => setActiveTab("posts")}>
+            <button
+              className={`tab ${activeTab === "posts" ? "active" : ""}`}
+              onClick={() => setActiveTab("posts")}
+            >
               Posts
             </button>
-            <button className={`tab ${activeTab === "events" ? "active" : ""}`} onClick={() => setActiveTab("events")}>
+            <button
+              className={`tab ${activeTab === "events" ? "active" : ""}`}
+              onClick={() => setActiveTab("events")}
+            >
               Events
             </button>
           </div>
@@ -354,10 +387,12 @@ export default function GroupPage() {
           {activeTab === "posts" && (
             <div className="group-posts">
               {group.posts?.length === 0 ? (
-                <div className="no-content">No posts yet. Be the first to post!</div>
+                <div className="no-content">
+                  No posts yet. Be the first to post!
+                </div>
               ) : (
                 group.posts?.map((post) => {
-                  const postAuthor = post.user
+                  const postAuthor = post.user;
 
                   return (
                     <div key={post.id} className="post-card">
@@ -371,7 +406,9 @@ export default function GroupPage() {
                           <div className="creator-info">
                             <span className="creator-name">{`${postAuthor.firstname} ${postAuthor.lastname}`}</span>
                             <span className="post-date">
-                              {post.creation_date ? new Date(post.creation_date).toLocaleString() : "Unknown date"}
+                              {post.creation_date
+                                ? new Date(post.creation_date).toLocaleString()
+                                : "Unknown date"}
                             </span>
                           </div>
                         </div>
@@ -386,8 +423,13 @@ export default function GroupPage() {
                       <div className="post-content">{post.caption}</div>
 
                       <div className="post-actions">
-                        <button className="post-action">Like ({post.likes || 0})</button>
-                        <button className="post-action" onClick={() => toggleComments(post.id)}>
+                        <button className="post-action">
+                          Like ({post.likes || 0})
+                        </button>
+                        <button
+                          className="post-action"
+                          onClick={() => toggleComments(post.id)}
+                        >
                           Comments ({post.comments || 0})
                         </button>
                       </div>
@@ -398,29 +440,45 @@ export default function GroupPage() {
                             <div key={comment.id} className="comment">
                               <div className="comment-header">
                                 <img
-                                  src={comment.creator.avatar || "/icons/placeholder.svg" || "/placeholder.svg"}
+                                  src={
+                                    comment.creator.avatar ||
+                                    "/icons/placeholder.svg" ||
+                                    "/placeholder.svg"
+                                  }
                                   alt={comment.creator.name}
                                   className="user-avatar-small"
                                 />
                                 <div className="comment-info">
-                                  <span className="comment-creator">{comment.creator.name}</span>
+                                  <span className="comment-creator">
+                                    {comment.creator.name}
+                                  </span>
                                   <span className="comment-date">
-                                    {new Date(comment.createdAt || Date.now()).toLocaleString()}
+                                    {new Date(
+                                      comment.createdAt || Date.now()
+                                    ).toLocaleString()}
                                   </span>
                                 </div>
                               </div>
-                              <div className="comment-content">{comment.content}</div>
+                              <div className="comment-content">
+                                {comment.content}
+                              </div>
                             </div>
                           ))}
 
                           <div className="add-comment">
-                            <input type="text" placeholder="Write a comment..." className="comment-input" />
-                            <button className="post-comment-button">Post</button>
+                            <input
+                              type="text"
+                              placeholder="Write a comment..."
+                              className="comment-input"
+                            />
+                            <button className="post-comment-button">
+                              Post
+                            </button>
                           </div>
                         </div>
                       )}
                     </div>
-                  )
+                  );
                 })
               )}
             </div>
@@ -436,19 +494,25 @@ export default function GroupPage() {
                   <div key={event.id} className="event-card">
                     <div className="event-header">
                       <h3 className="event-title">{event.title}</h3>
-                      <div className="event-creator">Created by {`${event.user.firstname} ${event.user.lastname}`}</div>
+                      <div className="event-creator">
+                        Created by{" "}
+                        {`${event.user.firstname} ${event.user.lastname}`}
+                      </div>
                     </div>
 
                     <div className="event-details">
                       <div className="event-date">
-                        <strong>When:</strong> {new Date(event.date).toLocaleString()}
+                        <strong>When:</strong>{" "}
+                        {new Date(event.date).toLocaleString()}
                       </div>
                       {event.place && (
                         <div className="event-location">
                           <strong>Where:</strong> {event.place}
                         </div>
                       )}
-                      <div className="event-description">{event.description}</div>
+                      <div className="event-description">
+                        {event.description}
+                      </div>
                       <div className="event-options">
                         <div>
                           <strong>Option 1:</strong> {event.option_1}
@@ -472,13 +536,17 @@ export default function GroupPage() {
 
                       <div className="response-actions">
                         <button
-                          className={`response-button ${event.current_option === "option1" ? "active" : ""}`}
+                          className={`response-button ${
+                            event.current_option === "option1" ? "active" : ""
+                          }`}
                           onClick={() => handleEventResponse(event.id, true)}
                         >
                           {event.option_1}
                         </button>
                         <button
-                          className={`response-button ${event.current_option === "option2" ? "active" : ""}`}
+                          className={`response-button ${
+                            event.current_option === "option2" ? "active" : ""
+                          }`}
                           onClick={() => handleEventResponse(event.id, false)}
                         >
                           {event.option_2}
@@ -552,15 +620,22 @@ export default function GroupPage() {
                     />
                     <div className="member-details">
                       <span className="member-name">{`${member.firstname} ${member.lastname}`}</span>
-                      <span className="member-nickname">@{member.nickname || member.username}</span>
+                      <span className="member-nickname">
+                        @{member.nickname || member.username}
+                      </span>
                     </div>
                   </div>
-                  {member.id === group.owner_id && <div className="creator-badge">Creator</div>}
+                  {member.id === group.owner_id && (
+                    <div className="creator-badge">Creator</div>
+                  )}
                 </div>
               ))}
             </div>
             <div className="modal-actions">
-              <button className="close-modal" onClick={() => setShowMembersModal(false)}>
+              <button
+                className="close-modal"
+                onClick={() => setShowMembersModal(false)}
+              >
                 Close
               </button>
             </div>
@@ -586,7 +661,11 @@ export default function GroupPage() {
                 />
               </div>
               <div className="modal-actions">
-                <button type="button" className="cancel-button" onClick={() => setShowInviteModal(false)}>
+                <button
+                  type="button"
+                  className="cancel-button"
+                  onClick={() => setShowInviteModal(false)}
+                >
                   Cancel
                 </button>
                 <button type="submit" className="submit-button">
@@ -600,13 +679,20 @@ export default function GroupPage() {
 
       {/* Create Post Modal */}
       {showCreatePostModal && (
-        <CreatePostModal onClose={() => setShowCreatePostModal(false)} onSubmit={handleCreatePost} groupId={groupId} />
+        <CreatePostModal
+          onClose={() => setShowCreatePostModal(false)}
+          onSubmit={handleCreatePost}
+          groupId={groupId}
+        />
       )}
 
       {/* Create Event Modal */}
       {showCreateEventModal && (
-        <CreateEventModal onClose={() => setShowCreateEventModal(false)} onSubmit={handleCreateEvent} />
+        <CreateEventModal
+          onClose={() => setShowCreateEventModal(false)}
+          onSubmit={handleCreateEvent}
+        />
       )}
     </div>
-  )
+  );
 }

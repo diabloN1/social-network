@@ -2,19 +2,26 @@
 
 import type React from "react";
 import { useState } from "react";
-import { uploadFile } from "../api/_auth/uploadFile";
+import { uploadFile } from "@/api/_auth/uploadFile";
 
-interface CreateGroupModalProps {
+interface CreatePostModalProps {
   onClose: () => void;
-  onSubmit: (group: { image: string; title: string; description: string }) => void;
+  onSubmit: (post: {
+    image: string;
+    caption: string;
+    privacy?: string;
+    groupId?: number;
+  }) => void;
+  groupId?: number;
 }
 
-const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
+const CreatePostModal: React.FC<CreatePostModalProps> = ({
   onClose,
   onSubmit,
+  groupId,
 }) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
+  const [caption, setCaption] = useState("");
+  const [privacy, setPrivacy] = useState("public");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
 
@@ -39,14 +46,22 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       if (image) {
         const formData = new FormData();
         formData.append("file", image);
-        imageUrl = await uploadFile(formData, "/groups");
+        imageUrl = await uploadFile(formData, "/posts");
       }
 
-      onSubmit({
-        image: imageUrl,
-        title,
-        description,
-      });
+      const data = groupId
+        ? {
+            image: imageUrl,
+            caption,
+            groupId,
+          }
+        : {
+            image: imageUrl,
+            caption,
+            privacy,
+          };
+
+      onSubmit(data);
     } catch (err) {
       alert(err);
       console.error(err);
@@ -57,7 +72,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2 className="modal-title">Create New Group</h2>
+          <h2 className="modal-title">Create New Post</h2>
           <button className="modal-close" onClick={onClose}>
             X
           </button>
@@ -66,7 +81,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
             <div className="form-group">
-              <label className="form-label">Upload Group Image</label>
+              <label className="form-label">Upload Image</label>
               <div className="file-input-wrapper">
                 <label className="file-input-label">
                   Choose Image or GIF
@@ -90,44 +105,55 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="title">
-                Group Title
+              <label className="form-label" htmlFor="caption">
+                Caption
               </label>
-              <input
-                id="title"
-                type="text"
-                className="form-input"
-                placeholder="Enter group title"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
+              <textarea
+                id="caption"
+                className="form-textarea"
+                placeholder="Write a caption..."
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
               />
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="description">
-                Description
-              </label>
-              <textarea
-                id="description"
-                className="form-textarea"
-                placeholder="Write a group description..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
+            {!groupId ? (
+              <div className="form-group">
+                <label className="form-label" htmlFor="privacy">
+                  Privacy
+                </label>
+                <select
+                  id="privacy"
+                  className="form-select"
+                  value={privacy}
+                  onChange={(e) => setPrivacy(e.target.value)}
+                >
+                  <option value="public">Public - Everyone can see</option>
+                  <option value="almost-private">
+                    Almost Private - Only followers can see
+                  </option>
+                  <option value="private">
+                    Private - Only selected followers can see
+                  </option>
+                </select>
+              </div>
+            ) : null}
           </div>
 
           <div className="modal-footer">
             <button
               type="button"
               className="create-post-btn"
-              style={{ backgroundColor: "var(--input-bg)", marginRight: "10px" }}
+              style={{
+                backgroundColor: "var(--input-bg)",
+                marginRight: "10px",
+              }}
               onClick={onClose}
             >
               Cancel
             </button>
             <button type="submit" className="create-post-btn">
-              Create Group
+              Create Post
             </button>
           </div>
         </form>
@@ -136,4 +162,4 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   );
 };
 
-export default CreateGroupModal;
+export default CreatePostModal;

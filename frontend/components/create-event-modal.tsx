@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { uploadFile } from "../api/_auth/uploadFile";
+import { uploadFile } from "@/api/_auth/uploadFile";
 
 interface CreateEventModalProps {
   onClose: () => void;
@@ -28,8 +28,6 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
   const [place, setPlace] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
-
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,9 +67,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-
             <div className="form-group">
-              <label className="form-label" htmlFor="title">Event Title</label>
+              <label className="form-label" htmlFor="title">
+                Event Title
+              </label>
               <input
                 id="title"
                 type="text"
@@ -83,7 +82,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="description">Description</label>
+              <label className="form-label" htmlFor="description">
+                Description
+              </label>
               <textarea
                 id="description"
                 className="form-textarea"
@@ -94,7 +95,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="option1">Option 1</label>
+              <label className="form-label" htmlFor="option1">
+                Option 1
+              </label>
               <input
                 id="option1"
                 type="text"
@@ -106,7 +109,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="option2">Option 2</label>
+              <label className="form-label" htmlFor="option2">
+                Option 2
+              </label>
               <input
                 id="option2"
                 type="text"
@@ -118,7 +123,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="date">Date</label>
+              <label className="form-label" htmlFor="date">
+                Date
+              </label>
               <input
                 id="date"
                 type="datetime-local"
@@ -129,7 +136,9 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             </div>
 
             <div className="form-group">
-              <label className="form-label" htmlFor="place">Place</label>
+              <label className="form-label" htmlFor="place">
+                Place
+              </label>
               <input
                 id="place"
                 type="text"
@@ -145,7 +154,10 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
             <button
               type="button"
               className="create-post-btn"
-              style={{ backgroundColor: "var(--input-bg)", marginRight: "10px" }}
+              style={{
+                backgroundColor: "var(--input-bg)",
+                marginRight: "10px",
+              }}
               onClick={onClose}
             >
               Cancel
