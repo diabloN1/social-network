@@ -5,7 +5,7 @@ import { cookies } from 'next/headers'
 const addPost = async (formData: {
     image: string;
     caption: string;
-    privacy: string;
+    privacy?: string;
     session?: string;
   }) => {
   try {

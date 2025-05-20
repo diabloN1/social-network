@@ -34,7 +34,7 @@ export default function PostsPage() {
   const handleCreatePost = async (newPost: {
     image: string;
     caption: string;
-    privacy: string;
+    privacy?: string;
     groupId?: number;
   }) => {
     try {
@@ -46,26 +46,7 @@ export default function PostsPage() {
       }
 
       if (data.posts && data.posts[0]) {
-        // Add the new post to the top of the posts list
         setPosts([data.posts[0], ...posts]);
-      } else {
-        // Fallback to the old approach if data structure is different
-        const user = data.posts?.[0]?.user || {};
-        setPosts([
-          {
-            id: posts.length + 1000,
-            user: {
-              firstname: user.firstname,
-              lastname: user.lastname,
-              avatar: user.avatar,
-            },
-            reactions: { likes: 0, dislikes: 0, user_reaction: null },
-            comments: [],
-            timestamp: "Just now",
-            ...newPost,
-          },
-          ...posts,
-        ]);
       }
     } catch (err) {
       console.error(err);
