@@ -4,11 +4,28 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
-import { connectWebSocket } from "@/helpers/webSocket";
+import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
+import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+const [joinRequestCount, setJoinRequestCount] = useState(0);
+
+useEffect(() => {
+ 
+const getJoinRequestCount = async () => {
+  console.log("dddddddddddddddd");
+  
+    const data = await fetchJoinRequestCount();
+    if (data?.count != null) {
+      setJoinRequestCount(data.count);
+    }
+  };
+
+  getJoinRequestCount();
+}, []);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -22,6 +39,33 @@ export default function Navbar() {
     } else if (pathname.includes("/app/notifications")) {
       setActiveTab("notification");
     }
+
+     
+  if (pathname.includes("/app/chat")) {
+    setChatUnreadCount(0);
+  }
+
+if (pathname.includes("/app/groups")) {
+  setJoinRequestCount(0);
+}
+
+
+  const unsubscribe = onMessageType("addMessage", () => {
+    if (!pathname.includes("/app/chat")) {
+      setChatUnreadCount((prev) => prev + 1);
+    }
+  });
+
+const unsubscribeJoinRequest = onMessageType("groupJoinRequest", () => {
+  if (!pathname.includes("/app/groups")) {
+    setJoinRequestCount((prev) => prev + 1);
+  }
+});
+
+  return () => {
+    unsubscribe();
+     unsubscribeJoinRequest();
+  };
   }, [pathname]);
 
   const navItems = [
@@ -68,7 +112,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/chat",
-      notifications: 2,
+      notifications: chatUnreadCount,
     },
     {
       id: "groups",
@@ -91,7 +135,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/groups",
-      notifications: 0,
+      notifications: joinRequestCount,
     },
     {
       id: "profile",
@@ -120,10 +164,14 @@ export default function Navbar() {
     connectWebSocket();
   }, []);
 
+
+
   return (
     <nav className="navbar">
       <ul className="nav-list">
         {navItems.map((item) => (
+        
+          
           <li
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}

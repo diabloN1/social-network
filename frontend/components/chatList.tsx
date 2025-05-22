@@ -49,7 +49,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           return;
         }
 
-        console.log(data);
+        console.log("chats",data);
 
         const transformedChats: Chat[] = [
           // Transform group conversations

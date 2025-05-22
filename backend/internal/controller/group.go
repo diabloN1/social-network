@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"real-time-forum/internal/model"
+	"time"
 )
 
 func (s *Server) CreateGroup(request map[string]any) map[string]any {
@@ -223,7 +224,6 @@ func (s *Server) AddGroupEvent(request map[string]any) map[string]any {
 	response := make(map[string]any)
 	response["error"] = ""
 
-
 	res := s.ValidateSession(request)
 
 	if res.Session == "" {
@@ -366,7 +366,7 @@ func (s *Server) AddEventOption(request map[string]any) map[string]any {
 		response["error"] = "'eventId' must be a string"
 		return response
 	}
-	
+
 	optionRaw, ok := request["option"]
 	if !ok {
 		response["error"] = "Missing 'option' field"
@@ -377,7 +377,6 @@ func (s *Server) AddEventOption(request map[string]any) map[string]any {
 		response["error"] = "'option' must be a boolean"
 		return response
 	}
-
 
 	res := s.ValidateSession(request)
 
@@ -422,7 +421,6 @@ func (s *Server) RequestJoinGroup(request map[string]any) map[string]any {
 		return response
 	}
 
-
 	res := s.ValidateSession(request)
 
 	if res.Session == "" {
@@ -455,8 +453,55 @@ func (s *Server) RequestJoinGroup(request map[string]any) map[string]any {
 		response["error"] = "Error adding member: " + err.Error()
 		return response
 	}
-
+	ownerId, err := s.repository.Group().GetGroupOwner(m.GroupId)
+	if err == nil {
+		notification := map[string]any{
+			"type":      "newjoinrequest",
+			"groupId":   m.GroupId,
+			"userId":    m.UserId,
+			"message":   "New join request to your group",
+			"timestamp": time.Now().Unix(),
+		}
+		s.sendNotificationToUser(ownerId, notification)
+	}
 	return response
+}
+
+func (s *Server) GetJoinRequestCount(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	res := s.ValidateSession(request)
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	count, err := s.repository.Group().CountPendingJoinRequests(res.Userid)
+	if err != nil {
+		response["error"] = "Database error"
+		return response
+	}
+
+	response["count"] = count
+	return response
+}
+
+func (s *Server) sendNotificationToUser(userId int, notification map[string]any) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	clients, exists := s.clients[userId]
+	if !exists {
+		return
+	}
+
+	for _, client := range clients {
+		err := client.Connection.WriteJSON(notification)
+		if err != nil {
+			log.Printf("Failed to send notification to user %d: %v", userId, err)
+		}
+	}
 }
 
 func (s *Server) RespondToJoinRequest(request map[string]any) map[string]any {
@@ -505,8 +550,8 @@ func (s *Server) RespondToJoinRequest(request map[string]any) map[string]any {
 
 	// Assign values after validation
 	m := &model.GroupMember{
-		UserId:     int(userId),
-		GroupId:    int(groupId),
+		UserId:  int(userId),
+		GroupId: int(groupId),
 	}
 
 	// Check if Owner

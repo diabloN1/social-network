@@ -143,6 +143,12 @@ func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.GetGroupData(request)
 	s.SendJson(w, response, err)
 }
+func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetJoinRequestCount(request)
+	s.SendJson(w, response, err)
+}
 
 func (s *Server) AddGroupPostHandler(w http.ResponseWriter, r *http.Request) {
 
