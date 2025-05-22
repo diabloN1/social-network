@@ -9,9 +9,12 @@ export default async function AppLayout({
 }) {
   const data = await getToken();
 
+
+  //dublicated in getToken??
   if (!data.session) {
     redirect("/auth");
   }
+  
 
   return (
     <>

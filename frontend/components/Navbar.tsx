@@ -4,11 +4,13 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
-import { connectWebSocket } from "@/helpers/webSocket";
+import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
+
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -22,6 +24,23 @@ export default function Navbar() {
     } else if (pathname.includes("/app/notifications")) {
       setActiveTab("notification");
     }
+
+     
+  if (pathname.includes("/app/chat")) {
+    setChatUnreadCount(0);
+  }
+
+
+  const unsubscribe = onMessageType("addMessage", () => {
+
+    if (!pathname.includes("/app/chat")) {
+      setChatUnreadCount((prev) => prev + 1);
+    }
+  });
+
+  return () => {
+    unsubscribe();
+  };
   }, [pathname]);
 
   const navItems = [
@@ -68,7 +87,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/chat",
-      notifications: 2,
+      notifications: chatUnreadCount,
     },
     {
       id: "groups",
@@ -120,10 +139,14 @@ export default function Navbar() {
     connectWebSocket();
   }, []);
 
+
+
   return (
     <nav className="navbar">
       <ul className="nav-list">
         {navItems.map((item) => (
+        
+          
           <li
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}
