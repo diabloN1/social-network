@@ -18,7 +18,7 @@ func (s *Server) AddComment(request map[string]any) *model.Response {
 	}
 
 	var postId float64
-	var text string
+	var text, image string
 	var ok bool
 
 	// Validate postId
@@ -44,8 +44,18 @@ func (s *Server) AddComment(request map[string]any) *model.Response {
 		response.Error = "'text' must be a string"
 		return response
 	}
+	imageRaw, ok := request["image"]
+	if !ok {
+		response.Error = "Missing 'image' field"
+		return response
+	}
+	image, ok = imageRaw.(string)
+	if !ok {
+		response.Error = "'image' must be a string"
+		return response
+	}
 
-	if text == "" {
+	if text == "" && image == "" {
 		response.Error = "Comment text cannot be empty"
 		return response
 	}
@@ -60,7 +70,13 @@ func (s *Server) AddComment(request map[string]any) *model.Response {
 		UserId: res.Userid,
 		PostId: int(postId),
 		Text:   text,
+		Image:   image,
 		Author: res.User.Username,
+	}
+	if len(comment.Text)>10000{
+		log.Println("Error adding comment:")
+		response.Error = "comment cannot be too large: " 
+		return response
 	}
 
 	// Add comment to database
