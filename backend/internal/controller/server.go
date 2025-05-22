@@ -67,6 +67,8 @@ func Start() error {
 	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
 	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
 	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
+	s.router.HandleFunc("/joinRequestCount", s.GetCountRequest)
+
 	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
 	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
 	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)

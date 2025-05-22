@@ -165,6 +165,8 @@ export default function GroupsPage() {
         alert(data.error);
         return;
       }
+      fetchGroupsData();
+
     } catch (error) {
       alert(error);
     }

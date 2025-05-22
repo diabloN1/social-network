@@ -5,12 +5,27 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
+import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
+const [joinRequestCount, setJoinRequestCount] = useState(0);
 
+useEffect(() => {
+ 
+const getJoinRequestCount = async () => {
+  console.log("dddddddddddddddd");
+  
+    const data = await fetchJoinRequestCount();
+    if (data?.count != null) {
+      setJoinRequestCount(data.count);
+    }
+  };
+
+  getJoinRequestCount();
+}, []);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -30,16 +45,26 @@ export default function Navbar() {
     setChatUnreadCount(0);
   }
 
+if (pathname.includes("/app/groups")) {
+  setJoinRequestCount(0);
+}
+
 
   const unsubscribe = onMessageType("addMessage", () => {
-
     if (!pathname.includes("/app/chat")) {
       setChatUnreadCount((prev) => prev + 1);
     }
   });
 
+const unsubscribeJoinRequest = onMessageType("groupJoinRequest", () => {
+  if (!pathname.includes("/app/groups")) {
+    setJoinRequestCount((prev) => prev + 1);
+  }
+});
+
   return () => {
     unsubscribe();
+     unsubscribeJoinRequest();
   };
   }, [pathname]);
 
@@ -110,7 +135,7 @@ export default function Navbar() {
         </svg>
       ),
       link: "/app/groups",
-      notifications: 0,
+      notifications: joinRequestCount,
     },
     {
       id: "profile",
