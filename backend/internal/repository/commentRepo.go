@@ -11,8 +11,8 @@ type CommentRepository struct {
 
 func (r *CommentRepository) Add(c *model.Comment) error {
 	return r.Repository.db.QueryRow(
-		"INSERT INTO comments (user_id, post_id, text) VALUES ($1, $2, $3) RETURNING id",
-		c.UserId, c.PostId, c.Text,
+		"INSERT INTO comments (user_id, post_id, text, image) VALUES ($1, $2, $3, $4) RETURNING id",
+		c.UserId, c.PostId, c.Text, c.Image,
 	).Scan(&c.ID)
 }
 

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	// "real-time-forum/internal/middleware"
 	"real-time-forum/internal/model"
 	"real-time-forum/internal/repository"
 	"sync"
