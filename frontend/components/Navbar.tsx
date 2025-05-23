@@ -6,6 +6,7 @@ import Link from "next/link";
 import "./Navbar.css";
 import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
 import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
+import getUnreadChatCount from "@/api/messages/getUnreadMessagesCount";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -25,6 +26,15 @@ const getJoinRequestCount = async () => {
   };
 
   getJoinRequestCount();
+
+
+   const fetchUnreadCount = async () => {
+    const data = await getUnreadChatCount();
+    if (data?.count != null) {
+      setChatUnreadCount(data.count);
+    }
+  };
+  fetchUnreadCount();
 }, []);
 
   useEffect(() => {

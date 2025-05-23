@@ -486,6 +486,35 @@ func (s *Server) GetJoinRequestCount(request map[string]any) map[string]any {
 	response["count"] = count
 	return response
 }
+func (s *Server) GetUnreadMessagesCountResponse(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	res := s.ValidateSession(request)
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	userId := res.Userid
+
+	// Access through repository
+	pmCount, err := s.repository.Message().CountUnreadPM(userId)
+	if err != nil {
+		response["error"] = "Failed to fetch PM unread count"
+		return response
+	}
+
+	groupCount, err := s.repository.Message().CountUnreadGroup(userId)
+	if err != nil {
+		response["error"] = "Failed to fetch group unread count"
+		return response
+	}
+
+	response["count"] = pmCount + groupCount
+	return response
+}
+
 
 func (s *Server) sendNotificationToUser(userId int, notification map[string]any) {
 	s.mu.Lock()

@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 
 
-const fetchJoinRequestCount = async () => {
+const getUnreadChatCount = async () => {
   try {
    
     
@@ -16,16 +16,16 @@ const fetchJoinRequestCount = async () => {
 
    
     
-     const response = await fetch("http://localhost:8080/joinRequestCount", {
+     const response = await fetch("http://localhost:8080/getUnreadMessagesCount", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({session: token,}), 
       });
 
     const data = await response.json();
-// console.log("iiiiiiiiiiiiiiiiii");
-    // console.log("count request join ",data);
-// console.log("iiiiiiiiiiiiiiiiii");
+
+    console.log("count unreadmessages  ",data);
+
     if (data.error == "Invalid session") {
       cookieStore.delete("token");
     }
@@ -36,7 +36,7 @@ const fetchJoinRequestCount = async () => {
   }
 };
 
-export default fetchJoinRequestCount;
+export default getUnreadChatCount;
 
 
 
