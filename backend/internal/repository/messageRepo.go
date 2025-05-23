@@ -268,6 +268,23 @@ func (r *MessageRepository) GetGroupUnreadMessages(currentId, groupId int) (int,
 	return unreadCount, nil
 }
 
+
+
+func (m *MessageRepository) CountUnreadPM(userId int) (int, error) {
+	var count int
+	query := "SELECT COUNT(*) FROM messages WHERE recipient_id = $1 AND is_seen = false"
+	err := m.Repository.db.QueryRow(query, userId).Scan(&count)
+	return count, err
+}
+
+func (m *MessageRepository) CountUnreadGroup(userId int) (int, error) {
+	var count int
+	query := "SELECT COUNT(*) FROM group_message_notifications WHERE user_id = $1 AND is_seen = false"
+	err := m.Repository.db.QueryRow(query, userId).Scan(&count)
+	return count, err
+}
+
+
 // OLD
 
 func (r *MessageRepository) GetTotalNotifications(recipient_id int) (int, error) {
@@ -278,3 +295,5 @@ func (r *MessageRepository) GetTotalNotifications(recipient_id int) (int, error)
 	}
 	return totalNotifications, nil
 }
+
+
