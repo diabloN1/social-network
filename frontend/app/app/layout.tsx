@@ -9,9 +9,7 @@ export default async function AppLayout({
 }) {
   const data = await getToken();
 
-  if (!data.session) {
-    redirect("/auth");
-  }
+  
 
   return (
     <>

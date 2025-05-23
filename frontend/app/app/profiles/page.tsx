@@ -167,11 +167,22 @@ export default function ProfilesPage() {
                 onClick={() => navigateToProfile(user.id)}
                 style={{ cursor: "pointer" }}
               >
-                <img
-                  src={user.avatar || "/icons/placeholder.svg"}
-                  alt={user.nickname}
-                  className="user-avatar"
-                />
+                <div
+                  className="post-user-avatar"
+                  onClick={() => router.push(`/app/profiles/${user.id}`)}
+                >
+                  <img
+                    src={
+                      user.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                            user.id
+                          }&path=${encodeURIComponent(user.avatar)}`
+                        : "/icons/placeholder.svg"
+                    }
+                    alt="user avatar"
+                    className="user-avatar"
+                  />
+                </div>
                 <div className="user-details">
                   <span className="user-name">{user.firstname}</span>
                   <span className="nickname">@{user.nickname}</span>

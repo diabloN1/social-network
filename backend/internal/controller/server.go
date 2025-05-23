@@ -25,7 +25,7 @@ type Server struct {
 type Client struct {
 	Session    string
 	ActiveTime time.Time
-	UserId 	   int
+	UserId     int
 	Connection *websocket.Conn
 }
 
@@ -43,11 +43,11 @@ func Start() error {
 	s.router.HandleFunc("/register", s.RegisterHandler)
 	s.router.HandleFunc("/session", s.SessionHandler)
 	s.router.HandleFunc("/logout", s.LogoutHandler)
-	s.router.HandleFunc("/addPost", s.AddPostHandler)
 
 	// Posts
 	s.router.HandleFunc("/getPosts", s.getPostsHandler)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
+	s.router.HandleFunc("/addPost", s.AddPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
 	// Comments
 	s.router.HandleFunc("/addComment", s.addCommentHandler)
@@ -67,6 +67,8 @@ func Start() error {
 	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
 	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
 	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
+	s.router.HandleFunc("/joinRequestCount", s.GetCountRequest)
+
 	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
 	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
 	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
@@ -80,8 +82,9 @@ func Start() error {
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
 
-	// Upload image
+	// Image
 	s.router.HandleFunc("/uploadImage", s.UploadImageHandler)
+	s.router.Handle("/getProtectedImage", s.imageMiddleware(http.HandlerFunc(s.ProtectedImageHandler)))
 
 	// go s.checkClientsLastActivity()
 
@@ -123,7 +126,6 @@ func (s *Server) removeClient(client *Client) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	
 	for i, c := range s.clients[client.UserId] {
 		if c == client {
 
@@ -193,20 +195,20 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 				fmt.Println(response["error"])
 			}
 			s.SentToActiveRecipient(response)
-		// case "updateseenmessage":
-		// 	s.UpdateSeenMessage(request)
-		// 	response.Type = "updatetotal"
-		// 	userid := int(request["userid"].(float64))
-		// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
-		// 	if err != nil {
-		// 		log.Println("Error in Get Total:", err)
-		// 	}
-		// 	response.TotalNotifications = notifications
-		// case "typing":
-		// 	response = s.UpdateIsTyping(request)
-		// 	if response.Error == "" {
-		// 		s.SendIsTyping(response)
-		// 	}
+			// case "updateseenmessage":
+			// 	s.UpdateSeenMessage(request)
+			// 	response.Type = "updatetotal"
+			// 	userid := int(request["userid"].(float64))
+			// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
+			// 	if err != nil {
+			// 		log.Println("Error in Get Total:", err)
+			// 	}
+			// 	response.TotalNotifications = notifications
+			// case "typing":
+			// 	response = s.UpdateIsTyping(request)
+			// 	if response.Error == "" {
+			// 		s.SendIsTyping(response)
+			// 	}
 		}
 
 		// s.mu.Lock()

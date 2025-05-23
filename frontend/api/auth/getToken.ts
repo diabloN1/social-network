@@ -18,11 +18,9 @@ const getToken = async () => {
     });
 
     const data = await response.json();
-
-    if (!data.session) {
+    if (data.error) {
       redirect("/auth");
     }
-    console.log(data);
     return data;
   } catch (err) {
     console.error(err);

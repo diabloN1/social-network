@@ -19,7 +19,6 @@ func (r *PostRepository) Add(p *model.Post) error {
 	).Scan(&p.ID)
 }
 
-
 func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 	var posts []*model.Post
 
@@ -48,9 +47,9 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	postIds := []int{}
-	
+
 	for rows.Next() {
 		post := &model.Post{}
 		user := &model.User{}
@@ -63,26 +62,24 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 		posts = append(posts, post)
 		postIds = append(postIds, post.ID)
 	}
-	
+
 	if len(posts) == 0 {
 		return []*model.Post{}, nil
 	}
-	
+
 	reactions, err := r.Repository.Reaction().GetReactionsForPosts(userId, postIds)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	for _, post := range posts {
 		if counts, ok := reactions[post.ID]; ok {
 			post.Reactions = counts
 		}
 	}
-	
+
 	return posts, nil
 }
-
-
 
 func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, error) {
 	query := `SELECT p.id, p.image 
@@ -113,7 +110,7 @@ func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, 
 		if err := rows.Scan(&p.ID, &p.Image); err != nil {
 			return nil, err
 		}
-		posts = append(posts, p)	
+		posts = append(posts, p)
 	}
 
 	if err := rows.Err(); err != nil {
@@ -124,10 +121,11 @@ func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, 
 }
 
 func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
-
+	post := &model.Post{}
+	user := &model.User{}
 
 	// Should fix this query to get post data based on (comments, likes, and is allowed to see)
-	row := r.Repository.db.QueryRow(`SELECT 
+	err := r.Repository.db.QueryRow(`SELECT 
 				p.id, p.privacy, p.user_id, p.caption, p.image, p.creation_date,
 				u.avatar,
 				u.firstname,
@@ -147,29 +145,27 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 					);`,
-		userId, postId)
-		post := &model.Post{}
-		user := &model.User{}
-		if err := row.Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname); err != nil && err != sql.ErrNoRows {
-			return nil, errors.New(err.Error())
-		}
+		userId, postId).Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname)
+	if err != nil && err != sql.ErrNoRows {
+		return nil, errors.New(err.Error())
+	}
 
-		reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
-		if err != nil {
-			return nil, err
-		}
+	reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
+	if err != nil {
+		return nil, err
+	}
 
-		userReaction, err := r.Repository.Reaction().GetUserReaction(userId, post.ID)
-		if err != nil {
-			return nil, err
-		}
+	userReaction, err := r.Repository.Reaction().GetUserReaction(userId, post.ID)
+	if err != nil {
+		return nil, err
+	}
 
-		fmt.Println(userReaction)
-		reactions.UserReaction = userReaction
+	fmt.Println(userReaction)
+	reactions.UserReaction = userReaction
 
-		post.Reactions = reactions
-		post.User = user
-		return post, nil
+	post.Reactions = reactions
+	post.User = user
+	return post, nil
 }
 
 func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) {
@@ -192,4 +188,34 @@ func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) 
 	}
 	return posts, nil
 
+}
+
+func (r *PostRepository) HasAccessToPost(userId int, postId int) (bool, error) {
+	err := r.Repository.db.QueryRow(`SELECT 
+				p.id
+				FROM posts p
+
+				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1 AND is_accepted = 1
+				LEFT JOIN post_shares ps ON p.id = ps.post_id AND ps.shared_with_user_id = $1
+				LEFT JOIN users u ON u.id = p.user_id
+
+				WHERE
+					p.id = $2
+					AND
+					(
+						p.user_id = u.id
+						OR (p.privacy = 'public' AND u.is_private = FALSE)
+						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
+						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
+					);`, userId, postId).Scan(&userId)
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, nil
+	}
+
+	return true, nil
 }

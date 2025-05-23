@@ -1,9 +1,19 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "8080",
+        pathname: "/getProtectedImage",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
-      bodySizeLimit: '100mb',
+      bodySizeLimit: "100mb",
     },
   },
 };

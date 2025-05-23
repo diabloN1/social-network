@@ -1,18 +1,18 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
 const addPost = async (formData: {
-    image: string;
-    caption: string;
-    privacy?: string;
-    session?: string;
-  }) => {
+  image: string;
+  caption: string;
+  privacy?: string;
+  session?: string;
+}) => {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value || "";
 
-    formData['session'] = token
+    formData["session"] = token;
 
     const response = await fetch("http://localhost:8080/addPost", {
       method: "POST",
@@ -26,7 +26,7 @@ const addPost = async (formData: {
     console.log(data);
 
     if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+      cookieStore.delete("token");
     }
     return data;
   } catch (err) {
@@ -34,4 +34,4 @@ const addPost = async (formData: {
   }
 };
 
-export default addPost
+export default addPost;

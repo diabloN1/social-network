@@ -22,7 +22,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log(data);
+        console.log("socket ",data);
         const type = data.type;
 
         if (type && listeners[type]) {

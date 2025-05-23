@@ -35,7 +35,7 @@ export async function uploadFile(formData: FormData, route: string): Promise<str
       throw new Error(data.error)
     }
     
-    return `${route}/${uniqueFileName}`
+    return uniqueFileName
   } catch (error) {
     console.error(error)
     throw new Error('Failed to upload file: ' + error)

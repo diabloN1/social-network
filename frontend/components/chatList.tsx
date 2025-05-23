@@ -49,7 +49,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           return;
         }
 
-        console.log(data);
+        console.log("chats", data);
 
         const transformedChats: Chat[] = [
           // Transform group conversations
@@ -232,7 +232,16 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
               onClick={() => onSelectChat(chat)}
             >
               <div className="chat-avatar">
-                <img src={chat.avatar || "/placeholder.svg"} alt={chat.name} />
+                <img
+                  src={
+                    chat.avatar
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                          0
+                        }&path=${encodeURIComponent(chat.avatar)}`
+                      : "/icons/placeholder.svg"
+                  }
+                  alt="user avatar"
+                />
                 {!chat.isGroup && chat.isOnline && (
                   <span className="online-indicator"></span>
                 )}

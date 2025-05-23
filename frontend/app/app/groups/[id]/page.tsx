@@ -273,8 +273,14 @@ export default function GroupPage() {
       <div className="group-header">
         <div className="group-image">
           <img
-            src={group.image || "/icons/placeholder.svg"}
-            alt={group.title}
+            src={
+              group.image
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                    group.image
+                  )}`
+                : "/icons/placeholder.svg"
+            }
+            alt="group image"
           />
         </div>
         <div className="group-title-section">
@@ -325,13 +331,20 @@ export default function GroupPage() {
             <span>Members ({group.members?.length})</span>
             <div className="members-avatars">
               {group.members?.slice(0, 3).map((member) => (
-                <img
+                 <img
                   key={member.id}
-                  src={member.avatar || "/icons/placeholder.svg"}
-                  alt={`${member.firstname} ${member.lastname}`}
+
+                    src={
+                      member.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                            member.avatar
+                          )}`
+                        : "/icons/placeholder.svg"
+                    }
                   className="member-avatar"
-                  title={`${member.firstname} ${member.lastname}`}
-                />
+
+                  alt={`${member.firstname} ${member.lastname}`}
+                  />
               ))}
               {group.members?.length > 3 && (
                 <span className="more-members">

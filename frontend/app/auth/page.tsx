@@ -149,6 +149,7 @@ export default function AuthForm() {
         }
 
         const data = await postAuth(path, formData);
+        console.log(data)
 
         if (data.error && errors.hasOwnProperty(data.type)) {
           setErrors({

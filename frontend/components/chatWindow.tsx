@@ -64,13 +64,15 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
     initMessages();
 
     const currentChatId = Number(chat?.id.split("_")[1]);
-    const isGroup = chat?.isGroup;
 
     const unsubscribe = onMessageType("addMessage", async (data: any) => {
+    const isGroup = chat?.isGroup;
       const isMatch = isGroup
         ? data.message.group_id === currentChatId
         : data.message.sender_id === currentChatId ||
           data.message.recipient_id === currentChatId;
+
+    console.log("- - - - - -", chat, isGroup, isMatch)
 
       data.message.isOwned = data.isOwned;
 
@@ -168,8 +170,14 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
         <div className="chat-header-info">
           <div className="chat-avatar">
             <img
-              src={chat.avatar || "/icons/placeholder.svg"}
-              alt={chat.name}
+              src={
+                chat.avatar
+                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                      chat.avatar
+                    )}`
+                  : "/icons/placeholder.svg"
+              }
+              alt="user avatar"
             />
             {!chat.isGroup && chat.isOnline && (
               <span className="online-indicator"></span>

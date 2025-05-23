@@ -178,8 +178,14 @@ export default function ProfilePage() {
       <div className="profile-header">
         <div className="profile-avatar">
           <img
-            src={user.avatar || "/icons/placeholder.svg"}
-            alt={displayName}
+            src={
+              user.avatar
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                    user.id
+                  }&path=${encodeURIComponent(user.avatar)}`
+                : "/icons/placeholder.svg"
+            }
+            alt="user avatar"
           />
         </div>
 

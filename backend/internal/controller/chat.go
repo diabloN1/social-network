@@ -173,6 +173,7 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 	}
 
 	response["message"] = m
+	response["isGroup"] = isGroup
 
 	return response
 }

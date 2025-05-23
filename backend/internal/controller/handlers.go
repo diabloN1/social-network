@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 )
@@ -143,6 +144,12 @@ func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.GetGroupData(request)
 	s.SendJson(w, response, err)
 }
+func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
+
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetJoinRequestCount(request)
+	s.SendJson(w, response, err)
+}
 
 func (s *Server) AddGroupPostHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -215,7 +222,18 @@ func (s *Server) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 
-// Upload Image
+// Images
 func (s *Server) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, s.UploadImage(r), nil)
+}
+
+func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
+	fullPath, ok := r.Context().Value("fullPath").(string)
+	fmt.Println(fullPath)
+	if !ok || fullPath == "" {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	http.ServeFile(w, r, fullPath)
 }

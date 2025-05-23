@@ -43,7 +43,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       if (image) {
         const formData = new FormData();
         formData.append("file", image);
-        imageUrl = await uploadFile(formData, "/groups");
+        imageUrl = await uploadFile(formData, "/avatars");
       }
 
       onSubmit({

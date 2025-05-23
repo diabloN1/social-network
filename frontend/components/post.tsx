@@ -5,7 +5,7 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import reactToPost from "@/api/posts/reactToPost";
-import addComment from "@/api/posts/addComment";
+// import addComment from "@/api/posts/addComment";
 
 interface Comment {
   id: number;
@@ -161,36 +161,6 @@ const Post: React.FC<PostProps> = ({ post, onReactionUpdate }) => {
     router.push(`/app/${post.id}`);
   };
 
-  // Updated handleAddComment function
-  const handleAddComment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newComment.trim()) return;
-
-    try {
-      const data = await addComment(post.id, newComment);
-      if (data.error && data.error !== "") {
-        console.error(data.error);
-        return;
-      }
-      if (data.posts && data.posts[0] && data.posts[0].Comment) {
-        // Format the comments to match our component's expected structure
-        const formattedComments = data.posts[0].Comment.map((comment: any) => ({
-          id: comment.id,
-          user: {
-            name: comment.author,
-            avatar: "/icons/placeholder.svg",
-          },
-          text: comment.text,
-          timestamp: comment.creation_date,
-        }));
-        setComments(formattedComments);
-        setNewComment("");
-      }
-    } catch (error) {
-      console.error("Failed to add comment:", error);
-    }
-  };
-
   const renderPrivacyIcon = () => {
     switch (post.privacy) {
       case "public":
@@ -219,11 +189,16 @@ const Post: React.FC<PostProps> = ({ post, onReactionUpdate }) => {
           className="post-user-avatar"
           onClick={() => router.push(`/app/profiles/${post.user_id}`)}
         >
-          <Image
-            src={post.user.avatar || "/icons/placeholder.svg"}
-            alt={post.user.avatar || "/icons/placeholder.svg"}
-            width={40}
-            height={40}
+          <img
+            src={
+              post.user.avatar
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                    post.user_id
+                  }&path=${encodeURIComponent(post.user.avatar)}`
+                : "/icons/placeholder.svg"
+            }
+            alt="user avatar"
+            className="post-image"
           />
         </div>
         <div
@@ -249,10 +224,15 @@ const Post: React.FC<PostProps> = ({ post, onReactionUpdate }) => {
           onClick={navigateToPost}
           style={{ cursor: "pointer" }}
         >
-          <Image
-            src={post.image || "/icons/placeholder.svg"}
+          <img
+            src={
+              post.image
+                ? `http://localhost:8080/getProtectedImage?type=posts&id=${
+                    post.id
+                  }&path=${encodeURIComponent(post.image)}`
+                : "/icons/placeholder.svg"
+            }
             alt="Post content"
-            fill
             className="post-image"
           />
         </div>

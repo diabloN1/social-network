@@ -48,6 +48,18 @@ func (r *GroupRepository) GetGroupOwner(groupId int) (int, error) {
 	return ownerId, nil
 }
 
+func (r *GroupRepository) IsMember(userId, groupId int) (bool, error) {
+	var isMember bool
+	query := `
+            SELECT EXISTS(
+                SELECT 1 
+                FROM group_members 
+                WHERE user_id = ? AND group_id = ? AND is_accepted = TRUE
+            )`
+	err := r.Repository.db.QueryRow(query, userId, groupId).Scan(&isMember)
+	return isMember, err
+}
+
 func (r *GroupRepository) AddMember(m *model.GroupMember) error {
 	return r.Repository.db.QueryRow(
 		"INSERT INTO group_members (user_id, inviter_id, group_id, is_accepted) VALUES ($1, $2, $3, $4) RETURNING (id)",
@@ -68,6 +80,17 @@ func (r *GroupRepository) AcceptMember(m *model.GroupMember) error {
 		m.UserId, m.GroupId,
 	)
 	return err
+}
+func (r *GroupRepository) CountPendingJoinRequests(ownerId int) (int, error) {
+	var count int
+	err := r.Repository.db.QueryRow(`
+	SELECT COUNT(*) 
+	FROM group_members gm
+	JOIN groups g ON g.id = gm.group_id
+	WHERE g.user_id = $1 AND gm.is_accepted = FALSE
+`, ownerId).Scan(&count)
+
+	return count, err
 }
 
 func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
@@ -147,7 +170,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		inviter := &model.User{}
 
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
-		fmt.Println("heree")
+			fmt.Println("heree")
 			return nil, err
 		}
 
