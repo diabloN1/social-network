@@ -61,6 +61,7 @@ func Start() error {
 
 	// Follows
 	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
+
 	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
 
@@ -68,20 +69,19 @@ func Start() error {
 	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
 	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
 	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
-	s.router.HandleFunc("/joinRequestCount", s.GetCountRequest)
-	s.router.HandleFunc("/getUnreadMessagesCount", s.GetUnreadMessagesCount)
-
-
+	
+	
 	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
 	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
 	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
 	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
 	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
-
+	
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)
 	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
-
+	//notif
+	s.router.HandleFunc("/getAllNotifications", s.GetAllNotificationsHandler)
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
 

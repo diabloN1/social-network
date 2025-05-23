@@ -99,6 +99,12 @@ func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.setProfilePrivacy(request)
 	s.SendJson(w, response, err)
 }
+//notification
+func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetAllNotifications(request)
+	s.SendJson(w, response, err)
+}
 
 // Follow Handlers
 func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,7 +113,11 @@ func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.RequestFollow(request)
 	s.SendJson(w, response, err)
 }
-
+func (s *Server) getFollowRequestCountHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetFollowRequestCount(request)
+	s.SendJson(w, response, err)
+}
 func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)

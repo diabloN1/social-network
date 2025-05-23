@@ -3,7 +3,7 @@
 import { cookies } from "next/headers";
 
 
-const getUnreadChatCount = async () => {
+const fetchAllNotifications = async () => {
   try {
    
     
@@ -16,7 +16,7 @@ const getUnreadChatCount = async () => {
 
    
     
-     const response = await fetch("http://localhost:8080/getUnreadMessagesCount", {
+     const response = await fetch("http://localhost:8080/getAllNotifications", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({session: token,}), 
@@ -24,7 +24,7 @@ const getUnreadChatCount = async () => {
 
     const data = await response.json();
 
-    console.log("count unreadmessages  ",data);
+    console.log("allnotification  ",data);
 
     if (data.error == "Invalid session") {
       cookieStore.delete("token");
@@ -36,7 +36,7 @@ const getUnreadChatCount = async () => {
   }
 };
 
-export default getUnreadChatCount;
+export default fetchAllNotifications;
 
 
 
