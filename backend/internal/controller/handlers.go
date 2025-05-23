@@ -214,3 +214,8 @@ func (s *Server) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.GetMessages(request)
 	s.SendJson(w, response, err)
 }
+
+// Upload Image
+func (s *Server) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
+	s.SendJson(w, s.UploadImage(r), nil)
+}

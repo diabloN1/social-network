@@ -172,23 +172,6 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 		return post, nil
 }
 
-
-func (r *PostRepository) Edit(p *model.Post) error {
-	if _, err := r.Repository.db.Exec("UPDATE posts SET user_id = ?, author = ?, title = ?, text = ?, creation_date = ?, WHERE id = ?",
-		p.UserId, p.Title, p.Text, p.CreationDate, p.ID); err != nil {
-		return errors.New(err.Error())
-	}
-	return nil
-}
-
-func (r *PostRepository) Delete(p *model.Post) error {
-	if _, err := r.Repository.db.Exec("DELETE FROM posts WHERE id = ?", p.ID); err != nil {
-		return errors.New(err.Error())
-	}
-	p = nil
-	return nil
-}
-
 func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) {
 	var posts []*model.Post
 	rows, err := r.Repository.db.Query("SELECT id, user_id, author, title, text, creation_date FROM posts WHERE user_id = ? ORDER BY creation_date ASC", u.ID)

@@ -80,6 +80,8 @@ func Start() error {
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
 
+	// Upload image
+	s.router.HandleFunc("/uploadImage", s.UploadImageHandler)
 
 	// go s.checkClientsLastActivity()
 

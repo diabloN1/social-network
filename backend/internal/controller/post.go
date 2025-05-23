@@ -32,6 +32,7 @@ func (s *Server) GetPosts(request map[string]any) *model.Response {
 
 
 	posts, err := s.repository.Post().GetPosts(res.Userid, int(startId))
+	
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
 	}
