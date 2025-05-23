@@ -5,9 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
-import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
-import getUnreadChatCount from "@/api/messages/getUnreadMessagesCount";
-import fetchFollowRequestCount from "@/api/profiles/getFollowRequestCount";
+import fetchAllNotifications from "@/api/notif/getAllNotification";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -16,35 +14,22 @@ export default function Navbar() {
 const [joinRequestCount, setJoinRequestCount] = useState(0);
  const [followRequestCount, setFollowRequestCount] = useState(0);
 
+ const fetchAllNotificationCounts = async () => {
+    const data = await fetchAllNotifications();
+    if (data && !data.error) {
+      console.log("notification",data);
+   
+      const notifications = data.notifications;
+      
+      setChatUnreadCount(notifications.messageUnread || 0);
+      setJoinRequestCount(notifications.groupRequests || 0);
+      setFollowRequestCount(notifications.followRequests || 0);
+    }
+  };
+
 useEffect(() => {
  
-const getJoinRequestCount = async () => {
-  console.log("dddddddddddddddd");
-  
-    const data = await fetchJoinRequestCount();
-    if (data?.count != null) {
-      setJoinRequestCount(data.count);
-    }
-  };
-
-   const getFollowRequestCount = async () => {
-      const data = await fetchFollowRequestCount();
-      if (data?.count != null) {
-        setFollowRequestCount(data.count);
-      }
-    };
- 
-
-
-   const fetchUnreadCount = async () => {
-    const data = await getUnreadChatCount();
-    if (data?.count != null) {
-      setChatUnreadCount(data.count);
-    }
-  };
-   getJoinRequestCount();
-    getFollowRequestCount();
-  fetchUnreadCount();
+  fetchAllNotificationCounts();
 }, []);
 
   useEffect(() => {
