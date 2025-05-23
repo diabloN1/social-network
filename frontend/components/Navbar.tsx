@@ -7,12 +7,14 @@ import "./Navbar.css";
 import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
 import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
 import getUnreadChatCount from "@/api/messages/getUnreadMessagesCount";
+import fetchFollowRequestCount from "@/api/profiles/getFollowRequestCount";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
 const [joinRequestCount, setJoinRequestCount] = useState(0);
+ const [followRequestCount, setFollowRequestCount] = useState(0);
 
 useEffect(() => {
  
@@ -25,7 +27,13 @@ const getJoinRequestCount = async () => {
     }
   };
 
-  getJoinRequestCount();
+   const getFollowRequestCount = async () => {
+      const data = await fetchFollowRequestCount();
+      if (data?.count != null) {
+        setFollowRequestCount(data.count);
+      }
+    };
+ 
 
 
    const fetchUnreadCount = async () => {
@@ -34,6 +42,8 @@ const getJoinRequestCount = async () => {
       setChatUnreadCount(data.count);
     }
   };
+   getJoinRequestCount();
+    getFollowRequestCount();
   fetchUnreadCount();
 }, []);
 
@@ -58,7 +68,9 @@ const getJoinRequestCount = async () => {
 if (pathname.includes("/app/groups")) {
   setJoinRequestCount(0);
 }
-
+if (pathname.includes("/app/profiles")) {
+      setFollowRequestCount(0);
+    }
 
   const unsubscribe = onMessageType("addMessage", () => {
     if (!pathname.includes("/app/chat")) {
@@ -71,10 +83,16 @@ const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
     setJoinRequestCount((prev) => prev + 1);
   }
 });
+ const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+      if (!pathname.includes("/app/profiles")) {
+        setFollowRequestCount((prev) => prev + 1);
+      }
+    });
 
   return () => {
     unsubscribe();
      unsubscribeJoinRequest();
+      unsubscribeFollowRequest();
   };
   }, [pathname]);
 
@@ -166,7 +184,7 @@ const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
         </svg>
       ),
       link: "/app/profiles",
-      notifications: 0,
+      notifications: followRequestCount,
     },
   ];
 

@@ -61,6 +61,8 @@ func Start() error {
 
 	// Follows
 	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
+	s.router.HandleFunc("/followrequestcount", s.getFollowRequestCountHandler)
+
 	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
 
