@@ -498,7 +498,6 @@ func (s *Server) GetUnreadMessagesCountResponse(request map[string]any) map[stri
 
 	userId := res.Userid
 
-	// Access through repository
 	pmCount, err := s.repository.Message().CountUnreadPM(userId)
 	if err != nil {
 		response["error"] = "Failed to fetch PM unread count"
