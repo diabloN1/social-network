@@ -12,6 +12,7 @@ import CreateEventModal from "@/components/create-event-modal";
 import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
+import { socket } from "@/helpers/webSocket";
 
 // Types for API response
 interface User {
@@ -235,7 +236,7 @@ export default function GroupPage() {
         alert(data.error);
         return;
       }
-
+      // socket?.send()
       // Refresh group data to update the is_pending status
       fetchGroupData();
       console.log("Request sent successfully");

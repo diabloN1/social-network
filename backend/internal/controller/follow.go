@@ -3,6 +3,7 @@ package controller
 import (
 	"log"
 	"real-time-forum/internal/model"
+	"time"
 )
 
 func (s *Server) RequestFollow(request map[string]any) *model.Response {
@@ -34,6 +35,13 @@ func (s *Server) RequestFollow(request map[string]any) *model.Response {
 		response.Error = err.Error()
 		log.Println("Error requesting follow:", err)
 	}
+	notification := map[string]any{
+		"type":       "newfollowrequest",
+		"followerId": res.Userid,
+		"message":    "New follow request",
+		"timestamp":  time.Now().Unix(),
+	}
+	s.sendNotificationToUser(int(profileId), notification)
 
 	return response
 }
@@ -70,7 +78,6 @@ func (s *Server) AcceptFollow(request map[string]any) *model.Response {
 
 	return response
 }
-
 
 func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	response := &model.Response{
@@ -111,9 +118,9 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	var err error
 
 	// isFollower or been followed.
-	if (isFollower) {
+	if isFollower {
 		err = s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
-		
+
 	} else {
 		err = s.repository.Follow().DeleteFollow(res.Userid, int(profileId))
 		if err != nil {
@@ -126,5 +133,25 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 		log.Println("Error deletting follow:", err)
 	}
 
+	return response
+}
+func (s *Server) GetFollowRequestCount(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+	response["count"] = 0
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	count, err := s.repository.Follow().GetFollowRequestCount(res.Userid)
+	if err != nil {
+		response["error"] = err.Error()
+		return response
+	}
+
+	response["count"] = count
 	return response
 }

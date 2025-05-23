@@ -139,3 +139,15 @@ func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) 
 
 	return users, nil
 }
+
+func (r *FollowRepository) GetFollowRequestCount(userId int) (int, error) {
+	query := `SELECT COUNT(*) FROM followers WHERE following_id = $1 AND is_accepted = FALSE`
+	
+	var count int
+	err := r.Repository.db.QueryRow(query, userId).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	
+	return count, nil
+}

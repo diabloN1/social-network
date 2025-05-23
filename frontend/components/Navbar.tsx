@@ -5,26 +5,31 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
-import fetchJoinRequestCount from "@/api/groups/getcountrequestjoin";
+import fetchAllNotifications from "@/api/notif/getAllNotification";
 
 export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
 const [joinRequestCount, setJoinRequestCount] = useState(0);
+ const [followRequestCount, setFollowRequestCount] = useState(0);
 
-useEffect(() => {
- 
-const getJoinRequestCount = async () => {
-  console.log("dddddddddddddddd");
-  
-    const data = await fetchJoinRequestCount();
-    if (data?.count != null) {
-      setJoinRequestCount(data.count);
+ const fetchAllNotificationCounts = async () => {
+    const data = await fetchAllNotifications();
+    if (data && !data.error) {
+      console.log("notification",data);
+   
+      const notifications = data.notifications;
+      
+      setChatUnreadCount(notifications.messageUnread || 0);
+      setJoinRequestCount(notifications.groupRequests || 0);
+      setFollowRequestCount(notifications.followRequests || 0);
     }
   };
 
-  getJoinRequestCount();
+useEffect(() => {
+ 
+  fetchAllNotificationCounts();
 }, []);
 
   useEffect(() => {
@@ -48,7 +53,9 @@ const getJoinRequestCount = async () => {
 if (pathname.includes("/app/groups")) {
   setJoinRequestCount(0);
 }
-
+if (pathname.includes("/app/profiles")) {
+      setFollowRequestCount(0);
+    }
 
   const unsubscribe = onMessageType("addMessage", () => {
     if (!pathname.includes("/app/chat")) {
@@ -56,15 +63,21 @@ if (pathname.includes("/app/groups")) {
     }
   });
 
-const unsubscribeJoinRequest = onMessageType("groupJoinRequest", () => {
+const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
   if (!pathname.includes("/app/groups")) {
     setJoinRequestCount((prev) => prev + 1);
   }
 });
+ const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+      if (!pathname.includes("/app/profiles")) {
+        setFollowRequestCount((prev) => prev + 1);
+      }
+    });
 
   return () => {
     unsubscribe();
      unsubscribeJoinRequest();
+      unsubscribeFollowRequest();
   };
   }, [pathname]);
 
@@ -156,7 +169,7 @@ const unsubscribeJoinRequest = onMessageType("groupJoinRequest", () => {
         </svg>
       ),
       link: "/app/profiles",
-      notifications: 0,
+      notifications: followRequestCount,
     },
   ];
 
