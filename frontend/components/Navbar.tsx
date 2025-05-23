@@ -56,7 +56,7 @@ if (pathname.includes("/app/groups")) {
     }
   });
 
-const unsubscribeJoinRequest = onMessageType("groupJoinRequest", () => {
+const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
   if (!pathname.includes("/app/groups")) {
     setJoinRequestCount((prev) => prev + 1);
   }
