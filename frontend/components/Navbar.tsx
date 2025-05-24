@@ -11,26 +11,25 @@ export default function Navbar() {
   const pathname = usePathname();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
-const [joinRequestCount, setJoinRequestCount] = useState(0);
- const [followRequestCount, setFollowRequestCount] = useState(0);
+  const [joinRequestCount, setJoinRequestCount] = useState(0);
+  const [followRequestCount, setFollowRequestCount] = useState(0);
 
- const fetchAllNotificationCounts = async () => {
+  const fetchAllNotificationCounts = async () => {
     const data = await fetchAllNotifications();
     if (data && !data.error) {
-      console.log("notification",data);
-   
+      console.log("notification", data);
+
       const notifications = data.notifications;
-      
+
       setChatUnreadCount(notifications.messageUnread || 0);
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);
     }
   };
 
-useEffect(() => {
- 
-  fetchAllNotificationCounts();
-}, []);
+  useEffect(() => {
+    fetchAllNotificationCounts();
+  }, []);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -45,40 +44,40 @@ useEffect(() => {
       setActiveTab("notification");
     }
 
-     
-  if (pathname.includes("/app/chat")) {
-    setChatUnreadCount(0);
-  }
+     const notificationTypes = [
+    "followRequestHandled",
+    "joinRequestHandled",
+    "unreadmsgRequestHandled",
+  ];
 
-if (pathname.includes("/app/groups")) {
-  setJoinRequestCount(0);
-}
-if (pathname.includes("/app/profiles")) {
-      setFollowRequestCount(0);
-    }
+  const notificationUnsubs = notificationTypes.map((type) =>
+    onMessageType(type, fetchAllNotificationCounts)
+  );
 
-  const unsubscribe = onMessageType("addMessage", () => {
-    if (!pathname.includes("/app/chat")) {
-      setChatUnreadCount((prev) => prev + 1);
-    }
-  });
+    const unsubscribe = onMessageType("addMessage", () => {
+      if (!pathname.includes("/app/chat")) {
+        setChatUnreadCount((prev) => prev + 1);
+      }
+    });
 
-const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
-  if (!pathname.includes("/app/groups")) {
-    setJoinRequestCount((prev) => prev + 1);
-  }
-});
- const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+    const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
+      if (!pathname.includes("/app/groups")) {
+        setJoinRequestCount((prev) => prev + 1);
+      }
+    });
+    const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
       if (!pathname.includes("/app/profiles")) {
         setFollowRequestCount((prev) => prev + 1);
       }
     });
 
-  return () => {
-    unsubscribe();
-     unsubscribeJoinRequest();
+    return () => {
+      unsubscribe();
+      unsubscribeJoinRequest();
       unsubscribeFollowRequest();
-  };
+      notificationUnsubs.forEach((unsub) => unsub());
+
+    };
   }, [pathname]);
 
   const navItems = [
@@ -177,14 +176,10 @@ const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
     connectWebSocket();
   }, []);
 
-
-
   return (
     <nav className="navbar">
       <ul className="nav-list">
         {navItems.map((item) => (
-        
-          
           <li
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}

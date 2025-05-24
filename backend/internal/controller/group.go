@@ -604,6 +604,11 @@ func (s *Server) RespondToJoinRequest(request map[string]any) map[string]any {
 			return response
 		}
 	}
-
+wsMsg := map[string]any{
+		"type": "joinRequestHandled",
+	}
+	for _, c := range s.clients[res.Userid] {
+		s.ShowMessage(c, wsMsg)
+	}
 	return response
 }
