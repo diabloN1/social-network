@@ -46,7 +46,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       if (image) {
         const formData = new FormData();
         formData.append("file", image);
-        imageUrl = await uploadFile(formData, "/group-posts");
+        imageUrl = await uploadFile(formData, groupId ? "/group-posts" : "/posts");
       }
 
       const data = groupId

@@ -4,10 +4,12 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
+import "./post.css";
 import getPostData from "@/api/posts/getPostData";
 import reactToPost from "@/api/posts/reactToPost";
-import addComment from "@/api/posts/addComment";
 import getComments from "@/api/posts/getComments";
+import CommentForm from "@/components/comment-form";
+import Comment from "@/components/comment";
 
 export default function SinglePostPage() {
   const params = useParams();
@@ -22,8 +24,6 @@ export default function SinglePostPage() {
   });
   const [isReacting, setIsReacting] = useState(false);
   const [comments, setComments] = useState<any[]>([]);
-  const [newComment, setNewComment] = useState("");
-  const [isAddingComment, setIsAddingComment] = useState(false);
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
 
@@ -192,34 +192,6 @@ export default function SinglePostPage() {
     }
   };
 
-  const handleAddComment = async () => {
-    if (newComment.trim() === "" || isAddingComment) return;
-
-    setIsAddingComment(true);
-
-    try {
-      const data = await addComment(postId, newComment.trim());
-
-      if (data.error) {
-        throw new Error(data.error);
-      }
-
-      // If the API returns the updated comments, use them
-      if (data.posts && data.posts[0] && data.posts[0].comments) {
-        setComments(data.posts[0].comments);
-      } else {
-        // Otherwise, reload comments
-        await loadComments();
-      }
-
-      setNewComment("");
-    } catch (error) {
-      console.error("Error adding comment:", error);
-    } finally {
-      setIsAddingComment(false);
-    }
-  };
-
   const renderPrivacyIcon = () => {
     switch (post.privacy) {
       case "public":
@@ -338,27 +310,7 @@ export default function SinglePostPage() {
           <div className="single-post-comments">
             {comments.length > 0 ? (
               comments.map((comment) => (
-                <div key={comment.id} className="post-comment">
-                  <div className="comment-user-avatar">
-                    <Image
-                      src={"/icons/placeholder.svg"}
-                      alt={"User avatar"}
-                      width={30}
-                      height={30}
-                    />
-                  </div>
-                  <div className="comment-content">
-                    <span>
-                      <span className="comment-user-name">
-                        {comment.author}
-                      </span>
-                      <span className="comment-text">{comment.text}</span>
-                    </span>
-                    <div className="comment-timestamp">
-                      {comment.creation_date}
-                    </div>
-                  </div>
-                </div>
+                <Comment key={comment.id} comment={comment} postID={postId} />
               ))
             ) : (
               <div className="no-comments">No comments yet</div>
@@ -463,35 +415,11 @@ export default function SinglePostPage() {
               {reactions.likes} likes • {reactions.dislikes} dislikes
             </div>
 
-            <form
-              className="add-comment"
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAddComment();
-              }}
-            >
-              <input
-                type="text"
-                className="comment-input"
-                placeholder="Add a comment..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                disabled={isAddingComment}
-              />
-              <button
-                type="submit"
-                className="post-submit-btn"
-                disabled={isAddingComment || newComment.trim() === ""}
-              >
-                <Image
-                  src="/icons/send.svg"
-                  alt="send"
-                  width={16}
-                  height={16}
-                />
-                <span style={{ marginLeft: "5px" }}>Send</span>
-              </button>
-            </form>
+            <CommentForm
+              postId={postId}
+              onCommentAdded={loadComments}
+              disabled={isLoading}
+            />
           </div>
         </div>
       </div>
