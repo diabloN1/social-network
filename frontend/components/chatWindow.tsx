@@ -66,13 +66,13 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
     const currentChatId = Number(chat?.id.split("_")[1]);
 
     const unsubscribe = onMessageType("addMessage", async (data: any) => {
-    const isGroup = chat?.isGroup;
+      const isGroup = chat?.isGroup;
       const isMatch = isGroup
         ? data.message.group_id === currentChatId
         : data.message.sender_id === currentChatId ||
           data.message.recipient_id === currentChatId;
 
-    console.log("- - - - - -", chat, isGroup, isMatch)
+      console.log("- - - - - -", chat, isGroup, isMatch);
 
       data.message.isOwned = data.isOwned;
 
@@ -217,7 +217,13 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
                   {!message.isOwned && showAvatar && (
                     <div className="message-avatar">
                       <img
-                        src={message.user.avatar || "/icons/placeholder.svg"}
+                        src={
+                          message.user.avatar
+                            ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                message.user.avatar
+                              )}`
+                            : "/icons/placeholder.svg"
+                        }
                         alt={message.user.nickname}
                       />
                     </div>

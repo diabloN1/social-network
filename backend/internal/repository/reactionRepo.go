@@ -3,7 +3,6 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"fmt"
 	"real-time-forum/internal/model"
 )
 
@@ -13,7 +12,6 @@ type ReactionRepository struct {
 
 func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) error {
 	var exists bool
-	fmt.Println("TEST REACT TO POST")
 	err := r.Repository.db.QueryRow("SELECT EXISTS(SELECT 1 FROM posts WHERE id = $1)", postId).Scan(&exists)
 	if err != nil {
 		return err
@@ -21,7 +19,7 @@ func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) er
 	if !exists {
 		return errors.New("post does not exist")
 	}
-	
+
 	if isLike == nil {
 		_, err := r.Repository.db.Exec("DELETE FROM post_reactions WHERE user_id = $1 AND post_id = $2", userId, postId)
 		return err
@@ -33,7 +31,7 @@ func (r *ReactionRepository) UpsertReaction(userId, postId int, isLike *bool) er
 		ON CONFLICT(user_id, post_id) 
 		DO UPDATE SET is_like = $3`,
 		userId, postId, isLike)
-	
+
 	return err
 }
 
@@ -47,7 +45,7 @@ func (r *ReactionRepository) GetUserReaction(userId, postId int) (*bool, error) 
 	if err == sql.ErrNoRows {
 		return nil, nil // No reaction
 	}
-	
+
 	if err != nil {
 		return nil, err
 	}
@@ -62,21 +60,21 @@ func (r *ReactionRepository) GetUserReaction(userId, postId int) (*bool, error) 
 
 func (r *ReactionRepository) GetReactionCounts(postId int) (model.ReactionCounts, error) {
 	counts := model.ReactionCounts{}
-	
+
 	err := r.Repository.db.QueryRow(
 		"SELECT COUNT(*) FROM post_reactions WHERE post_id = $1 AND is_like = TRUE",
 		postId,
 	).Scan(&counts.Likes)
-	
+
 	if err != nil {
 		return counts, err
 	}
-	
+
 	err = r.Repository.db.QueryRow(
 		"SELECT COUNT(*) FROM post_reactions WHERE post_id = $1 AND is_like = FALSE",
 		postId,
 	).Scan(&counts.Dislikes)
-	
+
 	return counts, err
 }
 
@@ -87,11 +85,11 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 
 	// Initialize result map
 	result := make(map[int]model.ReactionCounts)
-	
+
 	// Prepare placeholders for query
 	placeholders := ""
 	args := make([]interface{}, len(postIds))
-	
+
 	for i, id := range postIds {
 		if i > 0 {
 			placeholders += ", "
@@ -109,25 +107,25 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 		WHERE post_id IN (` + placeholders + `)
 		GROUP BY post_id
 	`
-	
+
 	rows, err := r.Repository.db.Query(query, args...)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	
+
 	for rows.Next() {
 		var postId, likes, dislikes int
 		if err := rows.Scan(&postId, &likes, &dislikes); err != nil {
 			return nil, err
 		}
-		
+
 		result[postId] = model.ReactionCounts{
 			Likes:    likes,
 			Dislikes: dislikes,
 		}
 	}
-	
+
 	// Get user's own reactions
 	if userId > 0 {
 		query = `
@@ -135,37 +133,37 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 			FROM post_reactions
 			WHERE user_id = $1 AND post_id IN (` + placeholders + `)
 		`
-		
+
 		args = append([]interface{}{userId}, args...)
-		
+
 		rows, err := r.Repository.db.Query(query, args...)
 		if err != nil {
 			return nil, err
 		}
 		defer rows.Close()
-		
+
 		for rows.Next() {
 			var postId int
 			var isLike sql.NullBool
-			
+
 			if err := rows.Scan(&postId, &isLike); err != nil {
 				return nil, err
 			}
-			
+
 			counts, exists := result[postId]
 			if !exists {
 				counts = model.ReactionCounts{}
 			}
-			
+
 			if isLike.Valid {
 				value := isLike.Bool
 				counts.UserReaction = &value
 			}
-			
+
 			result[postId] = counts
 		}
 	}
-	
+
 	// Initialize counts for posts without reactions
 	for _, postId := range postIds {
 		if _, exists := result[postId]; !exists {
@@ -175,6 +173,6 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 			}
 		}
 	}
-	
+
 	return result, nil
 }

@@ -71,6 +71,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             lastMessage: "",
             lastMessageTime: priv.lastmessagedate || "",
             unreadCount: priv.unreadcount || 0,
+            isGroup: false,
             isOnline: false, // We don't have online status for now
           })),
 
@@ -83,6 +84,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             lastMessageTime: newConv.lastmessagedate || "",
             unreadCount: 0,
             isNew: true,
+            isGroup: false,
             isOnline: false,
           })),
         ];

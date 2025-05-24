@@ -216,7 +216,6 @@ func (r *MessageRepository) UpdateGroupSeenMessages(m *model.Message) error {
 func (r *MessageRepository) AddGroupMessageNotifications(m *model.Message) error {
 	users, err := r.Repository.Group().GetGroupMembers(m.GroupId)
 	if err != nil {
-		fmt.Println(1)
 		return err
 	}
 

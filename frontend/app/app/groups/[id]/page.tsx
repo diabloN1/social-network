@@ -68,44 +68,6 @@ interface GroupData {
   events: Event[];
 }
 
-// Mock function to get post comments
-const getMockComments = (postId: number): any[] => {
-  return [
-    {
-      id: 1,
-      content:
-        "I've been thinking about getting one too! How's the battery life?",
-      creator: {
-        id: 2,
-        nickname: "jane_smith",
-        name: "Jane Smith",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-    {
-      id: 2,
-      content:
-        "Great tip! I always carry a polarizing filter with me. Makes a huge difference.",
-      creator: {
-        id: 7,
-        nickname: "david_miller",
-        name: "David Miller",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-    {
-      id: 3,
-      content: "Has anyone tried astrophotography with their DSLR?",
-      creator: {
-        id: 1,
-        nickname: "john_doe",
-        name: "John Doe",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-  ];
-};
-
 export default function GroupPage() {
   const params = useParams();
   const router = useRouter();
@@ -332,20 +294,18 @@ export default function GroupPage() {
             <span>Members ({group.members?.length})</span>
             <div className="members-avatars">
               {group.members?.slice(0, 3).map((member) => (
-                 <img
+                <img
                   key={member.id}
-
-                    src={
-                      member.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
-                            member.avatar
-                          )}`
-                        : "/icons/placeholder.svg"
-                    }
+                  src={
+                    member.avatar
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                          member.avatar
+                        )}`
+                      : "/icons/placeholder.svg"
+                  }
                   className="member-avatar"
-
                   alt={`${member.firstname} ${member.lastname}`}
-                  />
+                />
               ))}
               {group.members?.length > 3 && (
                 <span className="more-members">
@@ -413,9 +373,15 @@ export default function GroupPage() {
                       <div className="post-header">
                         <div className="post-creator">
                           <img
-                            src={postAuthor.avatar || "/icons/placeholder.svg"}
+                            src={
+                              postAuthor.avatar
+                                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                    postAuthor.avatar
+                                  )}`
+                                : "/icons/placeholder.svg"
+                            }
+                            className="member-avatar"
                             alt={`${postAuthor.firstname} ${postAuthor.lastname}`}
-                            className="user-avatar"
                           />
                           <div className="creator-info">
                             <span className="creator-name">{`${postAuthor.firstname} ${postAuthor.lastname}`}</span>
@@ -429,8 +395,12 @@ export default function GroupPage() {
                       </div>
                       {post.image && (
                         <img
-                          src={post.image || "/placeholder.svg"}
-                          alt={post.caption || "Post image"}
+                          src={
+                            `http://localhost:8080/getProtectedImage?type=group-posts&id=${
+                                  post.id
+                                }&path=${encodeURIComponent(post.image)}`
+                          }
+                          alt="Post content"
                           className="post-image"
                         />
                       )}
@@ -447,50 +417,6 @@ export default function GroupPage() {
                           Comments ({post.comments || 0})
                         </button>
                       </div>
-
-                      {showComments[post.id] && (
-                        <div className="post-comments">
-                          {getMockComments(post.id).map((comment) => (
-                            <div key={comment.id} className="comment">
-                              <div className="comment-header">
-                                <img
-                                  src={
-                                    comment.creator.avatar ||
-                                    "/icons/placeholder.svg" ||
-                                    "/placeholder.svg"
-                                  }
-                                  alt={comment.creator.name}
-                                  className="user-avatar-small"
-                                />
-                                <div className="comment-info">
-                                  <span className="comment-creator">
-                                    {comment.creator.name}
-                                  </span>
-                                  <span className="comment-date">
-                                    {new Date(
-                                      comment.createdAt || Date.now()
-                                    ).toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="comment-content">
-                                {comment.content}
-                              </div>
-                            </div>
-                          ))}
-
-                          <div className="add-comment">
-                            <input
-                              type="text"
-                              placeholder="Write a comment..."
-                              className="comment-input"
-                            />
-                            <button className="post-comment-button">
-                              Post
-                            </button>
-                          </div>
-                        </div>
-                      )}
                     </div>
                   );
                 })
@@ -579,9 +505,15 @@ export default function GroupPage() {
                             {event.opt1_users.map((user) => (
                               <div key={user.id} className="attendee">
                                 <img
-                                  src={user.avatar || "/icons/placeholder.svg"}
-                                  alt={`${user.firstname} ${user.lastname}`}
+                                  src={
+                                    user.avatar
+                                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                          user.avatar
+                                        )}`
+                                      : "/icons/placeholder.svg"
+                                  }
                                   className="user-avatar-small"
+                                  alt={`${user.firstname} ${user.lastname}`}
                                 />
                                 <span>{`${user.firstname} ${user.lastname}`}</span>
                               </div>
@@ -599,9 +531,15 @@ export default function GroupPage() {
                             {event.opt2_users.map((user) => (
                               <div key={user.id} className="attendee">
                                 <img
-                                  src={user.avatar || "/icons/placeholder.svg"}
-                                  alt={`${user.firstname} ${user.lastname}`}
+                                  src={
+                                    user.avatar
+                                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                          user.avatar
+                                        )}`
+                                      : "/icons/placeholder.svg"
+                                  }
                                   className="user-avatar-small"
+                                  alt={`${user.firstname} ${user.lastname}`}
                                 />
                                 <span>{`${user.firstname} ${user.lastname}`}</span>
                               </div>
@@ -628,9 +566,15 @@ export default function GroupPage() {
                 <div key={member.id} className="member-item">
                   <div className="member-info">
                     <img
-                      src={member.avatar || "/icons/placeholder.svg"}
-                      alt={`${member.firstname} ${member.lastname}`}
+                      src={
+                        member.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                              member.avatar
+                            )}`
+                          : "/icons/placeholder.svg"
+                      }
                       className="user-avatar"
+                      alt={`${member.firstname} ${member.lastname}`}
                     />
                     <div className="member-details">
                       <span className="member-name">{`${member.firstname} ${member.lastname}`}</span>

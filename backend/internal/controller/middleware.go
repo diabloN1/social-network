@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -75,7 +74,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "Access forbidden", http.StatusForbidden)
 				return
 			}
-		case "group-post":
+		case "group-posts":
 			hasAccess, err := s.repository.Group().IsMember(res.Userid, id)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
@@ -95,7 +94,6 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 		}
 		ctx := context.WithValue(r.Context(), "fullPath", cleanPath)
 		r = r.WithContext(ctx)
-		fmt.Println("middleware passed")
 		next.ServeHTTP(w, r)
 	})
 }

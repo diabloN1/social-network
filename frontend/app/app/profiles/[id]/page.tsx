@@ -281,10 +281,15 @@ export default function ProfilePage() {
                       className="post-item"
                       onClick={() => router.push(`/app/${post.id}`)}
                     >
-                      <img
-                        src={post.image || "/icons/placeholder.svg"}
-                        alt={`Post ${post.id}`}
-                      />
+                      {post.image && (
+                        <img
+                          src={`http://localhost:8080/getProtectedImage?type=posts&id=${
+                            post.id
+                          }&path=${encodeURIComponent(post.image)}`}
+                          alt="Post content"
+                          className="post-image"
+                        />
+                      )}
                       <div className="post-overlay">
                         <div className="post-stats">
                           <span>❤️ 0</span>{" "}
@@ -314,9 +319,15 @@ export default function ProfilePage() {
                     >
                       <div className="user-info">
                         <img
-                          src={follower.avatar || "/icons/placeholder.svg"}
-                          alt={follower.nickname}
+                          src={
+                            follower.avatar
+                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                                  follower.id
+                                }&path=${encodeURIComponent(follower.avatar)}`
+                              : "/icons/placeholder.svg"
+                          }
                           className="user-avatar"
+                          alt="user avatar"
                         />
                         <div className="user-details">
                           <span className="user-name">
@@ -347,9 +358,15 @@ export default function ProfilePage() {
                     >
                       <div className="user-info">
                         <img
-                          src={following.avatar || "/icons/placeholder.svg"}
-                          alt={following.nickname}
+                          src={
+                            following.avatar
+                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                                  following.id
+                                }&path=${encodeURIComponent(following.avatar)}`
+                              : "/icons/placeholder.svg"
+                          }
                           className="user-avatar"
+                          alt="user avatar"
                         />
                         <div className="user-details">
                           <span className="user-name">

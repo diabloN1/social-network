@@ -161,7 +161,6 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 				WHERE m.user_id = $1 AND m.is_accepted = FALSE AND m.inviter_id != 0`
 	rows, err := r.Repository.db.Query(query, userId)
 	if err != nil {
-		fmt.Println("here")
 		return nil, err
 	}
 
@@ -170,7 +169,6 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		inviter := &model.User{}
 
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
-			fmt.Println("heree")
 			return nil, err
 		}
 
@@ -179,7 +177,6 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 	}
 
 	if err := rows.Err(); err != nil {
-		fmt.Println("hereee")
 		return nil, err
 	}
 

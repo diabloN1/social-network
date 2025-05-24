@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"real-time-forum/internal/model"
 )
 
@@ -18,21 +17,18 @@ func (s *Server) GetChat(request map[string]any) map[string]any {
 
 	privateConvs, err := s.repository.Message().GetPrivateConversations(res.Userid)
 	if err != nil {
-		fmt.Println(1)
 		response["error"] = err.Error()
 		return response
 	}
 
 	groupConvs, err := s.repository.Message().GetGroupConversations(res.Userid)
 	if err != nil {
-		fmt.Println(2)
 		response["error"] = err.Error()
 		return response
 	}
 
 	newConvs, err := s.repository.Message().GetNewConversations(res.Userid)
 	if err != nil {
-		fmt.Println(3)
 		response["error"] = err.Error()
 		return response
 	}
@@ -165,7 +161,7 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 		response["error"] = err.Error()
 		return response
 	}
-	
+
 	err = s.repository.Message().AddGroupMessageNotifications(m)
 	if err != nil {
 		response["error"] = err.Error()
@@ -177,5 +173,3 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 
 	return response
 }
-
-
