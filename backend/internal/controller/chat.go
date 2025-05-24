@@ -93,7 +93,12 @@ func (s *Server) GetMessages(request map[string]any) map[string]any {
 
 	response["messages"] = messages
 	s.UpdateSeenMessage(isGroup, res.Userid, int(id))
-
+	wsMsg := map[string]any{
+		"type": "unreadmsgRequestHandled",
+	}
+	for _, c := range s.clients[res.Userid] {
+		s.ShowMessage(c, wsMsg)
+	}
 	return response
 }
 
@@ -165,7 +170,7 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 		response["error"] = err.Error()
 		return response
 	}
-	
+
 	err = s.repository.Message().AddGroupMessageNotifications(m)
 	if err != nil {
 		response["error"] = err.Error()
@@ -177,5 +182,3 @@ func (s *Server) AddMessage(request map[string]any) map[string]any {
 
 	return response
 }
-
-
