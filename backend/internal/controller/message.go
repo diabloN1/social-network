@@ -26,6 +26,7 @@ func (s *Server) UpdateSeenMessage(isGroup bool, currentId, targetId int) {
 			log.Println("Error in updating seen messages!")
 		}
 	}
+	
 }
 
 func (s *Server) UpdateSeenMessageWS(request map[string]any) {

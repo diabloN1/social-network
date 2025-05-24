@@ -75,7 +75,12 @@ func (s *Server) AcceptFollow(request map[string]any) *model.Response {
 		response.Error = err.Error()
 		log.Println("Error accepting follow:", err)
 	}
-
+	wsMsg := map[string]any{
+		"type": "followRequestHandled",
+	}
+	for _, c := range s.clients[res.Userid] {
+		s.ShowMessage(c, wsMsg)
+	}
 	return response
 }
 
@@ -132,7 +137,12 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 		response.Error = err.Error()
 		log.Println("Error deletting follow:", err)
 	}
-
+	wsMsg := map[string]any{
+		"type": "followRequestHandled",
+	}
+	for _, c := range s.clients[res.Userid] {
+		s.ShowMessage(c, wsMsg)
+	}
 	return response
 }
 func (s *Server) GetFollowRequestCount(request map[string]any) map[string]any {

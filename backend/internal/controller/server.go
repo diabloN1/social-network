@@ -68,14 +68,13 @@ func Start() error {
 	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
 	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
 	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
-	
-	
+
 	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
 	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
 	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
 	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
 	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
-	
+
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)
 	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
@@ -197,20 +196,21 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 				fmt.Println(response["error"])
 			}
 			s.SentToActiveRecipient(response)
-			// case "updateseenmessage":
-			// 	s.UpdateSeenMessage(request)
-			// 	response.Type = "updatetotal"
-			// 	userid := int(request["userid"].(float64))
-			// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
-			// 	if err != nil {
-			// 		log.Println("Error in Get Total:", err)
-			// 	}
-			// 	response.TotalNotifications = notifications
-			// case "typing":
-			// 	response = s.UpdateIsTyping(request)
-			// 	if response.Error == "" {
-			// 		s.SendIsTyping(response)
-			// 	}
+		// case "updateseenmessage":
+		// 	s.UpdateSeenMessage(request)
+		// 	response.Type = "updatetotal"
+		// 	userid := int(request["userid"].(float64))
+		// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
+		// 	if err != nil {
+		// 		log.Println("Error in Get Total:", err)
+		// 	}
+		// 	response.TotalNotifications = notifications
+		// case "typing":
+		// 	response = s.UpdateIsTyping(request)
+		// 	if response.Error == "" {
+		// 		s.SendIsTyping(response)
+		// 	}
+		
 		}
 
 		// s.mu.Lock()

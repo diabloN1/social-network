@@ -89,7 +89,12 @@ func (s *Server) GetMessages(request map[string]any) map[string]any {
 
 	response["messages"] = messages
 	s.UpdateSeenMessage(isGroup, res.Userid, int(id))
-
+	wsMsg := map[string]any{
+		"type": "unreadmsgRequestHandled",
+	}
+	for _, c := range s.clients[res.Userid] {
+		s.ShowMessage(c, wsMsg)
+	}
 	return response
 }
 

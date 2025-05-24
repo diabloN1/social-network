@@ -57,6 +57,7 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
+      
 
       setFollowRequests((prev) =>
         prev ? prev.filter((request) => request.id !== userId) : null
@@ -74,7 +75,7 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
-
+    
       setFollowRequests((prev) =>
         prev ? prev.filter((request) => request.id !== userId) : null
       );
