@@ -18,7 +18,6 @@ func (s *Server) UploadImage(r *http.Request) map[string]any {
 		return res
 	}
 
-	// --- Get form values ---
 	targetPath := r.FormValue("path")
 	fileName := r.FormValue("filename")
 	if targetPath == "" || fileName == "" {
@@ -26,13 +25,11 @@ func (s *Server) UploadImage(r *http.Request) map[string]any {
 		return res
 	}
 
-	// --- Get image file ---
 	file, fileHeaeder, err := r.FormFile("image")
 	if err != nil {
 		res["error"] = err.Error()
 		return res
 	}
-
 	defer file.Close()
 
 	if fileHeaeder.Size > maxBytes {
@@ -40,7 +37,15 @@ func (s *Server) UploadImage(r *http.Request) map[string]any {
 		return res
 	}
 
-	destPath := filepath.Join("./static/", targetPath, fileName)
+	// Create the directory if it doesn't exist
+	dirPath := filepath.Join("./static", targetPath)
+	err = os.MkdirAll(dirPath, os.ModePerm)
+	if err != nil {
+		res["error"] = "Failed to create directory: " + err.Error()
+		return res
+	}
+
+	destPath := filepath.Join(dirPath, fileName)
 
 	dst, err := os.Create(destPath)
 	if err != nil {

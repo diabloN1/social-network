@@ -27,6 +27,7 @@ func (r *CommentRepository) GetCommentsByPostId(Id int) ([]*model.Comment, error
 			COALESCE(users.firstname || ' ' || users.lastname, '') AS author, 
 			comments.post_id, 
 			comments.text, 
+			comments.image,
 			comments.creation_date 
 		FROM comments 
 		JOIN users ON users.id = comments.user_id 
@@ -44,7 +45,7 @@ func (r *CommentRepository) GetCommentsByPostId(Id int) ([]*model.Comment, error
 
 	for rows.Next() {
 		comment := &model.Comment{}
-		if err := rows.Scan(&comment.ID, &comment.UserId, &comment.Author, &comment.PostId, &comment.Text, &comment.CreationDate); err != nil {
+		if err := rows.Scan(&comment.ID, &comment.UserId, &comment.Author, &comment.PostId, &comment.Text, &comment.Image, &comment.CreationDate); err != nil {
 			return nil, err
 		}
 		newTime, _ := time.Parse("2006-01-02T15:04:05Z", comment.CreationDate)
