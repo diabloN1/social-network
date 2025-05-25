@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"real-time-forum/internal/controller"
+	"real-time-forum/pkg/controller"
 )
 
 func main() {
