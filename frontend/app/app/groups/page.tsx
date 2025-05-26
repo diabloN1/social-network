@@ -352,9 +352,9 @@ export default function GroupsPage() {
                 <img
                   src={
                     group.image
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                          0
-                        }&path=${encodeURIComponent(group.image)}`
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                          group.image
+                        )}`
                       : "/icons/placeholder.svg"
                   }
                   alt="group image"

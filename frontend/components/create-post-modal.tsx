@@ -3,6 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import { uploadFile } from "@/api/auth/uploadFile";
+import "./styles/create-post-modal.css";
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -24,6 +25,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [privacy, setPrivacy] = useState("public");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -39,6 +41,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
 
     try {
       let imageUrl = "";
@@ -46,7 +49,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       if (image) {
         const formData = new FormData();
         formData.append("file", image);
-        imageUrl = await uploadFile(formData, groupId ? "/group-posts" : "/posts");
+        imageUrl = await uploadFile(
+          formData,
+          groupId ? "/group-posts" : "/posts"
+        );
       }
 
       const data = groupId
@@ -65,6 +71,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     } catch (err) {
       alert(err);
       console.error(err);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -74,7 +82,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         <div className="modal-header">
           <h2 className="modal-title">Create New Post</h2>
           <button className="modal-close" onClick={onClose}>
-            X
+            ×
           </button>
         </div>
 
@@ -84,7 +92,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               <label className="form-label">Upload Image</label>
               <div className="file-input-wrapper">
                 <label className="file-input-label">
-                  Choose Image or GIF
+                  {image ? "Change Image" : "Choose Image or GIF"}
                   <input
                     type="file"
                     className="file-input"
@@ -96,10 +104,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {imagePreview && (
                 <div className="image-preview">
-                  <img
-                    src={imagePreview || "/icons/placeholder.svg"}
-                    alt="Preview"
-                  />
+                  <img src={imagePreview || "/placeholder.svg"} alt="Preview" />
                 </div>
               )}
             </div>
@@ -114,10 +119,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 placeholder="Write a caption..."
                 value={caption}
                 onChange={(e) => setCaption(e.target.value)}
+                disabled={isSubmitting}
               />
             </div>
 
-            {!groupId ? (
+            {!groupId && (
               <div className="form-group">
                 <label className="form-label" htmlFor="privacy">
                   Privacy
@@ -127,6 +133,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   className="form-select"
                   value={privacy}
                   onChange={(e) => setPrivacy(e.target.value)}
+                  disabled={isSubmitting}
                 >
                   <option value="public">Public - Everyone can see</option>
                   <option value="almost-private">
@@ -137,23 +144,24 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                   </option>
                 </select>
               </div>
-            ) : null}
+            )}
           </div>
 
           <div className="modal-footer">
             <button
               type="button"
               className="create-post-btn"
-              style={{
-                backgroundColor: "var(--input-bg)",
-                marginRight: "10px",
-              }}
               onClick={onClose}
+              disabled={isSubmitting}
             >
               Cancel
             </button>
-            <button type="submit" className="create-post-btn">
-              Create Post
+            <button
+              type="submit"
+              className="create-post-btn"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Creating..." : "Create Post"}
             </button>
           </div>
         </form>

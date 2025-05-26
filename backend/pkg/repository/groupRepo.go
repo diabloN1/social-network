@@ -287,7 +287,7 @@ func (r *GroupRepository) GetGroupData(groupId, userId int) (*model.Group, error
 	}
 
 	// Get group posts
-	group.Posts, err = r.Repository.Group().GetGroupPosts(groupId)
+	group.Posts, err = r.Repository.Group().GetGroupPosts(groupId, userId)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func (r *GroupRepository) GetGroupMembers(groupId int) ([]*model.User, error) {
 	return users, nil
 }
 
-func (r *GroupRepository) GetGroupPosts(groupId int) ([]*model.Post, error) {
+func (r *GroupRepository) GetGroupPosts(groupId int, userId int) ([]*model.Post, error) {
 	var posts []*model.Post
 	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar, p.id, p.caption, p.image, p.creation_date
 	FROM group_posts p
@@ -360,6 +360,11 @@ func (r *GroupRepository) GetGroupPosts(groupId int) ([]*model.Post, error) {
 
 	if err := rows.Err(); err != nil {
 		return nil, err
+	}
+
+	for i := 0; i < len(posts); i++ {
+		posts[i].Reactions, err = r.Repository.Group().GetGroupReactionCounts(posts[i].ID)
+		posts[i].Reactions.UserReaction, err = r.Repository.Group().GetGroupUserReaction(posts[i].ID, userId)
 	}
 
 	return posts, nil

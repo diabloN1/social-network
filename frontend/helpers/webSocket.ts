@@ -22,7 +22,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        console.log("socket ",data);
+        console.log("socket ", data);
         const type = data.type;
 
         if (type && listeners[type]) {
@@ -46,6 +46,15 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
   } catch (error) {
     alert("WebSocket connection failed: " + error);
     return null;
+  }
+};
+
+// ADD THIS FUNCTION - Close WebSocket connection
+export const closeWebSocket = (): void => {
+  if (socket && socket.readyState === WebSocket.OPEN) {
+    socket.close();
+    socket = null;
+    console.log("🔌 WebSocket connection closed");
   }
 };
 
