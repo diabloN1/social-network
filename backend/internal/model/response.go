@@ -18,4 +18,5 @@ type Response struct {
 	Messages           []*Message  `json:"messages"`
 	User               *User       `json:"user"`
 	Success            bool        `json:"success"`
+	CurrentUser        *User       `json:"currentuser"`
 }

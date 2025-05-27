@@ -140,7 +140,18 @@
   align-items: center;
   box-shadow: var(--shadow);
 }
-
+.current-user-section{
+  margin-bottom: 10px;
+}
+.current-user-card{
+   background-color: var(--card-bg);
+  border-radius: 8px;
+  padding: 16px;
+  display: flex;
+  /* justify-content: space-between; */
+  align-items: center;
+  box-shadow: var(--shadow);
+}
 .user-info {
   display: flex;
   align-items: center;
@@ -158,7 +169,11 @@
   display: flex;
   flex-direction: column;
 }
-
+.current-user-details{
+  margin-left: 10px;
+   display: flex;
+  flex-direction: column;
+}
 .user-name {
   color: var(--text-color);
   font-weight: 500;

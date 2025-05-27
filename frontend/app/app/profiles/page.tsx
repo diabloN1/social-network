@@ -15,6 +15,7 @@ export default function ProfilesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [followRequests, setFollowRequests] = useState<User[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   const getData = async () => {
     try {
@@ -23,10 +24,10 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
-
+      setCurrentUser(data.currentuser);
       setUsers(data.allusers);
       setFollowRequests(data.followrequests);
-
+      console.log(data.allusers);
       return data;
     } catch (error) {
       alert(error);
@@ -158,7 +159,28 @@ export default function ProfilesPage() {
       )}
 
       <section className="users-section">
-        <h2>Browse Users</h2>
+        {currentUser && (
+          <div className="current-user-section">
+            <h2>Current User</h2>
+            <div
+              className="current-user-card"
+              onClick={() => navigateToProfile(currentUser.id)}
+              style={{ cursor: "pointer" }}
+            >
+              <img
+                src={currentUser.avatar || "/icons/placeholder.svg"}
+                alt={currentUser.nickname}
+                className="user-avatar"
+              />
+              <div className="current-user-details">
+                <span className="user-name">{currentUser.firstname}</span>
+                <span className="nickname">@{currentUser.nickname}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        <h2>Browse Other Users</h2>
+
         <div className="users-list">
           {filteredUsers?.map((user) => (
             <div key={user.id} className="user-card">
