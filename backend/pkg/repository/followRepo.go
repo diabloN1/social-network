@@ -85,6 +85,13 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 	query = `INSERT INTO followers (follower_id, following_id, is_accepted) VALUES ($1, $2, $3) RETURNING id`
 	err = r.Repository.db.QueryRow(query, userId, profileId, !res.IsPrivate).Scan(&id)
 
+	if !res.IsPrivate {
+		notifQuery := `INSERT INTO notifications (sender_id, receiver_id, type) VALUES ($1, $2, $3)`
+		_, err := r.Repository.db.Exec(notifQuery, userId, profileId, "follow_request")
+		if err != nil {
+			return fmt.Errorf("Error creating notification for public follow")
+		}
+	}
 	return err
 }
 
