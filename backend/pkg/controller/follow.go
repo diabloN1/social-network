@@ -139,6 +139,7 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	}
 	wsMsg := map[string]any{
 		"type": "followRequestHandled",
+		
 	}
 	for _, c := range s.clients[res.Userid] {
 		s.ShowMessage(c, wsMsg)
