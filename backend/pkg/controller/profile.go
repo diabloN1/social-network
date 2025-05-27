@@ -57,12 +57,22 @@ func (s *Server) GetProfiles(request map[string]any) *model.Response {
 		return response
 	}
 
-	response.AllUsers, err = s.repository.User().GetAllUsers()
+	AllUsers, err := s.repository.User().GetAllUsers()
 	if err != nil {
 		response.Error = err.Error()
 		return response
 	}
 
+	var otherUsers []*model.User
+	for _, user := range AllUsers {
+		if user.ID != res.Userid {
+			otherUsers = append(otherUsers, user)
+		} else {
+			response.CurrentUser = user
+		}
+	}
+
+	response.AllUsers = otherUsers
 	return response
 }
 
