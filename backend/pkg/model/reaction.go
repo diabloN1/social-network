@@ -13,3 +13,4 @@ type ReactionCounts struct {
 	Dislikes int  `json:"dislikes"`
 	UserReaction *bool `json:"user_reaction"` 
 }
+

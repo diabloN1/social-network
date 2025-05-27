@@ -57,7 +57,6 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
-      
 
       setFollowRequests((prev) =>
         prev ? prev.filter((request) => request.id !== userId) : null
@@ -75,7 +74,7 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
-    
+
       setFollowRequests((prev) =>
         prev ? prev.filter((request) => request.id !== userId) : null
       );
@@ -129,8 +128,14 @@ export default function ProfilesPage() {
                     style={{ cursor: "pointer" }}
                   >
                     <img
-                      src={request.avatar || "/icons/placeholder.svg"}
-                      alt={request.nickname}
+                      src={
+                        request.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                              request.id
+                            }&path=${encodeURIComponent(request.avatar)}`
+                          : "/icons/placeholder.svg"
+                      }
+                      alt="user-request-avatar"
                       className="user-avatar"
                     />
                     <div className="user-details">

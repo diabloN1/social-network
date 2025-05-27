@@ -125,6 +125,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 	user := &model.User{}
 
 	// Should fix this query to get post data based on (comments, likes, and is allowed to see)
+	
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id, p.privacy, p.user_id, p.caption, p.image, p.creation_date,
 				u.avatar,
@@ -140,7 +141,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 					p.id = $2
 					AND
 					(
-						p.user_id = u.id
+						p.user_id = $1
 						OR (p.privacy = 'public' AND u.is_private = FALSE)
 						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
