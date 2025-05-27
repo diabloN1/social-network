@@ -24,7 +24,9 @@ export default function ProfilesPage() {
         alert(data.error);
         return;
       }
+      
       setCurrentUser(data.currentuser);
+      console.log("ssss",data.currentuser);
       setUsers(data.allusers);
       setFollowRequests(data.followrequests);
       console.log(data.allusers);
@@ -129,8 +131,14 @@ export default function ProfilesPage() {
                     style={{ cursor: "pointer" }}
                   >
                     <img
-                      src={request.avatar || "/icons/placeholder.svg"}
-                      alt={request.nickname}
+                      src={
+                        request.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                              request.id
+                            }&path=${encodeURIComponent(request.avatar)}`
+                          : "/icons/placeholder.svg"
+                      }
+                      alt="user-request-avatar"
                       className="user-avatar"
                     />
                     <div className="user-details">
@@ -168,7 +176,13 @@ export default function ProfilesPage() {
               style={{ cursor: "pointer" }}
             >
               <img
-                src={currentUser.avatar || "/icons/placeholder.svg"}
+                 src={
+                      currentUser.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                            currentUser.id
+                          }&path=${encodeURIComponent(currentUser.avatar)}`
+                        : "/icons/placeholder.svg"
+                    }
                 alt={currentUser.nickname}
                 className="user-avatar"
               />
@@ -189,11 +203,22 @@ export default function ProfilesPage() {
                 onClick={() => navigateToProfile(user.id)}
                 style={{ cursor: "pointer" }}
               >
-                <img
-                  src={user.avatar || "/icons/placeholder.svg"}
-                  alt={user.nickname}
-                  className="user-avatar"
-                />
+                <div
+                  className="post-user-avatar"
+                  onClick={() => router.push(`/app/profiles/${user.id}`)}
+                >
+                  <img
+                    src={
+                      user.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                            user.id
+                          }&path=${encodeURIComponent(user.avatar)}`
+                        : "/icons/placeholder.svg"
+                    }
+                    alt="user avatar"
+                    className="user-avatar"
+                  />
+                </div>
                 <div className="user-details">
                   <span className="user-name">{user.firstname}</span>
                   <span className="nickname">@{user.nickname}</span>

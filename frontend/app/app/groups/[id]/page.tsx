@@ -4,20 +4,23 @@ import type React from "react";
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import "./group.css";
+import Image from "next/image";
 import getGroupData from "@/api/groups/getGroupData";
+import reactToGroupPost from "@/api/groups/reactToGroupPost";
+import getGroupComments from "@/api/groups/getGroupComments";
+import GroupCommentForm from "@/components/group-comment-form";
+import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
-import addGroupPost from "@/api/groups/addGroupPost";
 import CreateEventModal from "@/components/create-event-modal";
+import addGroupPost from "@/api/groups/addGroupPost";
 import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
-import { socket } from "@/helpers/webSocket";
+import "./group.css";
 
-// Types for API response
 interface User {
   id: number;
-  username: string;
+  username?: string;
   firstname: string;
   lastname: string;
   nickname: string;
@@ -30,11 +33,14 @@ interface Post {
   image?: string;
   caption?: string;
   creation_date?: string;
-  likes?: number;
-  comments?: number;
+  reactions?: {
+    likes: number;
+    dislikes: number;
+    user_reaction: boolean | null;
+  };
+  comments?: any[];
 }
 
-// Updated Event interface to include the new fields
 interface Event {
   id: number;
   title: string;
@@ -52,86 +58,80 @@ interface Event {
   opt2_users?: User[] | null;
 }
 
-// Update the GroupData interface to include is_pending
-interface GroupData {
+interface Group {
   id: number;
   title: string;
   description: string;
-  owner_id: number;
   image: string;
-  creation_date: string;
-  is_accepted: boolean;
+  owner_id: number;
   is_owner: boolean;
+  is_accepted: boolean;
   is_pending?: boolean;
   members: User[];
   posts: Post[];
   events: Event[];
 }
 
-// Mock function to get post comments
-const getMockComments = (postId: number): any[] => {
-  return [
-    {
-      id: 1,
-      content:
-        "I've been thinking about getting one too! How's the battery life?",
-      creator: {
-        id: 2,
-        nickname: "jane_smith",
-        name: "Jane Smith",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-    {
-      id: 2,
-      content:
-        "Great tip! I always carry a polarizing filter with me. Makes a huge difference.",
-      creator: {
-        id: 7,
-        nickname: "david_miller",
-        name: "David Miller",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-    {
-      id: 3,
-      content: "Has anyone tried astrophotography with their DSLR?",
-      creator: {
-        id: 1,
-        nickname: "john_doe",
-        name: "John Doe",
-        avatar: "/icons/placeholder.svg",
-      },
-    },
-  ];
-};
-
-export default function GroupPage() {
+export default function GroupDetailPage() {
   const params = useParams();
   const router = useRouter();
   const groupId = Number(params.id);
 
-  const [group, setGroup] = useState<GroupData | null>(null);
+  const [group, setGroup] = useState<Group | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState("posts");
+
+  // Modal states
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [showComments, setShowComments] = useState<Record<number, boolean>>({});
-
-  const [loading, setLoading] = useState(true);
   const [inviteUsername, setInviteUsername] = useState("");
 
+  // Reaction and comment states
+  const [postReactions, setPostReactions] = useState<{ [key: number]: any }>(
+    {}
+  );
+  const [postComments, setPostComments] = useState<{ [key: number]: any[] }>(
+    {}
+  );
+  const [expandedComments, setExpandedComments] = useState<{
+    [key: number]: boolean;
+  }>({});
+
   const fetchGroupData = async () => {
-    setLoading(true);
     try {
+      setIsLoading(true);
       const data = await getGroupData(groupId);
-      console.log(data);
+
+      if (data.error) {
+        setError(data.error);
+        return;
+      }
+
+      console.log("Group data:", data);
+
       setGroup(data.group);
-    } catch (error) {
-      console.error("Error fetching group data:", error);
+
+      // Initialize reactions for each post
+      if (data.group?.posts) {
+        const reactions: { [key: number]: any } = {};
+        data.group.posts.forEach((post: Post) => {
+          reactions[post.id] = {
+            likes: post.reactions?.likes || 0,
+            dislikes: post.reactions?.dislikes || 0,
+            userReaction: post.reactions?.user_reaction || null,
+            isReacting: false,
+          };
+        });
+        setPostReactions(reactions);
+      }
+    } catch (err) {
+      setError("Failed to load group data");
+      console.error(err);
     } finally {
-      setLoading(false);
+      setIsLoading(false);
     }
   };
 
@@ -139,41 +139,151 @@ export default function GroupPage() {
     fetchGroupData();
   }, [groupId]);
 
-  // Go back to groups list
-  const goBack = () => {
-    router.push("/app/groups");
-  };
+  // Reaction handling
+  const handleReaction = async (postId: number, reaction: boolean) => {
+    const currentReaction = postReactions[postId];
+    if (currentReaction?.isReacting) return;
 
-  // Toggle comments visibility
-  const toggleComments = (postId: number) => {
-    setShowComments((prev) => ({
+    setPostReactions((prev) => ({
       ...prev,
-      [postId]: !prev[postId],
+      [postId]: { ...prev[postId], isReacting: true },
     }));
+
+    const newReaction =
+      currentReaction?.userReaction === reaction ? null : reaction;
+
+    // Optimistic UI update
+    setPostReactions((prev) => {
+      const current = prev[postId];
+      let newLikes = current.likes;
+      let newDislikes = current.dislikes;
+
+      if (current.userReaction === true && newReaction === null) {
+        newLikes--;
+      } else if (current.userReaction !== true && newReaction === true) {
+        newLikes++;
+        if (current.userReaction === false) {
+          newDislikes--;
+        }
+      } else if (current.userReaction === false && newReaction === null) {
+        newDislikes--;
+      } else if (current.userReaction !== false && newReaction === false) {
+        newDislikes++;
+        if (current.userReaction === true) {
+          newLikes--;
+        }
+      }
+
+      return {
+        ...prev,
+        [postId]: {
+          likes: newLikes,
+          dislikes: newDislikes,
+          userReaction: newReaction,
+          isReacting: true,
+        },
+      };
+    });
+
+    try {
+      const data = await reactToGroupPost(postId, newReaction);
+
+      if (data.error) {
+        console.error("Error reacting to group post:", data.error);
+        setPostReactions((prev) => ({
+          ...prev,
+          [postId]: { ...currentReaction, isReacting: false },
+        }));
+        return;
+      }
+
+      if (data.posts && data.posts.length > 0 && data.posts[0].reactions) {
+        const updatedReactions = data.posts[0].reactions;
+        setPostReactions((prev) => ({
+          ...prev,
+          [postId]: {
+            likes: updatedReactions.likes,
+            dislikes: updatedReactions.dislikes,
+            userReaction: updatedReactions.user_reaction,
+            isReacting: false,
+          },
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to react to group post:", error);
+      setPostReactions((prev) => ({
+        ...prev,
+        [postId]: { ...currentReaction, isReacting: false },
+      }));
+    }
   };
 
-  // Handle creating a new post
-  const handleCreatePost = async (group: {
+  // Comment handling
+  const loadComments = async (postId: number) => {
+    try {
+      const commentsData = await getGroupComments(postId);
+      if (commentsData.error) {
+        throw new Error(commentsData.error);
+      }
+
+      if (
+        commentsData.posts &&
+        commentsData.posts[0] &&
+        commentsData.posts[0].comments
+      ) {
+        setPostComments((prev) => ({
+          ...prev,
+          [postId]: commentsData.posts[0].comments,
+        }));
+      }
+    } catch (error) {
+      console.error("Error loading comments:", error);
+    }
+  };
+
+  const toggleComments = async (postId: number) => {
+    if (expandedComments[postId]) {
+      setExpandedComments((prev) => ({
+        ...prev,
+        [postId]: false,
+      }));
+    } else {
+      setExpandedComments((prev) => ({
+        ...prev,
+        [postId]: true,
+      }));
+
+      if (!postComments[postId]) {
+        await loadComments(postId);
+      }
+    }
+  };
+
+  const handleCommentAdded = (postId: number) => {
+    loadComments(postId);
+  };
+
+  // Post creation
+  const handleCreatePost = async (postData: {
     image: string;
     caption: string;
     groupId?: number;
   }) => {
     try {
-      const data = await addGroupPost(group);
+      const data = await addGroupPost(postData);
       if (data.error) {
         alert(data.error);
         return;
       }
 
       setShowCreatePostModal(false);
-      // Refresh group data to show the new post
       fetchGroupData();
     } catch (error) {
       alert(error);
     }
   };
 
-  // Handle creating a new event
+  // Event creation
   const handleCreateEvent = async (event: {
     title: string;
     description: string;
@@ -193,42 +303,25 @@ export default function GroupPage() {
       }
 
       setShowCreateEventModal(false);
-      // Refresh group data to show the new event
       fetchGroupData();
     } catch (error) {
       alert(error);
     }
   };
 
-  // Handle responding to an event
+  // Event response
   const handleEventResponse = async (eventId: number, going: boolean) => {
     if (!group) return;
     try {
       const data = await addEventOption(groupId, eventId, going);
       console.log(data);
-
-      // Refresh group data to update event responses
       fetchGroupData();
     } catch (error) {
       alert(error);
     }
   };
 
-  // Handle inviting a user
-  const handleInviteUser = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!inviteUsername.trim()) return;
-
-    // In a real app, you would send this to your API
-    console.log("Inviting user:", inviteUsername);
-
-    // For demo purposes, we'll just close the modal
-    setInviteUsername("");
-    setShowInviteModal(false);
-  };
-
-  // Handle joining a group
+  // Join group
   const handleJoinGroup = async () => {
     try {
       const data = await requestJoinGroup(groupId);
@@ -236,8 +329,6 @@ export default function GroupPage() {
         alert(data.error);
         return;
       }
-      // socket?.send()
-      // Refresh group data to update the is_pending status
       fetchGroupData();
       console.log("Request sent successfully");
     } catch (error) {
@@ -245,18 +336,30 @@ export default function GroupPage() {
     }
   };
 
-  if (loading) {
+  // Invite user
+  const handleInviteUser = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!inviteUsername.trim()) return;
+    console.log("Inviting user:", inviteUsername);
+    setInviteUsername("");
+    setShowInviteModal(false);
+  };
+
+  if (isLoading) {
     return (
-      <div className="group-container">
-        <div className="loading-spinner">Loading...</div>
+      <div className="group-detail-container">
+        <div className="loading">Loading group...</div>
       </div>
     );
   }
 
-  if (!group) {
+  if (error || !group) {
     return (
-      <div className="group-container">
-        <div className="error-message">Group not found</div>
+      <div className="group-detail-container">
+        <div className="error">{error || "Group not found"}</div>
+        <button onClick={() => router.back()} className="back-button">
+          Go Back
+        </button>
       </div>
     );
   }
@@ -265,90 +368,36 @@ export default function GroupPage() {
   const owner = group.members?.find((member) => member.id === group.owner_id);
   const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown";
 
-  return (
-    <div className="group-container">
-      <button className="back-button" onClick={goBack}>
-        ← Back to Groups
-      </button>
+  if (!group.is_accepted && !group.is_owner) {
+    return (
+      <div className="group-detail-container">
+        <button onClick={() => router.back()} className="back-button">
+          <Image src="/icons/left.svg" alt="back" width={16} height={16} />
+          <span>Back</span>
+        </button>
 
-      <div className="group-header">
-        <div className="group-image">
-          <img
-            src={group.image || "/icons/placeholder.svg"}
-            alt={group.title}
-          />
-        </div>
-        <div className="group-title-section">
-          <h1>{group.title}</h1>
-          <p className="group-description">{group.description}</p>
-        </div>
-
-        <div className="group-actions">
-          {group.is_accepted && (
-            <>
-              <button
-                className="action-button"
-                onClick={() => setShowCreatePostModal(true)}
-              >
-                Create Post
-              </button>
-              <button
-                className="action-button"
-                onClick={() => setShowCreateEventModal(true)}
-              >
-                Create Event
-              </button>
-              <button
-                className="action-button"
-                onClick={() => setShowInviteModal(true)}
-              >
-                Invite Users
-              </button>
-            </>
-          )}
-          {!group.is_accepted && !group.is_pending && (
-            <button className="action-button" onClick={() => handleJoinGroup()}>
-              Request to Join
-            </button>
-          )}
-          {!group.is_accepted && group.is_pending && (
-            <button className="action-button requested" disabled>
-              Request Pending
-            </button>
-          )}
-        </div>
-
-        <div className="group-meta">
-          <div
-            className="group-members-preview"
-            onClick={() => setShowMembersModal(true)}
-          >
-            <span>Members ({group.members?.length})</span>
-            <div className="members-avatars">
-              {group.members?.slice(0, 3).map((member) => (
-                <img
-                  key={member.id}
-                  src={member.avatar || "/icons/placeholder.svg"}
-                  alt={`${member.firstname} ${member.lastname}`}
-                  className="member-avatar"
-                  title={`${member.firstname} ${member.lastname}`}
-                />
-              ))}
-              {group.members?.length > 3 && (
-                <span className="more-members">
-                  +{group.members?.length - 3}
-                </span>
-              )}
+        <div className="group-header">
+          <div className="group-image">
+            <img
+              src={
+                group.image
+                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                      group.image
+                    )}`
+                  : "/icons/placeholder.svg"
+              }
+              alt="Group image"
+            />
+          </div>
+          <div className="group-info">
+            <h1>{group.title}</h1>
+            <p>{group.description}</p>
+            <div className="group-stats">
+              <span>{group.members?.length || 0} members</span>
             </div>
           </div>
-
-          <div className="group-creator">
-            <span>Created by {ownerName}</span>
-          </div>
         </div>
-      </div>
 
-      {!group.is_accepted ? (
         <div className="non-member-view">
           <div className="join-message">
             <h3>This is a private group</h3>
@@ -356,7 +405,7 @@ export default function GroupPage() {
               Join this group to see posts, events, and interact with members.
             </p>
             {!group.is_pending ? (
-              <button className="join-button" onClick={() => handleJoinGroup()}>
+              <button className="join-button" onClick={handleJoinGroup}>
                 Request to Join
               </button>
             ) : (
@@ -366,243 +415,395 @@ export default function GroupPage() {
             )}
           </div>
         </div>
-      ) : (
-        <>
-          {/* Content Tabs */}
-          <div className="group-tabs">
-            <button
-              className={`tab ${activeTab === "posts" ? "active" : ""}`}
-              onClick={() => setActiveTab("posts")}
-            >
-              Posts
-            </button>
-            <button
-              className={`tab ${activeTab === "events" ? "active" : ""}`}
-              onClick={() => setActiveTab("events")}
-            >
-              Events
-            </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group-detail-container">
+      <button onClick={() => router.back()} className="back-button">
+        <Image src="/icons/left.svg" alt="back" width={16} height={16} />
+        <span>Back</span>
+      </button>
+
+      {/* Group Header */}
+      <div className="group-header">
+        <div className="group-image">
+          <img
+            src={
+              group.image
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                    group.image
+                  )}`
+                : "/icons/placeholder.svg"
+            }
+            alt="Group image"
+          />
+        </div>
+        <div className="group-info">
+          <h1>{group.title}</h1>
+          <p>{group.description}</p>
+          <div className="group-stats">
+            <span>{group.members?.length || 0} members</span>
+            <span>{group.posts?.length || 0} posts</span>
           </div>
+        </div>
+      </div>
 
-          {/* Posts Tab */}
-          {activeTab === "posts" && (
-            <div className="group-posts">
-              {group.posts?.length === 0 ? (
-                <div className="no-content">
-                  No posts yet. Be the first to post!
-                </div>
-              ) : (
-                group.posts?.map((post) => {
-                  const postAuthor = post.user;
+      {/* Group Actions */}
+      {group.is_accepted && (
+        <div className="group-actions">
+          <button
+            className="action-button"
+            onClick={() => setShowCreatePostModal(true)}
+          >
+            Create Post
+          </button>
+          <button
+            className="action-button"
+            onClick={() => setShowCreateEventModal(true)}
+          >
+            Create Event
+          </button>
+          <button
+            className="action-button"
+            onClick={() => setShowInviteModal(true)}
+          >
+            Invite Users
+          </button>
+          <button
+            className="action-button"
+            onClick={() => setShowMembersModal(true)}
+          >
+            View Members
+          </button>
+        </div>
+      )}
 
-                  return (
-                    <div key={post.id} className="post-card">
-                      <div className="post-header">
-                        <div className="post-creator">
-                          <img
-                            src={postAuthor.avatar || "/icons/placeholder.svg"}
-                            alt={`${postAuthor.firstname} ${postAuthor.lastname}`}
-                            className="user-avatar"
-                          />
-                          <div className="creator-info">
-                            <span className="creator-name">{`${postAuthor.firstname} ${postAuthor.lastname}`}</span>
-                            <span className="post-date">
-                              {post.creation_date
-                                ? new Date(post.creation_date).toLocaleString()
-                                : "Unknown date"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      {post.image && (
-                        <img
-                          src={post.image || "/placeholder.svg"}
-                          alt={post.caption || "Post image"}
-                          className="post-image"
-                        />
-                      )}
-                      <div className="post-content">{post.caption}</div>
+      {/* Content Tabs */}
+      <div className="group-tabs">
+        <button
+          className={`tab ${activeTab === "posts" ? "active" : ""}`}
+          onClick={() => setActiveTab("posts")}
+        >
+          Posts
+        </button>
+        <button
+          className={`tab ${activeTab === "events" ? "active" : ""}`}
+          onClick={() => setActiveTab("events")}
+        >
+          Events
+        </button>
+      </div>
 
-                      <div className="post-actions">
-                        <button className="post-action">
-                          Like ({post.likes || 0})
-                        </button>
-                        <button
-                          className="post-action"
-                          onClick={() => toggleComments(post.id)}
-                        >
-                          Comments ({post.comments || 0})
-                        </button>
-                      </div>
-
-                      {showComments[post.id] && (
-                        <div className="post-comments">
-                          {getMockComments(post.id).map((comment) => (
-                            <div key={comment.id} className="comment">
-                              <div className="comment-header">
-                                <img
-                                  src={
-                                    comment.creator.avatar ||
-                                    "/icons/placeholder.svg" ||
-                                    "/placeholder.svg"
-                                  }
-                                  alt={comment.creator.name}
-                                  className="user-avatar-small"
-                                />
-                                <div className="comment-info">
-                                  <span className="comment-creator">
-                                    {comment.creator.name}
-                                  </span>
-                                  <span className="comment-date">
-                                    {new Date(
-                                      comment.createdAt || Date.now()
-                                    ).toLocaleString()}
-                                  </span>
-                                </div>
-                              </div>
-                              <div className="comment-content">
-                                {comment.content}
-                              </div>
-                            </div>
-                          ))}
-
-                          <div className="add-comment">
-                            <input
-                              type="text"
-                              placeholder="Write a comment..."
-                              className="comment-input"
-                            />
-                            <button className="post-comment-button">
-                              Post
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          )}
-
-          {/* Events Tab */}
-          {activeTab === "events" && (
-            <div className="group-events">
-              {group.events.length === 0 ? (
-                <div className="no-content">No events yet. Create one!</div>
-              ) : (
-                group.events.map((event) => (
-                  <div key={event.id} className="event-card">
-                    <div className="event-header">
-                      <h3 className="event-title">{event.title}</h3>
-                      <div className="event-creator">
-                        Created by{" "}
-                        {`${event.user.firstname} ${event.user.lastname}`}
-                      </div>
-                    </div>
-
-                    <div className="event-details">
-                      <div className="event-date">
-                        <strong>When:</strong>{" "}
-                        {new Date(event.date).toLocaleString()}
-                      </div>
-                      {event.place && (
-                        <div className="event-location">
-                          <strong>Where:</strong> {event.place}
-                        </div>
-                      )}
-                      <div className="event-description">
-                        {event.description}
-                      </div>
-                      <div className="event-options">
-                        <div>
-                          <strong>Option 1:</strong> {event.option_1}
-                        </div>
-                        <div>
-                          <strong>Option 2:</strong> {event.option_2}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="event-responses">
-                      {/* Display counts of users who selected each option */}
-                      <div className="response-count">
-                        <span>
-                          {event.opt1_users?.length || 0} chose {event.option_1}
-                        </span>
-                        <span>
-                          {event.opt2_users?.length || 0} chose {event.option_2}
-                        </span>
-                      </div>
-
-                      <div className="response-actions">
-                        <button
-                          className={`response-button ${
-                            event.current_option === "option1" ? "active" : ""
-                          }`}
-                          onClick={() => handleEventResponse(event.id, true)}
-                        >
-                          {event.option_1}
-                        </button>
-                        <button
-                          className={`response-button ${
-                            event.current_option === "option2" ? "active" : ""
-                          }`}
-                          onClick={() => handleEventResponse(event.id, false)}
-                        >
-                          {event.option_2}
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Display users who selected each option */}
-                    <div className="event-attendees">
-                      {event.opt1_users && event.opt1_users.length > 0 && (
-                        <div className="attendees-section">
-                          <h4>
-                            Chose {event.option_1} ({event.opt1_users.length})
-                          </h4>
-                          <div className="attendees-list">
-                            {event.opt1_users.map((user) => (
-                              <div key={user.id} className="attendee">
-                                <img
-                                  src={user.avatar || "/icons/placeholder.svg"}
-                                  alt={`${user.firstname} ${user.lastname}`}
-                                  className="user-avatar-small"
-                                />
-                                <span>{`${user.firstname} ${user.lastname}`}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {event.opt2_users && event.opt2_users.length > 0 && (
-                        <div className="attendees-section">
-                          <h4>
-                            Chose {event.option_2} ({event.opt2_users.length})
-                          </h4>
-                          <div className="attendees-list">
-                            {event.opt2_users.map((user) => (
-                              <div key={user.id} className="attendee">
-                                <img
-                                  src={user.avatar || "/icons/placeholder.svg"}
-                                  alt={`${user.firstname} ${user.lastname}`}
-                                  className="user-avatar-small"
-                                />
-                                <span>{`${user.firstname} ${user.lastname}`}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
+      {/* Posts Tab */}
+      {activeTab === "posts" && (
+        <div className="group-posts">
+          {group.posts && group.posts.length > 0 ? (
+            group.posts.map((post) => (
+              <div key={post.id} className="group-post">
+                <div className="post-header">
+                  <div className="post-user">
+                    <img
+                      src={
+                        post.user?.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                              post.user.id
+                            }&path=${encodeURIComponent(post.user.avatar)}`
+                          : "/icons/placeholder.svg"
+                      }
+                      alt="User avatar"
+                    />
+                    <div className="post-user-info">
+                      <span className="post-user-name">
+                        {post.user?.firstname} {post.user?.lastname}
+                      </span>
+                      <span className="post-timestamp">
+                        {post.creation_date
+                          ? new Date(post.creation_date).toLocaleString()
+                          : "Unknown date"}
+                      </span>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
+                </div>
+
+                {post.caption && (
+                  <div className="post-caption">{post.caption}</div>
+                )}
+
+                {post.image && (
+                  <div className="post-image">
+                    <img
+                      src={`http://localhost:8080/getProtectedImage?type=group-posts&id=${1}&path=${encodeURIComponent(
+                        post.image
+                      )}`}
+                      alt="Post content"
+                    />
+                  </div>
+                )}
+
+                <div className="post-actions">
+                  <div className="reaction-buttons">
+                    <button
+                      className={`reaction-btn ${
+                        postReactions[post.id]?.userReaction === true
+                          ? "active"
+                          : ""
+                      }`}
+                      onClick={() => handleReaction(post.id, true)}
+                      disabled={postReactions[post.id]?.isReacting}
+                    >
+                      {postReactions[post.id]?.userReaction === true ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="var(--primary-color)"
+                          stroke="var(--primary-color)"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                        </svg>
+                      )}
+                      <span>{postReactions[post.id]?.likes || 0}</span>
+                    </button>
+
+                    <button
+                      className={`reaction-btn ${
+                        postReactions[post.id]?.userReaction === false
+                          ? "active"
+                          : ""
+                      }`}
+                      onClick={() => handleReaction(post.id, false)}
+                      disabled={postReactions[post.id]?.isReacting}
+                    >
+                      {postReactions[post.id]?.userReaction === false ? (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="var(--primary-color)"
+                          stroke="var(--primary-color)"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                        </svg>
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                        </svg>
+                      )}
+                      <span>{postReactions[post.id]?.dislikes || 0}</span>
+                    </button>
+
+                    <button
+                      className="comment-btn"
+                      onClick={() => toggleComments(post.id)}
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                      </svg>
+                      <span>Comments</span>
+                    </button>
+                  </div>
+                </div>
+
+                {expandedComments[post.id] && (
+                  <div className="post-comments-section">
+                    <div className="comments-list">
+                      {postComments[post.id] &&
+                      postComments[post.id].length > 0 ? (
+                        postComments[post.id].map((comment) => (
+                          <GroupComment
+                            key={comment.id}
+                            comment={comment}
+                            postID={post.id}
+                          />
+                        ))
+                      ) : (
+                        <div className="no-comments">No comments yet</div>
+                      )}
+                    </div>
+
+                    <GroupCommentForm
+                      postId={post.id}
+                      onCommentAdded={() => handleCommentAdded(post.id)}
+                    />
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <div className="no-posts">No posts yet. Be the first to post!</div>
           )}
-        </>
+        </div>
+      )}
+
+      {/* Events Tab */}
+      {activeTab === "events" && (
+        <div className="group-events">
+          {group.events && group.events.length > 0 ? (
+            group.events.map((event) => (
+              <div key={event.id} className="event-card">
+                <div className="event-header">
+                  <h3 className="event-title">{event.title}</h3>
+                  <div className="event-creator">
+                    Created by{" "}
+                    {`${event.user.firstname} ${event.user.lastname}`}
+                  </div>
+                </div>
+
+                <div className="event-details">
+                  <div className="event-date">
+                    <strong>When:</strong>{" "}
+                    {new Date(event.date).toLocaleString()}
+                  </div>
+                  {event.place && (
+                    <div className="event-location">
+                      <strong>Where:</strong> {event.place}
+                    </div>
+                  )}
+                  <div className="event-description">{event.description}</div>
+                  <div className="event-options">
+                    <div>
+                      <strong>Option 1:</strong> {event.option_1}
+                    </div>
+                    <div>
+                      <strong>Option 2:</strong> {event.option_2}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="event-responses">
+                  <div className="response-count">
+                    <span>
+                      {event.opt1_users?.length || 0} chose {event.option_1}
+                    </span>
+                    <span>
+                      {event.opt2_users?.length || 0} chose {event.option_2}
+                    </span>
+                  </div>
+
+                  <div className="response-actions">
+                    <button
+                      className={`response-button ${
+                        event.current_option === "option1" ? "active" : ""
+                      }`}
+                      onClick={() => handleEventResponse(event.id, true)}
+                    >
+                      {event.option_1}
+                    </button>
+                    <button
+                      className={`response-button ${
+                        event.current_option === "option2" ? "active" : ""
+                      }`}
+                      onClick={() => handleEventResponse(event.id, false)}
+                    >
+                      {event.option_2}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Display users who selected each option */}
+                <div className="event-attendees">
+                  {event.opt1_users && event.opt1_users.length > 0 && (
+                    <div className="attendees-section">
+                      <h4>
+                        Chose {event.option_1} ({event.opt1_users.length})
+                      </h4>
+                      <div className="attendees-list">
+                        {event.opt1_users.map((user) => (
+                          <div key={user.id} className="attendee">
+                            <img
+                              src={
+                                user.avatar
+                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                      user.avatar
+                                    )}`
+                                  : "/icons/placeholder.svg"
+                              }
+                              className="user-avatar-small"
+                              alt={`${user.firstname} ${user.lastname}`}
+                            />
+                            <span>{`${user.firstname} ${user.lastname}`}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {event.opt2_users && event.opt2_users.length > 0 && (
+                    <div className="attendees-section">
+                      <h4>
+                        Chose {event.option_2} ({event.opt2_users.length})
+                      </h4>
+                      <div className="attendees-list">
+                        {event.opt2_users.map((user) => (
+                          <div key={user.id} className="attendee">
+                            <img
+                              src={
+                                user.avatar
+                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                      user.avatar
+                                    )}`
+                                  : "/icons/placeholder.svg"
+                              }
+                              className="user-avatar-small"
+                              alt={`${user.firstname} ${user.lastname}`}
+                            />
+                            <span>{`${user.firstname} ${user.lastname}`}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="no-content">No events yet. Create one!</div>
+          )}
+        </div>
       )}
 
       {/* Members Modal */}
@@ -615,14 +816,20 @@ export default function GroupPage() {
                 <div key={member.id} className="member-item">
                   <div className="member-info">
                     <img
-                      src={member.avatar || "/icons/placeholder.svg"}
-                      alt={`${member.firstname} ${member.lastname}`}
+                      src={
+                        member.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                              member.avatar
+                            )}`
+                          : "/icons/placeholder.svg"
+                      }
                       className="user-avatar"
+                      alt={`${member.firstname} ${member.lastname}`}
                     />
                     <div className="member-details">
                       <span className="member-name">{`${member.firstname} ${member.lastname}`}</span>
                       <span className="member-nickname">
-                        @{member.nickname || member.username}
+                        <br />@{member.nickname || member.username}
                       </span>
                     </div>
                   </div>

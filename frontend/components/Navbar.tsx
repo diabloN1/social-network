@@ -1,36 +1,78 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
-import { connectWebSocket, onMessageType } from "@/helpers/webSocket";
+import {
+  connectWebSocket,
+  onMessageType,
+  closeWebSocket,
+} from "@/helpers/webSocket";
 import fetchAllNotifications from "@/api/notif/getAllNotification";
+import logout from "@/api/auth/logout";
+import clearSessionCookie from "@/api/auth/clearSessionCookie";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
-const [joinRequestCount, setJoinRequestCount] = useState(0);
- const [followRequestCount, setFollowRequestCount] = useState(0);
+  const [joinRequestCount, setJoinRequestCount] = useState(0);
+  const [followRequestCount, setFollowRequestCount] = useState(0);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
- const fetchAllNotificationCounts = async () => {
+  const fetchAllNotificationCounts = async () => {
     const data = await fetchAllNotifications();
     if (data && !data.error) {
-      console.log("notification",data);
-   
+      console.log("notification", data);
+
       const notifications = data.notifications;
-      
+
       setChatUnreadCount(notifications.messageUnread || 0);
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);
     }
   };
 
-useEffect(() => {
- 
-  fetchAllNotificationCounts();
-}, []);
+  // Updated handleLogout function for cookie-based sessions
+  const handleLogout = async () => {
+    if (isLoggingOut) return;
+
+    setIsLoggingOut(true);
+
+    try {
+      // Close websocket connection first
+      closeWebSocket();
+
+      // Call logout API (this should handle server-side session removal)
+      await logout();
+
+      // Clear the session cookie on client side
+      await clearSessionCookie();
+
+      console.log("Logout successful");
+    } catch (error) {
+      console.error("Logout failed:", error);
+      // Even if logout API fails, still try to clear the cookie
+      try {
+        await clearSessionCookie();
+      } catch (cookieError) {
+        console.error("Failed to clear session cookie:", cookieError);
+      }
+    } finally {
+      // Clear any localStorage items that might exist
+      if (typeof window !== "undefined") {
+        localStorage.clear();
+      }
+
+      setIsLoggingOut(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAllNotificationCounts();
+  }, []);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -45,40 +87,40 @@ useEffect(() => {
       setActiveTab("notification");
     }
 
-     
-  if (pathname.includes("/app/chat")) {
-    setChatUnreadCount(0);
-  }
+    const notificationTypes = [
+      "followRequestHandled",
+      "joinRequestHandled",
+      "unreadmsgRequestHandled",
+    ];
 
-if (pathname.includes("/app/groups")) {
-  setJoinRequestCount(0);
-}
-if (pathname.includes("/app/profiles")) {
-      setFollowRequestCount(0);
-    }
+    const notificationUnsubs = notificationTypes.map((type) =>
+      onMessageType(type, fetchAllNotificationCounts)
+    );
 
-  const unsubscribe = onMessageType("addMessage", () => {
-    if (!pathname.includes("/app/chat")) {
-      setChatUnreadCount((prev) => prev + 1);
-    }
-  });
+    const unsubscribe = onMessageType("addMessage", () => {
+      if (!pathname.includes("/app/chat")) {
+        setChatUnreadCount((prev) => prev + 1);
+      }
+    });
 
-const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
-  if (!pathname.includes("/app/groups")) {
-    setJoinRequestCount((prev) => prev + 1);
-  }
-});
- const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+    const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
+      if (!pathname.includes("/app/groups")) {
+        setJoinRequestCount((prev) => prev + 1);
+      }
+    });
+
+    const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
       if (!pathname.includes("/app/profiles")) {
         setFollowRequestCount((prev) => prev + 1);
       }
     });
 
-  return () => {
-    unsubscribe();
-     unsubscribeJoinRequest();
+    return () => {
+      unsubscribe();
+      unsubscribeJoinRequest();
       unsubscribeFollowRequest();
-  };
+      notificationUnsubs.forEach((unsub) => unsub());
+    };
   }, [pathname]);
 
   const navItems = [
@@ -177,14 +219,10 @@ const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
     connectWebSocket();
   }, []);
 
-
-
   return (
     <nav className="navbar">
       <ul className="nav-list">
         {navItems.map((item) => (
-        
-          
           <li
             key={item.id}
             className={`nav-item ${activeTab === item.id ? "active" : ""}`}
@@ -207,6 +245,38 @@ const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
             </Link>
           </li>
         ))}
+
+        {/* Logout Button */}
+        <li className="nav-item logout-item">
+          <button
+            className="nav-link logout-button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            aria-label="Logout"
+          >
+            <div className="nav-item-content">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="icon"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span className="label">
+                {isLoggingOut ? "Logging out..." : "Logout"}
+              </span>
+            </div>
+          </button>
+        </li>
       </ul>
     </nav>
   );

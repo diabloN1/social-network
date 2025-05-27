@@ -1,8 +1,5 @@
 'use server'
 
-import { writeFile } from 'fs/promises'
-import { join } from 'path'
-
 export async function uploadFile(formData: FormData, route: string): Promise<string> {
   try {
     const file = formData.get('file') as File
@@ -11,32 +8,36 @@ export async function uploadFile(formData: FormData, route: string): Promise<str
       throw new Error('No file provided')
     }
 
-    // Check file type (MIME type must start with 'image/')
     if (!file.type.startsWith('image/')) {
       throw new Error('Only image files are allowed')
     }
 
-    // Check file size (10MB = 10 * 1024 * 1024 bytes)
     const maxSizeInBytes = 10 * 1024 * 1024
     if (file.size > maxSizeInBytes) {
-      throw new Error('File size must be less than or equal to 10MB')
+      throw new Error('File size must be ≤ 10MB')
     }
 
-    // Convert the file to a Buffer
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-
     const uuid = crypto.randomUUID()
-    const filename = `${uuid}_${file.name.replace(/\s+/g, '-').toLowerCase()}`
-    const path = join(process.cwd(), 'public', route, filename)
+    const uniqueFileName = `${uuid}_${file.name.replace(/\s+/g, '-').toLowerCase()}`
 
-    // Write the file
-    await writeFile(path, buffer)
+    formData.append('image', file)
+    formData.append('path', route)
+    formData.append('filename', uniqueFileName)
 
-    // Return the public URL path
-    return `${route}/${filename}`
+    const response = await fetch('http://localhost:8080/uploadImage', {
+      method: 'POST',
+      body: formData,
+    })
+
+    const data = await response.json()
+
+    if (data.error) {
+      throw new Error(data.error)
+    }
+    
+    return uniqueFileName
   } catch (error) {
-    console.error('Error uploading file:', error)
-    throw new Error('Failed to upload file ' + error)
+    console.error(error)
+    throw new Error('Failed to upload file: ' + error)
   }
 }

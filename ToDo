@@ -1,4 +1,7 @@
 ToDo :
+ # Backend
+ - Fix core middleware don't allow client to access /ws
+
  # Chat
  - On log-out Or auth page redirect clear socket.
 

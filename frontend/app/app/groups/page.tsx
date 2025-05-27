@@ -166,7 +166,6 @@ export default function GroupsPage() {
         return;
       }
       fetchGroupsData();
-
     } catch (error) {
       alert(error);
     }
@@ -219,9 +218,14 @@ export default function GroupsPage() {
               <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
                   <img
-                    src={invite.user.avatar || "/icons/placeholder.svg"}
-                    alt={`${invite.user.firstname} ${invite.user.lastname}`}
-                    className="user-avatar"
+                    src={
+                      invite.user.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                            invite.user.avatar
+                          )}`
+                        : "/icons/placeholder.svg"
+                    }
+                    alt="user avatar"
                   />
                   <div className="invitation-details">
                     <span className="invitation-title">
@@ -265,9 +269,14 @@ export default function GroupsPage() {
               <div key={request.id} className="request-card">
                 <div className="request-info">
                   <img
-                    src={request.members[0]?.avatar || "/icons/placeholder.svg"}
-                    alt={`${request.members[0]?.firstname} ${request.members[0]?.lastname}`}
-                    className="user-avatar"
+                    src={
+                      request.members[0]?.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                            request.members[0]?.avatar
+                          )}`
+                        : "/icons/placeholder.svg"
+                    }
+                    alt="user avatar"
                   />
                   <div className="request-details">
                     <span className="request-title">
@@ -341,8 +350,14 @@ export default function GroupsPage() {
                 onClick={() => navigateToGroup(group.id)}
               >
                 <img
-                  src={group.image || "/icons/placeholder.svg"}
-                  alt={group.title}
+                  src={
+                    group.image
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                          group.image
+                        )}`
+                      : "/icons/placeholder.svg"
+                  }
+                  alt="group image"
                 />
               </div>
               <div

@@ -2,12 +2,16 @@
 
 import { cookies } from "next/headers";
 
-const addComment = async (postId: number, text: string) => {
+const addComment = async (postId: number, text: string, image?: string) => {
   try {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value || "";
 
-    console.log(`Adding comment to post ${postId}:`, text);
+    console.log(
+      `Adding comment to post ${postId} with text: "${text}" and image: "${
+        image || "none"
+      }"`
+    );
 
     const response = await fetch("http://localhost:8080/addComment", {
       method: "POST",
@@ -18,6 +22,7 @@ const addComment = async (postId: number, text: string) => {
       body: JSON.stringify({
         postId: postId,
         text: text,
+        image: image || "",
         session: token,
       }),
       cache: "no-store",

@@ -1,27 +1,22 @@
-'use server'
-
-import { cookies } from 'next/headers'
-
-const logout = async () => {
+export default async function logout() {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
-
     const response = await fetch("http://localhost:8080/logout", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ session: token }),
+      credentials: "include", // This will include cookies in the request
     });
+
     const data = await response.json();
 
-    cookieStore.delete('token');
-    console.log(data);
-    return data;
-  } catch (err) {
-    console.error(err);
-  }
-};
+    if (data.error && data.error !== "Session was removed!") {
+      throw new Error(data.error);
+    }
 
-export default logout
+    return data;
+  } catch (error) {
+    console.error("Logout error:", error);
+    throw error;
+  }
+}

@@ -5,13 +5,8 @@ import { cookies } from "next/headers";
 
 const fetchAllNotifications = async () => {
   try {
-   
-    
     const cookieStore = await cookies();
-    
 
-  
-    
     const token = cookieStore.get("token")?.value || "";
 
    
@@ -32,7 +27,7 @@ const fetchAllNotifications = async () => {
     return data;
   } catch (err) {
     console.error(err);
-     return { count: 0 };
+    return { count: 0 };
   }
 };
 

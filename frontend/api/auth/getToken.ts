@@ -1,7 +1,6 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 
 const getToken = async () => {
   try {
@@ -19,9 +18,6 @@ const getToken = async () => {
 
     const data = await response.json();
 
-    if (!data.session) {
-      redirect("/auth");
-    }
     return data;
   } catch (err) {
     console.error(err);

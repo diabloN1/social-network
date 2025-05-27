@@ -1,6 +1,6 @@
-import { redirect } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import getToken from "@/api/auth/getToken";
+import { redirect } from "next/navigation";
 
 export default async function AppLayout({
   children,
@@ -8,13 +8,9 @@ export default async function AppLayout({
   children: React.ReactNode;
 }) {
   const data = await getToken();
-
-
-  //dublicated in getToken??
-  if (!data.session) {
+  if (!data || data.error) {
     redirect("/auth");
   }
-  
 
   return (
     <>

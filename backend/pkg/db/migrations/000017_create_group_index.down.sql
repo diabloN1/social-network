@@ -1,0 +1,1 @@
+DROP TABLE IF EXISTS idx_group_post_reactions_post_id;

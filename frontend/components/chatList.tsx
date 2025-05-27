@@ -49,7 +49,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           return;
         }
 
-        console.log("chats",data);
+        console.log("chats", data);
 
         const transformedChats: Chat[] = [
           // Transform group conversations
@@ -71,6 +71,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             lastMessage: "",
             lastMessageTime: priv.lastmessagedate || "",
             unreadCount: priv.unreadcount || 0,
+            isGroup: false,
             isOnline: false, // We don't have online status for now
           })),
 
@@ -83,6 +84,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             lastMessageTime: newConv.lastmessagedate || "",
             unreadCount: 0,
             isNew: true,
+            isGroup: false,
             isOnline: false,
           })),
         ];
@@ -232,7 +234,16 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
               onClick={() => onSelectChat(chat)}
             >
               <div className="chat-avatar">
-                <img src={chat.avatar || "/placeholder.svg"} alt={chat.name} />
+                <img
+                  src={
+                    chat.avatar
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                          0
+                        }&path=${encodeURIComponent(chat.avatar)}`
+                      : "/icons/placeholder.svg"
+                  }
+                  alt="user avatar"
+                />
                 {!chat.isGroup && chat.isOnline && (
                   <span className="online-indicator"></span>
                 )}
