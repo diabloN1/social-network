@@ -345,8 +345,9 @@ func (r *GroupRepository) GetGroupPosts(groupId int, userId int) ([]*model.Post,
 		return nil, err
 	}
 
-	for rows.Next() {
+	postIds := []int{}
 
+	for rows.Next() {
 		p := &model.Post{}
 		u := &model.User{}
 
@@ -356,15 +357,32 @@ func (r *GroupRepository) GetGroupPosts(groupId int, userId int) ([]*model.Post,
 
 		p.User = u
 		posts = append(posts, p)
+		postIds = append(postIds, p.ID)
 	}
 
 	if err := rows.Err(); err != nil {
 		return nil, err
 	}
 
-	for i := 0; i < len(posts); i++ {
-		posts[i].Reactions, err = r.Repository.Group().GetGroupReactionCounts(posts[i].ID)
-		posts[i].Reactions.UserReaction, err = r.Repository.Group().GetGroupUserReaction(posts[i].ID, userId)
+	// Get reactions for all posts at once (more efficient)
+	if len(posts) > 0 {
+		reactions, err := r.Repository.Group().GetGroupReactionsForPosts(userId, postIds)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, post := range posts {
+			if counts, ok := reactions[post.ID]; ok {
+				post.Reactions = counts
+			} else {
+				// Initialize empty reactions if not found
+				post.Reactions = model.ReactionCounts{
+					Likes:        0,
+					Dislikes:     0,
+					UserReaction: nil,
+				}
+			}
+		}
 	}
 
 	return posts, nil
@@ -451,3 +469,5 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 
 	return users, nil
 }
+
+

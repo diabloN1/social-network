@@ -10,6 +10,7 @@ import reactToPost from "@/api/posts/reactToPost";
 import getComments from "@/api/posts/getComments";
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
+import PostShareModal from "@/components/post-share-modal";
 
 export default function SinglePostPage() {
   const params = useParams();
@@ -17,6 +18,7 @@ export default function SinglePostPage() {
   const postId = Number(params.id);
 
   const [post, setPost] = useState<any>({});
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [reactions, setReactions] = useState({
     likes: 0,
     dislikes: 0,
@@ -26,6 +28,7 @@ export default function SinglePostPage() {
   const [comments, setComments] = useState<any[]>([]);
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
   const pageLoadHandler = async () => {
     try {
@@ -40,24 +43,16 @@ export default function SinglePostPage() {
       const foundData = data.posts[0];
       console.log("Post data loaded:", foundData);
 
-      // Debug the reactions data structure
-      console.log("Reactions from API:", foundData.reactions);
-
       if (!foundData || foundData.id === 0) {
         router.push("/404");
         return;
       }
 
       setPost(foundData);
+      setCurrentUserId(data.userid); // Get current user ID from response
 
       // Set reactions from post data
       if (foundData.reactions) {
-        console.log("Setting reactions from post data:", {
-          likes: foundData.reactions.likes || 0,
-          dislikes: foundData.reactions.dislikes || 0,
-          userReaction: foundData.reactions.user_reaction,
-        });
-
         setReactions({
           likes: foundData.reactions.likes || 0,
           dislikes: foundData.reactions.dislikes || 0,
@@ -103,41 +98,24 @@ export default function SinglePostPage() {
     if (isReacting) return;
     setIsReacting(true);
 
-    // If user clicked the same reaction they already have, we'll toggle it off (null)
     const newReaction = reactions.userReaction === reaction ? null : reaction;
-    console.log(
-      "Current reaction:",
-      reactions.userReaction,
-      "New reaction:",
-      newReaction
-    );
 
     // Optimistic UI update
     setReactions((prev) => {
-      // Calculate new likes/dislikes based on the change
       let newLikes = prev.likes;
       let newDislikes = prev.dislikes;
 
-      // If removing a like
       if (prev.userReaction === true && newReaction === null) {
         newLikes--;
-      }
-      // If adding a like
-      else if (prev.userReaction !== true && newReaction === true) {
+      } else if (prev.userReaction !== true && newReaction === true) {
         newLikes++;
-        // If switching from dislike to like
         if (prev.userReaction === false) {
           newDislikes--;
         }
-      }
-      // If removing a dislike
-      else if (prev.userReaction === false && newReaction === null) {
+      } else if (prev.userReaction === false && newReaction === null) {
         newDislikes--;
-      }
-      // If adding a dislike
-      else if (prev.userReaction !== false && newReaction === false) {
+      } else if (prev.userReaction !== false && newReaction === false) {
         newDislikes++;
-        // If switching from like to dislike
         if (prev.userReaction === true) {
           newLikes--;
         }
@@ -152,11 +130,9 @@ export default function SinglePostPage() {
 
     try {
       const data = await reactToPost(postId, newReaction);
-      console.log("Reaction response:", data);
 
       if (data.error) {
         console.error("Error reacting to post:", data.error);
-        // Revert optimistic update on error
         if (post.reactions) {
           setReactions({
             likes: post.reactions.likes || 0,
@@ -169,8 +145,6 @@ export default function SinglePostPage() {
 
       if (data.posts && data.posts.length > 0 && data.posts[0].reactions) {
         const updatedReactions = data.posts[0].reactions;
-        console.log("Updated reactions from API:", updatedReactions);
-
         setReactions({
           likes: updatedReactions.likes,
           dislikes: updatedReactions.dislikes,
@@ -179,7 +153,6 @@ export default function SinglePostPage() {
       }
     } catch (error) {
       console.error("Failed to react to post:", error);
-      // Revert optimistic update on error
       if (post.reactions) {
         setReactions({
           likes: post.reactions.likes || 0,
@@ -213,9 +186,17 @@ export default function SinglePostPage() {
     }
   };
 
+  const handleShareClick = () => {
+    setIsShareModalOpen(true);
+  };
+
   const goBack = () => {
     router.back();
   };
+
+  // Check if current user owns this post and it's private
+  const showShareButton =
+    post.privacy === "private" && post.user_id === currentUserId;
 
   if (isLoading) {
     return (
@@ -241,188 +222,204 @@ export default function SinglePostPage() {
   }
 
   return (
-    <div className="posts-page" style={{ display }}>
-      <div className="single-post-container">
-        <button onClick={goBack} className="back-button" aria-label="Go back">
-          <Image src="/icons/left.svg" alt="back" width={16} height={16} />
-          <span>Back</span>
-        </button>
+    <>
+      <div className="posts-page" style={{ display }}>
+        <div className="single-post-container">
+          <button onClick={goBack} className="back-button" aria-label="Go back">
+            <Image src="/icons/left.svg" alt="back" width={16} height={16} />
+            <span>Back</span>
+          </button>
 
-        <img
-          src={
-            post.image
-              ? `http://localhost:8080/getProtectedImage?type=posts&id=${
-                  post.id
-                }&path=${encodeURIComponent(post.image)}`
-              : "/icons/placeholder.svg"
-          }
-          alt="Post content"
-          className="single-post-image"
-        />
+          <img
+            src={
+              post.image
+                ? `http://localhost:8080/getProtectedImage?type=posts&id=${
+                    post.id
+                  }&path=${encodeURIComponent(post.image)}`
+                : "/icons/placeholder.svg"
+            }
+            alt="Post content"
+            className="single-post-image"
+          />
 
-        <div className="single-post-content">
-          <div className="single-post-header">
-            <div style={{ display: "flex", alignItems: "center" }}>
-              <div
-                className="post-user-avatar"
-                onClick={() => router.push(`/app/profiles/${post.user_id}`)}
-              >
-                <img
-                  src={
-                    post.user.avatar
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                          post.user_id
-                        }&path=${encodeURIComponent(post.user.avatar)}`
-                      : "/icons/placeholder.svg"
-                  }
-                  alt="user avatar"
-                  className="post-image"
-                />
-              </div>
-              <div
-                className="post-user-name"
-                onClick={() => router.push(`/app/profiles/${post.user_id}`)}
-              >
-                {post.user?.firstname + " " + post.user?.lastname}
-              </div>
-              <div className="post-privacy">
-                {renderPrivacyIcon()}
-                {post.privacy === "public"
-                  ? "Public"
-                  : post.privacy === "almost-private"
-                  ? "Followers"
-                  : "Private"}
-              </div>
-            </div>
-            <div style={{ marginTop: "10px" }}>
-              <div className="post-caption">
-                <span className="post-user-name">
+          <div className="single-post-content">
+            <div className="single-post-header">
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div
+                  className="post-user-avatar"
+                  onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+                >
+                  <img
+                    src={
+                      post.user.avatar
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                            post.user_id
+                          }&path=${encodeURIComponent(post.user.avatar)}`
+                        : "/icons/placeholder.svg"
+                    }
+                    alt="user avatar"
+                    className="post-image"
+                  />
+                </div>
+                <div
+                  className="post-user-name"
+                  onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+                >
                   {post.user?.firstname + " " + post.user?.lastname}
-                </span>{" "}
-                {post.caption}
+                </div>
+                <div className="post-privacy">
+                  {renderPrivacyIcon()}
+                  {post.privacy === "public"
+                    ? "Public"
+                    : post.privacy === "almost-private"
+                    ? "Followers"
+                    : "Private"}
+                </div>
               </div>
-              <div className="post-timestamp">
-                {post.creation_date || post.timestamp}
+              <div style={{ marginTop: "10px" }}>
+                <div className="post-caption">
+                  <span className="post-user-name">
+                    {post.user?.firstname + " " + post.user?.lastname}
+                  </span>{" "}
+                  {post.caption}
+                </div>
+                <div className="post-timestamp">
+                  {post.creation_date || post.timestamp}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="single-post-comments">
-            {comments.length > 0 ? (
-              comments.map((comment) => (
-                <Comment key={comment.id} comment={comment} postID={postId} />
-              ))
-            ) : (
-              <div className="no-comments">No comments yet</div>
-            )}
-          </div>
-
-          <div className="single-post-actions">
-            <div className="post-actions">
-              <button
-                className="post-action-btn"
-                onClick={() => handleReaction(true)}
-                disabled={isReacting}
-                aria-label="Like"
-                title={reactions.userReaction === true ? "Unlike" : "Like"}
-              >
-                {reactions.userReaction === true ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="var(--primary-color)"
-                    stroke="var(--primary-color)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="reaction-icon"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="reaction-icon"
-                  >
-                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-                  </svg>
-                )}
-              </button>
-              <button
-                className="post-action-btn"
-                onClick={() => handleReaction(false)}
-                disabled={isReacting}
-                aria-label="Dislike"
-                title={
-                  reactions.userReaction === false
-                    ? "Remove dislike"
-                    : "Dislike"
-                }
-              >
-                {reactions.userReaction === false ? (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="var(--primary-color)"
-                    stroke="var(--primary-color)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="reaction-icon"
-                  >
-                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-                  </svg>
-                ) : (
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="24"
-                    height="24"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    className="reaction-icon"
-                  >
-                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
-                  </svg>
-                )}
-              </button>
-              <button className="post-action-btn">
-                <Image
-                  src="/icons/send.svg"
-                  alt="send"
-                  width={24}
-                  height={24}
-                />
-              </button>
+            <div className="single-post-comments">
+              {comments.length > 0 ? (
+                comments.map((comment) => (
+                  <Comment key={comment.id} comment={comment} postID={postId} />
+                ))
+              ) : (
+                <div className="no-comments">No comments yet</div>
+              )}
             </div>
 
-            <div className="post-likes">
-              {reactions.likes} likes • {reactions.dislikes} dislikes
-            </div>
+            <div className="single-post-actions">
+              <div className="post-actions">
+                <button
+                  className="post-action-btn"
+                  onClick={() => handleReaction(true)}
+                  disabled={isReacting}
+                  aria-label="Like"
+                  title={reactions.userReaction === true ? "Unlike" : "Like"}
+                >
+                  {reactions.userReaction === true ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="var(--primary-color)"
+                      stroke="var(--primary-color)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="reaction-icon"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="reaction-icon"
+                    >
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                    </svg>
+                  )}
+                </button>
+                <button
+                  className="post-action-btn"
+                  onClick={() => handleReaction(false)}
+                  disabled={isReacting}
+                  aria-label="Dislike"
+                  title={
+                    reactions.userReaction === false
+                      ? "Remove dislike"
+                      : "Dislike"
+                  }
+                >
+                  {reactions.userReaction === false ? (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="var(--primary-color)"
+                      stroke="var(--primary-color)"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="reaction-icon"
+                    >
+                      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                    </svg>
+                  ) : (
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="24"
+                      height="24"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="reaction-icon"
+                    >
+                      <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path>
+                    </svg>
+                  )}
+                </button>
+                {showShareButton && (
+                  <button
+                    className="post-action-btn"
+                    onClick={handleShareClick}
+                    title="Manage sharing"
+                  >
+                    <Image
+                      src="/icons/send.svg"
+                      alt="share"
+                      width={24}
+                      height={24}
+                    />
+                  </button>
+                )}
+              </div>
 
-            <CommentForm
-              postId={postId}
-              onCommentAdded={loadComments}
-              disabled={isLoading}
-            />
+              <div className="post-likes">
+                {reactions.likes} likes • {reactions.dislikes} dislikes
+              </div>
+
+              <CommentForm
+                postId={postId}
+                onCommentAdded={loadComments}
+                disabled={isLoading}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {showShareButton && (
+        <PostShareModal
+          postId={post.id}
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+    </>
   );
 }

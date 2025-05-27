@@ -141,13 +141,25 @@
 
 .post-image-container {
   position: relative;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 300px;
   background-color: #000;
+  overflow: hidden;
 }
 
 .post-image {
-  object-fit: contain;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   transition: filter 0.3s ease;
+}
+
+.post-content-image {
+  width: 100%;
+  height: 300px;
+  object-fit: cover;
+  transition: filter 0.3s ease;
+  cursor: pointer;
 }
 
 .post-actions {
@@ -559,8 +571,9 @@
 }
 
 .single-post-image {
-  position: relative;
-  aspect-ratio: 1 / 1;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
   background-color: #000;
 }
 

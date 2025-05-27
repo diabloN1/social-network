@@ -50,6 +50,12 @@ func Start() error {
 	s.router.HandleFunc("/getPost", s.getPostHandler)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
+	
+	// Post Shares
+	s.router.HandleFunc("/getPostShares", s.getPostSharesHandler)
+	s.router.HandleFunc("/addPostShare", s.addPostShareHandler)
+	s.router.HandleFunc("/removePostShare", s.removePostShareHandler)
+	
 	// Comments
 	s.router.HandleFunc("/addComment", s.addCommentHandler)
 	s.router.HandleFunc("/getComments", s.getCommentsHandler)
@@ -98,6 +104,7 @@ func Start() error {
 	log.Println("Server started at http://localhost:8080/")
 	return http.ListenAndServe(":8080", s.corsMiddleware(s))
 }
+
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)

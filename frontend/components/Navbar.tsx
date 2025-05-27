@@ -67,12 +67,6 @@ export default function Navbar() {
       }
 
       setIsLoggingOut(false);
-
-      // Redirect to login page
-      router.push("/");
-
-      // Force a page refresh to ensure all state is cleared
-      window.location.href = "/";
     }
   };
 

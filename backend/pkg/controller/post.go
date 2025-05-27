@@ -36,6 +36,7 @@ func (s *Server) GetPosts(request map[string]any) *model.Response {
 	}
 
 	response.Posts = posts
+	response.Userid = res.Userid
 
 	return response
 }

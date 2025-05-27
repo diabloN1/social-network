@@ -42,6 +42,12 @@ func (r *Repository) Post() *PostRepository {
 	}
 }
 
+func (r *Repository) PostShare() *PostShareRepository {
+	return &PostShareRepository{
+		Repository: r,
+	}
+}
+
 func (r *Repository) Comment() *CommentRepository {
 	return &CommentRepository{
 		Repository: r,

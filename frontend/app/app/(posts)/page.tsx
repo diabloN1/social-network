@@ -9,6 +9,7 @@ import getPosts from "@/api/posts/getPosts";
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
+  const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -17,8 +18,10 @@ export default function PostsPage() {
       setIsLoading(true);
       const data = await getPosts(0);
       if (data && data.posts) {
-        console.log("Fetched posts:", data.posts);
+        console.log("Fetched posts:", data);
+        console.log("Current user ID from API:", data.userid);
         setPosts(data.posts);
+        setCurrentUserId(data.userid);
       }
     } catch (error) {
       console.error(error);
@@ -85,13 +88,19 @@ export default function PostsPage() {
         ) : posts.length === 0 ? (
           <div className="no-posts">No posts yet. Create your first post!</div>
         ) : (
-          posts.map((post) => (
-            <Post
-              key={post.id}
-              post={post}
-              onReactionUpdate={handleReactionUpdate}
-            />
-          ))
+          posts.map((post) => {
+            console.log(
+              `Post ${post.id} - Owner: ${post.user_id}, Current User: ${currentUserId}, Privacy: ${post.privacy}`
+            );
+            return (
+              <Post
+                key={post.id}
+                post={post}
+                currentUserId={currentUserId}
+                onReactionUpdate={handleReactionUpdate}
+              />
+            );
+          })
         )}
       </main>
 
