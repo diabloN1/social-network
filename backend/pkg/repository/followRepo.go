@@ -158,3 +158,24 @@ func (r *FollowRepository) GetFollowRequestCount(userId int) (int, error) {
 
 	return count, nil
 }
+
+func (r *FollowRepository) CountPublicFollowRequests(userID int) (int, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM notifications
+		WHERE receiver_id = $1 AND type = 'follow_request' 
+	`
+	err := r.Repository.db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}
+
+func (r *FollowRepository) GetCountPublicFollowRequests(userID int) (bool, error) {
+	 query := `SELECT EXISTS (SELECT 1 FROM notifications WHERE receiver_id = $1 AND type = 'follow_request')`
+    var exists bool
+    err := r.Repository.db.QueryRow(query, userID).Scan(&exists)
+    
+	return exists, err
+}
+
+
+
