@@ -125,25 +125,45 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	// isFollower or been followed.
 	if isFollower {
 		err = s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
-
+		err = s.repository.Follow().DeleteNotif( res.Userid,int(profileId),)
+		if err != nil {
+			response.Error = err.Error()
+			log.Println("Error deletting notif follow:", err)
+		}
+		notification := map[string]any{
+		"type":       "DeletefollowHandled",
+		"followerId": res.Userid,
+		"message":    "unfollow ",
+		"timestamp":  time.Now().Unix(),
+	}
+	s.sendNotificationToUser(int(profileId), notification)
 	} else {
 		err = s.repository.Follow().DeleteFollow(res.Userid, int(profileId))
 		if err != nil {
 			response.Error = err.Error()
 			log.Println("Error deletting follow:", err)
 		}
+		notification := map[string]any{
+		"type":       "DeletefollowHandled",
+		"followerId": profileId,
+		"message":    "unfollow ",
+		"timestamp":  time.Now().Unix(),
+	}
+	s.sendNotificationToUser(int(res.Userid), notification)
 	}
 	if err != nil {
 		response.Error = err.Error()
 		log.Println("Error deletting follow:", err)
 	}
-	wsMsg := map[string]any{
-		"type": "followRequestHandled",
-		
+
+		notification := map[string]any{
+		"type":       "DeletefollowHandled",
+		"followerId": res.Userid,
+		"message":    "unfollow ",
+		"timestamp":  time.Now().Unix(),
 	}
-	for _, c := range s.clients[res.Userid] {
-		s.ShowMessage(c, wsMsg)
-	}
+	s.sendNotificationToUser(int(profileId), notification)
+
 	return response
 }
 func (s *Server) GetFollowRequestCount(request map[string]any) map[string]any {

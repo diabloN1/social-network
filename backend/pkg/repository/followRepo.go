@@ -117,6 +117,14 @@ func (r *FollowRepository) DeleteFollow(profileId, userId int) error {
 
 	return nil
 }
+func (r *FollowRepository) DeleteNotif(sender, reciever int) error {
+
+	_, err := r.Repository.db.Exec(`
+    DELETE FROM notifications
+    WHERE sender_id = $1 AND receiver_id = $2 AND type = 'follow_request'
+`, sender, reciever)
+return err
+}
 
 func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
 	var users []*model.User
