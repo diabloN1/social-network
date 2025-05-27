@@ -215,6 +215,16 @@
   background-color: var(--card-bg);
   border-radius: 8px;
 }
+.notification-banner {
+  background-color: #fef9c3;
+  color: #92400e;
+  padding: 12px;
+  border: 1px solid #fde68a;
+  border-radius: 6px;
+  font-weight: 500;
+  margin-bottom: 12px;
+}
+
 
 /* Responsive Styles */
 @media (min-width: 768px) {
