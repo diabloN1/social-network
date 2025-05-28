@@ -1,16 +1,10 @@
 "use client";
 
+import { Comment as CommentType } from "@/types/comment";
 import Image from "next/image";
 
 interface CommentProps {
-  comment: {
-    id: number;
-    author: string;
-    text: string;
-    image: string;
-    creation_date: string;
-    user_id?: number;
-  };
+  comment: CommentType;
   postID: number;
 }
 
@@ -33,7 +27,7 @@ export default function Comment({ comment, postID }: CommentProps) {
 
         {comment.image && (
           <div className="comment-image-container">
-            <img
+            <Image
               src={
                 comment.image
                   ? `http://localhost:8080/getProtectedImage?type=posts&id=${postID}&path=${encodeURIComponent(
@@ -43,14 +37,10 @@ export default function Comment({ comment, postID }: CommentProps) {
               }
               alt="Comment image"
               className="comment-image"
+              width={200}
+              height={400}
+              unoptimized
             />
-            {/* <img
-              src={`http://localhost:8080/getProtectedImage?type=comments&id=${
-                comment.id
-              }&path=${encodeURIComponent(comment.image)}`}
-              alt="Comment image"
-              className="comment-image"
-            /> */}
           </div>
         )}
 

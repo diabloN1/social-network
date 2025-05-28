@@ -254,7 +254,7 @@ func (s *Server) SentToActiveRecipient(response map[string]any) {
 	}
 
 	senderId := response["message"].(*model.Message).SenderId
-	receiverId := response["message"].(*model.Message).RecipientId
+	RecipientId := response["message"].(*model.Message).RecipientId
 	groupId := response["message"].(*model.Message).GroupId
 
 	for _, c := range s.clients[senderId] {
@@ -262,9 +262,9 @@ func (s *Server) SentToActiveRecipient(response map[string]any) {
 		s.ShowMessage(c, response)
 	}
 
-	if receiverId != 0 {
-		// Brodcast to receiver
-		for _, c := range s.clients[receiverId] {
+	if RecipientId != 0 {
+		// Brodcast to RecipientId
+		for _, c := range s.clients[RecipientId] {
 			response["isOwned"] = false
 			s.ShowMessage(c, response)
 		}

@@ -1,101 +1,78 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import Image from "next/image"
-import { useRouter } from "next/navigation"
-import reactToPost from "@/api/posts/reactToPost"
-import PostShareModal from "./post-share-modal"
+import type React from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import reactToPost from "@/api/posts/reactToPost";
+import PostShareModal from "./post-share-modal";
+import { Post as PostType, Reaction } from "@/types/post";
 
-interface Comment {
-  id: number
-  user: {
-    name: string
-    avatar: string
-  }
-  text: string
-  timestamp: string
-}
-
-interface ReactionCounts {
-  likes: number
-  dislikes: number
-  user_reaction: boolean | null
-}
 
 interface PostProps {
-  post: {
-    id: number
-    user_id?: number
-    user: {
-      firstname: string
-      lastname: string
-      avatar: string
-    }
-    image?: string
-    caption: string
-    privacy: string
-    comments?: Comment[]
-    timestamp?: string
-    creation_date?: string
-    reactions?: ReactionCounts
-  }
-  currentUserId?: number | null
-  onReactionUpdate?: (postId: number, reactionData: ReactionCounts) => void
+  post: PostType;
+  currentUserId?: number | null;
+  onReactionUpdate?: (postId: number, reactionData: Reaction) => void;
 }
 
-const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) => {
+const Post: React.FC<PostProps> = ({
+  post,
+  currentUserId,
+  onReactionUpdate,
+}) => {
   // Initialize reactions state from post data
   const [reactions, setReactions] = useState({
     likes: post.reactions?.likes || 0,
     dislikes: post.reactions?.dislikes || 0,
-    userReaction: post.reactions?.user_reaction,
-  })
-  const [isReacting, setIsReacting] = useState(false)
-  const [comments, setComments] = useState<Comment[]>(post.comments || [])
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-  const router = useRouter()
+    userReaction: post.reactions?.userReaction,
+  });
+  const [isReacting, setIsReacting] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const router = useRouter();
 
   // Update local state when post prop changes
   useEffect(() => {
     if (post.reactions) {
-      const userReaction = post.reactions.user_reaction !== undefined ? post.reactions.user_reaction : null
+      const userReaction =
+        post.reactions.userReaction !== undefined
+          ? post.reactions.userReaction
+          : null;
 
       setReactions({
         likes: post.reactions.likes || 0,
         dislikes: post.reactions.dislikes || 0,
         userReaction: userReaction,
-      })
+      });
     }
-  }, [post.reactions])
+  }, [post.reactions]);
 
   const navigateToPost = () => {
-    router.push(`/app/${post.id}`)
-  }
+    router.push(`/app/${post.id}`);
+  };
 
   const handleReaction = async (reaction: boolean) => {
-    if (isReacting) return
-    setIsReacting(true)
+    if (isReacting) return;
+    setIsReacting(true);
 
-    const newReaction = reactions.userReaction === reaction ? null : reaction
+    const newReaction = reactions.userReaction === reaction ? null : reaction;
 
     setReactions((prev) => {
-      let newLikes = prev.likes
-      let newDislikes = prev.dislikes
+      let newLikes = prev.likes;
+      let newDislikes = prev.dislikes;
 
       if (prev.userReaction === true && newReaction === null) {
-        newLikes--
+        newLikes--;
       } else if (prev.userReaction !== true && newReaction === true) {
-        newLikes++
+        newLikes++;
         if (prev.userReaction === false) {
-          newDislikes--
+          newDislikes--;
         }
       } else if (prev.userReaction === false && newReaction === null) {
-        newDislikes--
+        newDislikes--;
       } else if (prev.userReaction !== false && newReaction === false) {
-        newDislikes++
+        newDislikes++;
         if (prev.userReaction === true) {
-          newLikes--
+          newLikes--;
         }
       }
 
@@ -103,69 +80,78 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
         likes: newLikes,
         dislikes: newDislikes,
         userReaction: newReaction,
-      }
-    })
+      };
+    });
 
     try {
-      const data = await reactToPost(post.id, newReaction)
+      const data = await reactToPost(post.id, newReaction);
 
       if (data.error) {
-        console.error("Error reacting to post:", data.error)
+        console.error("Error reacting to post:", data.error);
         setReactions({
           likes: post.reactions?.likes || 0,
           dislikes: post.reactions?.dislikes || 0,
-          userReaction: post.reactions?.user_reaction,
-        })
-        return
+          userReaction: post.reactions?.userReaction,
+        });
+        return;
       }
 
       if (data.posts && data.posts.length > 0 && data.posts[0].reactions) {
-        const updatedReactions = data.posts[0].reactions
+        const updatedReactions = data.posts[0].reactions;
         setReactions({
           likes: updatedReactions.likes,
           dislikes: updatedReactions.dislikes,
-          userReaction: updatedReactions.user_reaction,
-        })
+          userReaction: updatedReactions.userReaction,
+        });
 
         if (onReactionUpdate) {
-          onReactionUpdate(post.id, updatedReactions)
+          onReactionUpdate(post.id, updatedReactions);
         }
       }
     } catch (error) {
-      console.error("Failed to react to post:", error)
+      console.error("Failed to react to post:", error);
       setReactions({
         likes: post.reactions?.likes || 0,
         dislikes: post.reactions?.dislikes || 0,
-        userReaction: post.reactions?.user_reaction,
-      })
+        userReaction: post.reactions?.userReaction,
+      });
     } finally {
-      setIsReacting(false)
+      setIsReacting(false);
     }
-  }
+  };
 
   const handleCommentClick = () => {
-    router.push(`/app/${post.id}`)
-  }
+    router.push(`/app/${post.id}`);
+  };
 
   const handleShareClick = () => {
-    setIsShareModalOpen(true)
-  }
+    setIsShareModalOpen(true);
+  };
 
   const renderPrivacyIcon = () => {
     switch (post.privacy) {
       case "public":
-        return <Image src="/icons/globe.svg" alt="globe" width={18} height={18} />
+        return (
+          <Image src="/icons/globe.svg" alt="globe" width={18} height={18} />
+        );
       case "almost-private":
-        return <Image src="/icons/users.svg" alt="users" width={18} height={18} />
+        return (
+          <Image src="/icons/users.svg" alt="users" width={18} height={18} />
+        );
       case "private":
-        return <Image src="/icons/lock.svg" alt="lock" width={18} height={18} />
+        return (
+          <Image src="/icons/lock.svg" alt="lock" width={18} height={18} />
+        );
       default:
-        return <Image src="/icons/users.svg" alt="users" width={18} height={18} />
+        return (
+          <Image src="/icons/users.svg" alt="users" width={18} height={18} />
+        );
     }
-  }
+  };
 
   // Check if current user owns this post and it's private
-  const showShareButton = post.privacy === "private" && post.user_id === currentUserId
+  const showShareButton =
+    post.privacy === "private" && post.user_id === currentUserId;
 
   // Debug logging
   console.log(`Post ${post.id} share button check:`, {
@@ -173,37 +159,53 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
     postUserId: post.user_id,
     currentUserId: currentUserId,
     showShareButton: showShareButton,
-  })
+  });
 
   return (
     <>
       <article className="post">
         <div className="post-header">
-          <div className="post-user-avatar" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
-            <img
+          <div
+            className="post-user-avatar"
+            onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+          >
+            <Image
               src={
                 post.user.avatar
-                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                      post.user_id
-                    }&path=${encodeURIComponent(post.user.avatar)}`
+                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                      post.user.avatar
+                    )}`
                   : "/icons/placeholder.svg"
               }
               alt="user avatar"
-              className="post-image"
+              width={45}
+              height={45}
+              unoptimized
             />
           </div>
-          <div className="post-user-name" onClick={() => router.push(`/app/profiles/${post.user_id}`)}>
+          <div
+            className="post-user-name"
+            onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+          >
             {post.user.firstname + " " + post.user.lastname}
           </div>
           <div className="post-privacy">
             {renderPrivacyIcon()}
-            {post.privacy === "public" ? "Public" : post.privacy === "almost-private" ? "Followers" : "Private"}
+            {post.privacy === "public"
+              ? "Public"
+              : post.privacy === "almost-private"
+              ? "Followers"
+              : "Private"}
           </div>
         </div>
 
         {post.image && (
-          <div className="post-image-container" onClick={navigateToPost} style={{ cursor: "pointer" }}>
-            <img
+          <div
+            className="post-image-container"
+            onClick={navigateToPost}
+            style={{ cursor: "pointer" }}
+          >
+            <Image
               src={
                 post.image
                   ? `http://localhost:8080/getProtectedImage?type=posts&id=${
@@ -213,6 +215,9 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
               }
               alt="Post content"
               className="post-image"
+              width={200}
+              height={400}
+              unoptimized
             />
           </div>
         )}
@@ -262,7 +267,9 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
             onClick={() => handleReaction(false)}
             disabled={isReacting}
             aria-label="Dislike"
-            title={reactions.userReaction === false ? "Remove dislike" : "Dislike"}
+            title={
+              reactions.userReaction === false ? "Remove dislike" : "Dislike"
+            }
           >
             {reactions.userReaction === false ? (
               <svg
@@ -296,12 +303,27 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
               </svg>
             )}
           </button>
-          <button className="post-action-btn" onClick={handleCommentClick} title="View comments">
-            <Image src="/icons/messages.svg" alt="messages" width={24} height={24} />
-            {comments.length > 0 && <span className="comment-count">{comments.length}</span>}
+          <button
+            className="post-action-btn"
+            onClick={handleCommentClick}
+            title="View comments"
+          >
+            <Image
+              src="/icons/messages.svg"
+              alt="messages"
+              width={24}
+              height={24}
+            />
+            {post.comments && post.comments.length > 0 && (
+              <span className="comment-count">{post.comments.length}</span>
+            )}
           </button>
           {showShareButton && (
-            <button className="post-action-btn" onClick={handleShareClick} title="Manage sharing">
+            <button
+              className="post-action-btn"
+              onClick={handleShareClick}
+              title="Manage sharing"
+            >
               <Image src="/icons/send.svg" alt="share" width={24} height={24} />
             </button>
           )}
@@ -312,17 +334,24 @@ const Post: React.FC<PostProps> = ({ post, currentUserId, onReactionUpdate }) =>
         </div>
 
         <div className="post-caption">
-          <span className="post-user-name">{post.user.firstname + " " + post.user.lastname}</span> {post.caption}
+          <span className="post-user-name">
+            {post.user.firstname + " " + post.user.lastname}
+          </span>{" "}
+          {post.caption}
         </div>
 
-        <div className="post-timestamp">{post.creation_date || post.timestamp || "Just now"}</div>
+        <div className="post-timestamp">{post.creation_date || "Just now"}</div>
       </article>
 
       {showShareButton && (
-        <PostShareModal postId={post.id} isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} />
+        <PostShareModal
+          postId={post.id}
+          isOpen={isShareModalOpen}
+          onClose={() => setIsShareModalOpen(false)}
+        />
       )}
     </>
-  )
-}
+  );
+};
 
-export default Post
+export default Post;

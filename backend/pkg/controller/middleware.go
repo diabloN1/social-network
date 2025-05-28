@@ -2,13 +2,13 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-// CORS Middleware to allow cross-origin requests and handle JSON
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// // Allow CORS for the specified origin
@@ -20,7 +20,6 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// CORS Middleware to allow cross-origin requests and handle JSON
 func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
@@ -76,6 +75,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 			}
 		case "group-posts":
 			hasAccess, err := s.repository.Group().IsMember(res.Userid, id)
+			fmt.Println(hasAccess, res.Userid)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -106,14 +106,19 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 // 			return
 // 		}
 
-// 		groupID := r.URL.Query().Get("group_id")
+// 		groupIdStr := r.URL.Query().Get("group_id")
 
-// 		if userID == 0 || groupID == "" {
+// 		groupID, err := strconv.Atoi(groupIdStr)
+// 		if err != nil {
+// 			http.Error(w, "Group_id is not an int", http.StatusBadRequest)
+// 			return
+// 		}
+// 		if userID == 0 || groupID == 0 {
 // 			http.Error(w, "Unauthorized: Missing user or group information", http.StatusUnauthorized)
 // 			return
 // 		}
 
-// 		isMember, err := s.repository.Group().IsMember(int(userID), int(groupID))
+// 		isMember, err := s.repository.Group().IsMember(int(userID), groupID)
 // 		if err != nil || !isMember {
 // 			http.Error(w, "Forbidden: You are not a member of this group", http.StatusForbidden)
 // 			return

@@ -5,6 +5,7 @@ import { useState } from "react";
 import { uploadFile } from "@/api/auth/uploadFile";
 import "./styles/create-post-modal.css";
 import Popup from "@/app/app/popup";
+import Image from "next/image";
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -108,7 +109,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {imagePreview && (
                 <div className="image-preview">
-                  <img src={imagePreview || "/placeholder.svg"} alt="Preview" />
+                  <Image src={imagePreview || "/placeholder.svg"} alt="Preview" width={600} height={200}/>
                 </div>
               )}
             </div>

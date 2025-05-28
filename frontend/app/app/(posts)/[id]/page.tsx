@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
@@ -11,13 +11,15 @@ import getComments from "@/api/posts/getComments";
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
+import { Post } from "@/types/post";
+import { Comment as CommentType } from "@/types/comment";
 
 export default function SinglePostPage() {
   const params = useParams();
   const router = useRouter();
   const postId = Number(params.id);
 
-  const [post, setPost] = useState<any>({});
+  const [post, setPost] = useState<Post | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [reactions, setReactions] = useState({
     likes: 0,
@@ -25,12 +27,31 @@ export default function SinglePostPage() {
     userReaction: null as boolean | null,
   });
   const [isReacting, setIsReacting] = useState(false);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 
-  const pageLoadHandler = async () => {
+  const loadComments = useCallback(async () => {
+    try {
+      const commentsData = await getComments(postId);
+      if (commentsData.error) {
+        throw new Error(commentsData.error);
+      }
+
+      if (
+        commentsData.posts &&
+        commentsData.posts[0] &&
+        commentsData.posts[0].comments
+      ) {
+        setComments(commentsData.posts[0].comments);
+      }
+    } catch (error) {
+      console.error("Error loading comments:", error);
+    }
+  }, [postId]);
+
+  const pageLoadHandler = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -49,14 +70,14 @@ export default function SinglePostPage() {
       }
 
       setPost(foundData);
-      setCurrentUserId(data.userid); // Get current user ID from response
+      setCurrentUserId(data.userid);
 
       // Set reactions from post data
       if (foundData.reactions) {
         setReactions({
           likes: foundData.reactions.likes || 0,
           dislikes: foundData.reactions.dislikes || 0,
-          userReaction: foundData.reactions.user_reaction,
+          userReaction: foundData.reactions.userReaction,
         });
       }
 
@@ -69,30 +90,11 @@ export default function SinglePostPage() {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const loadComments = async () => {
-    try {
-      const commentsData = await getComments(postId);
-      if (commentsData.error) {
-        throw new Error(commentsData.error);
-      }
-
-      if (
-        commentsData.posts &&
-        commentsData.posts[0] &&
-        commentsData.posts[0].comments
-      ) {
-        setComments(commentsData.posts[0].comments);
-      }
-    } catch (error) {
-      console.error("Error loading comments:", error);
-    }
-  };
+  }, [postId, router, loadComments]);
 
   useEffect(() => {
     pageLoadHandler();
-  }, []);
+  }, [pageLoadHandler]);
 
   const handleReaction = async (reaction: boolean) => {
     if (isReacting) return;
@@ -133,11 +135,11 @@ export default function SinglePostPage() {
 
       if (data.error) {
         console.error("Error reacting to post:", data.error);
-        if (post.reactions) {
+        if (post?.reactions) {
           setReactions({
             likes: post.reactions.likes || 0,
             dislikes: post.reactions.dislikes || 0,
-            userReaction: post.reactions.user_reaction || null,
+            userReaction: post.reactions.userReaction || null,
           });
         }
         return;
@@ -148,16 +150,16 @@ export default function SinglePostPage() {
         setReactions({
           likes: updatedReactions.likes,
           dislikes: updatedReactions.dislikes,
-          userReaction: updatedReactions.user_reaction,
+          userReaction: updatedReactions.userReaction,
         });
       }
     } catch (error) {
       console.error("Failed to react to post:", error);
-      if (post.reactions) {
+      if (post?.reactions) {
         setReactions({
           likes: post.reactions.likes || 0,
           dislikes: post.reactions.dislikes || 0,
-          userReaction: post.reactions.user_reaction || null,
+          userReaction: post.reactions.userReaction || null,
         });
       }
     } finally {
@@ -166,7 +168,7 @@ export default function SinglePostPage() {
   };
 
   const renderPrivacyIcon = () => {
-    switch (post.privacy) {
+    switch (post?.privacy) {
       case "public":
         return (
           <Image src="/icons/globe.svg" alt="globe" width={18} height={18} />
@@ -196,7 +198,7 @@ export default function SinglePostPage() {
 
   // Check if current user owns this post and it's private
   const showShareButton =
-    post.privacy === "private" && post.user_id === currentUserId;
+    post?.privacy === "private" && post?.user_id === currentUserId;
 
   if (isLoading) {
     return (
@@ -230,7 +232,7 @@ export default function SinglePostPage() {
             <span>Back</span>
           </button>
 
-          <img
+          <Image
             src={
               post.image
                 ? `http://localhost:8080/getProtectedImage?type=posts&id=${
@@ -239,7 +241,10 @@ export default function SinglePostPage() {
                 : "/icons/placeholder.svg"
             }
             alt="Post content"
+            width={500}
+            height={300}
             className="single-post-image"
+            unoptimized
           />
 
           <div className="single-post-content">
@@ -249,16 +254,18 @@ export default function SinglePostPage() {
                   className="post-user-avatar"
                   onClick={() => router.push(`/app/profiles/${post.user_id}`)}
                 >
-                  <img
+                  <Image
                     src={
                       post.user.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                            post.user_id
-                          }&path=${encodeURIComponent(post.user.avatar)}`
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                            post.user.avatar
+                          )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
-                    className="post-image"
+                    width={45}
+                    height={45}
+                    unoptimized
                   />
                 </div>
                 <div
@@ -283,9 +290,7 @@ export default function SinglePostPage() {
                   </span>{" "}
                   {post.caption}
                 </div>
-                <div className="post-timestamp">
-                  {post.creation_date || post.timestamp}
-                </div>
+                <div className="post-timestamp">{post.creation_date}</div>
               </div>
             </div>
 

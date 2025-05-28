@@ -10,6 +10,7 @@ import createGroup from "@/api/groups/createGroup";
 import getGroups from "@/api/groups/getGroups";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
+import Image from "next/image";
 
 // Types for API response
 interface User {
@@ -217,15 +218,18 @@ export default function GroupsPage() {
             {groupsData.group_invites.map((invite) => (
               <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
-                  <img
+                  <Image
                     src={
                       invite.user.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                             invite.user.avatar
                           )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                   <div className="invitation-details">
                     <span className="invitation-title">
@@ -268,15 +272,18 @@ export default function GroupsPage() {
             {groupsData.join_requests.map((request) => (
               <div key={request.id} className="request-card">
                 <div className="request-info">
-                  <img
+                  <Image
                     src={
                       request.members[0]?.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                             request.members[0]?.avatar
                           )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                   <div className="request-details">
                     <span className="request-title">
@@ -349,15 +356,18 @@ export default function GroupsPage() {
                 className="group-image"
                 onClick={() => navigateToGroup(group.id)}
               >
-                <img
+                <Image
                   src={
                     group.image
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                           group.image
                         )}`
                       : "/icons/placeholder.svg"
                   }
-                  alt="group image"
+                  alt="user avatar"
+                  width={400}
+                  height={200}
+                  unoptimized
                 />
               </div>
               <div

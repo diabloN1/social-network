@@ -11,6 +11,6 @@ type Reaction struct {
 type ReactionCounts struct {
 	Likes    int  `json:"likes"`
 	Dislikes int  `json:"dislikes"`
-	UserReaction *bool `json:"user_reaction"` 
+	UserReaction *bool `json:"userReaction"` 
 }
 

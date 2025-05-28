@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import {
@@ -15,7 +15,6 @@ import clearSessionCookie from "@/api/auth/clearSessionCookie";
 
 export default function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [joinRequestCount, setJoinRequestCount] = useState(0);
@@ -42,13 +41,10 @@ export default function Navbar() {
     setIsLoggingOut(true);
 
     try {
-      // Close websocket connection first
       closeWebSocket();
 
-      // Call logout API (this should handle server-side session removal)
       await logout();
 
-      // Clear the session cookie on client side
       await clearSessionCookie();
 
       console.log("Logout successful");
@@ -61,7 +57,6 @@ export default function Navbar() {
         console.error("Failed to clear session cookie:", cookieError);
       }
     } finally {
-      // Clear any localStorage items that might exist
       if (typeof window !== "undefined") {
         localStorage.clear();
       }

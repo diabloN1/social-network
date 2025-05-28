@@ -5,7 +5,6 @@ export default async function logout() {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include", // This will include cookies in the request
     });
 
     const data = await response.json();

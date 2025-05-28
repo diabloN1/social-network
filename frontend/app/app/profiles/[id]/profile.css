@@ -37,12 +37,6 @@
   overflow: hidden;
 }
 
-.profile-avatar img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .profile-info {
   flex: 1;
   display: flex;
@@ -242,7 +236,7 @@
   cursor: pointer;
 }
 
-.post-item img {
+.post-item {
   width: 100%;
   height: 100%;
   object-fit: cover;

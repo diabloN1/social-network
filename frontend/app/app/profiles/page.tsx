@@ -5,11 +5,12 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
-import { User } from "./[id]/page";
 import getProfiles from "@/api/profiles/getProfiles";
 import acceptFollow from "@/api/follow/acceptFollow";
 import deleteFollow from "@/api/follow/deleteFollow";
 import hasNewFollowNotification from "@/api/profiles/getPuplicFollowReq";
+import { User } from "@/types/user";
+import Image from "next/image";
 
 export default function ProfilesPage() {
   const router = useRouter();
@@ -21,25 +22,25 @@ export default function ProfilesPage() {
 
   const getData = async () => {
     try {
-    const [profileData, followNotifData] = await Promise.all([
-      getProfiles(),
-      hasNewFollowNotification(),
-    ]);
+      const [profileData, followNotifData] = await Promise.all([
+        getProfiles(),
+        hasNewFollowNotification(),
+      ]);
 
-    if (profileData.error || followNotifData.error) {
-      alert(profileData.error || followNotifData.error);
-      return;
+      if (profileData.error || followNotifData.error) {
+        alert(profileData.error || followNotifData.error);
+        return;
+      }
+
+      setCurrentUser(profileData.currentuser);
+      setUsers(profileData.allusers);
+      setFollowRequests(profileData.followrequests);
+      setHasNewFollow(followNotifData.hasNewFollow);
+
+      return profileData;
+    } catch (error) {
+      alert(error);
     }
-
-    setCurrentUser(profileData.currentuser);
-    setUsers(profileData.allusers);
-    setFollowRequests(profileData.followrequests);
-    setHasNewFollow(followNotifData.hasNewFollow);
-
-    return profileData;
-  } catch (error) {
-    alert(error);
-  }
   };
 
   useEffect(() => {
@@ -136,16 +137,18 @@ export default function ProfilesPage() {
                     onClick={() => navigateToProfile(request.id)}
                     style={{ cursor: "pointer" }}
                   >
-                    <img
+                    <Image
                       src={
                         request.avatar
-                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                              request.id
-                            }&path=${encodeURIComponent(request.avatar)}`
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                              request.avatar
+                            )}`
                           : "/icons/placeholder.svg"
                       }
-                      alt="user-request-avatar"
-                      className="user-avatar"
+                      alt="user avatar"
+                      width={40}
+                      height={40}
+                      unoptimized
                     />
                     <div className="user-details">
                       <span className="user-name">{request.firstname}</span>
@@ -171,11 +174,11 @@ export default function ProfilesPage() {
           </div>
         </section>
       )}
-  {hasNewFollow && (
-    <div className="notification-banner">
-      <p>🔔 You have a new follower!</p>
-    </div>
-  )}
+      {hasNewFollow && (
+        <div className="notification-banner">
+          <p>🔔 You have a new follower!</p>
+        </div>
+      )}
       <section className="users-section">
         {currentUser && (
           <div className="current-user-section">
@@ -185,16 +188,18 @@ export default function ProfilesPage() {
               onClick={() => navigateToProfile(currentUser.id)}
               style={{ cursor: "pointer" }}
             >
-              <img
-                 src={
-                      currentUser.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                            currentUser.id
-                          }&path=${encodeURIComponent(currentUser.avatar)}`
-                        : "/icons/placeholder.svg"
-                    }
-                alt={currentUser.nickname}
-                className="user-avatar"
+              <Image
+                src={
+                  currentUser.avatar
+                    ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                        currentUser.avatar
+                      )}`
+                    : "/icons/placeholder.svg"
+                }
+                alt="user avatar"
+                width={40}
+                height={40}
+                unoptimized
               />
               <div className="current-user-details">
                 <span className="user-name">{currentUser.firstname}</span>
@@ -217,16 +222,18 @@ export default function ProfilesPage() {
                   className="post-user-avatar"
                   onClick={() => router.push(`/app/profiles/${user.id}`)}
                 >
-                  <img
+                  <Image
                     src={
                       user.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                            user.id
-                          }&path=${encodeURIComponent(user.avatar)}`
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                            user.avatar
+                          )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
-                    className="user-avatar"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                 </div>
                 <div className="user-details">
@@ -238,7 +245,7 @@ export default function ProfilesPage() {
           ))}
           {filteredUsers?.length === 0 && searchTerm && (
             <div className="no-results">
-              No users found matching "{searchTerm}"
+              No users found matching &quot;{searchTerm}&quot;
             </div>
           )}
         </div>

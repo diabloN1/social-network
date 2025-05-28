@@ -2,32 +2,13 @@
 
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import { Chat } from "./chatList";
 import getMessages from "@/api/messages/getMesages";
 import { addMessage } from "@/helpers/addMessage";
 import { onMessageType, socket } from "@/helpers/webSocket";
 import getToken from "@/api/auth/getToken";
-
-interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  avatar?: string;
-  online: boolean;
-}
-
-interface Message {
-  id: number;
-  sender_id: number;
-  receiver_id?: number;
-  group_id?: number;
-  text: string;
-  created_at: string;
-  isOwned: boolean;
-  user: User;
-}
+import { Chat } from "@/types/chat";
+import { AddMessageEvent, Message } from "@/types/message";
+import Image from "next/image";
 
 interface ChatWindowProps {
   chat: Chat | null;
@@ -65,36 +46,39 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
 
     const currentChatId = Number(chat?.id.split("_")[1]);
 
-    const unsubscribe = onMessageType("addMessage", async (data: any) => {
-      const isGroup = chat?.isGroup;
-      const isMatch = isGroup
-        ? data.message.group_id === currentChatId
-        : data.message.sender_id === currentChatId ||
-          data.message.recipient_id === currentChatId;
+    const unsubscribe = onMessageType(
+      "addMessage",
+      async (data: AddMessageEvent) => {
+        const isGroup = chat?.isGroup;
+        const isMatch = isGroup
+          ? data.message.group_id === currentChatId
+          : data.message.sender_id === currentChatId ||
+            data.message.recipient_id === currentChatId;
 
-      console.log("- - - - - -", chat, isGroup, isMatch);
+        console.log("- - - - - -", chat, isGroup, isMatch);
 
-      data.message.isOwned = data.isOwned;
+        data.message.isOwned = data.isOwned;
 
-      if (isMatch) {
-        try {
-          setMessages((prev) =>
-            prev != null ? [...prev, data.message] : [data.message]
-          );
+        if (isMatch) {
+          try {
+            setMessages((prev) =>
+              prev != null ? [...prev, data.message] : [data.message]
+            );
 
-          socket?.send(
-            JSON.stringify({
-              type: "updateseenmessages",
-              id: currentChatId,
-              isGroup,
-              session: (await getToken()).session,
-            })
-          );
-        } catch (error) {
-          alert(error);
+            socket?.send(
+              JSON.stringify({
+                type: "updateseenmessages",
+                id: currentChatId,
+                isGroup,
+                session: (await getToken()).session,
+              })
+            );
+          } catch (error) {
+            alert(error);
+          }
         }
       }
-    });
+    );
 
     return () => {
       unsubscribe(); // Clean up listener when chat change or component unmounts
@@ -169,15 +153,18 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       <div className="chat-header">
         <div className="chat-header-info">
           <div className="chat-avatar">
-            <img
+            <Image
               src={
                 chat.avatar
-                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                       chat.avatar
                     )}`
                   : "/icons/placeholder.svg"
               }
               alt="user avatar"
+              width={40}
+              height={40}
+              unoptimized
             />
             {!chat.isGroup && chat.isOnline && (
               <span className="online-indicator"></span>
@@ -216,15 +203,18 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
                 >
                   {!message.isOwned && showAvatar && (
                     <div className="message-avatar">
-                      <img
+                      <Image
                         src={
                           message.user.avatar
-                            ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                            ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                                 message.user.avatar
                               )}`
                             : "/icons/placeholder.svg"
                         }
-                        alt={message.user.nickname}
+                        alt="user avatar"
+                        width={40}
+                        height={40}
+                        unoptimized
                       />
                     </div>
                   )}
