@@ -12,57 +12,11 @@ import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
 import Popup from "../popup";
 import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
+import Image from "next/image";
+import { GroupsData } from "@/types/group";
 
 // Types for API response
-interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  avatar?: string;
-}
 
-interface Group {
-  id: number;
-  title: string;
-  description: string;
-  owner_id: number;
-  image: string;
-  creation_date: string;
-  is_accepted: boolean;
-  is_owner: boolean;
-  is_pending?: boolean;
-  members: User[];
-  new_event:boolean;
-}
-
-interface GroupInvite {
-  id: number;
-  group_id: number;
-  user_id: number;
-  creation_date: string;
-  group: Group;
-  user: User;
-}
-
-interface JoinRequest {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  creation_date: string;
-  is_accepted: boolean;
-  is_owner: boolean;
-  members: User[];
-}
-
-interface GroupsData {
-  all: Group[];
-  error: string;
-  group_invites: GroupInvite[] | null;
-  join_requests: JoinRequest[] | null;
-}
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -231,15 +185,18 @@ export default function GroupsPage() {
             {groupsData.group_invites.map((invite) => (
               <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
-                  <img
+                  <Image
                     src={
                       invite.user.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                             invite.user.avatar
                           )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                   <div className="invitation-details">
                     <span className="invitation-title">
@@ -282,15 +239,18 @@ export default function GroupsPage() {
             {groupsData.join_requests.map((request) => (
               <div key={request.id} className="request-card">
                 <div className="request-info">
-                  <img
+                  <Image
                     src={
                       request.members[0]?.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                             request.members[0]?.avatar
                           )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                   <div className="request-details">
                     <span className="request-title">
@@ -363,15 +323,18 @@ export default function GroupsPage() {
                 className="group-image"
                 onClick={() => navigateToGroup(group.id)}
               >
-                <img
+                <Image
                   src={
                     group.image
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                           group.image
                         )}`
                       : "/icons/placeholder.svg"
                   }
-                  alt="group image"
+                  alt="user avatar"
+                  width={400}
+                  height={200}
+                  unoptimized
                 />
               </div>
               {group.new_event && (

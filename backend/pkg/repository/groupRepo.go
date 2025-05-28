@@ -51,12 +51,14 @@ func (r *GroupRepository) GetGroupOwner(groupId int) (int, error) {
 func (r *GroupRepository) IsMember(userId, groupId int) (bool, error) {
 	var isMember bool
 	query := `
-            SELECT EXISTS(
-                SELECT 1 
+            SELECT is_accepted
                 FROM group_members 
-                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE
-            )`
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE`
 	err := r.Repository.db.QueryRow(query, userId, groupId).Scan(&isMember)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
 	return isMember, err
 }
 

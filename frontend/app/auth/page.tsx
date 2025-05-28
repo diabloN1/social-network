@@ -8,6 +8,7 @@ import postAuth from "@/api/auth/postAuth";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
+import Image from "next/image";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -20,7 +21,8 @@ export default function AuthForm() {
     firstName: "",
     lastName: "",
     dateOfBirth: "",
-    avatar: null as any,
+    avatarImage: null as File | null,
+    avatar: "",
     nickname: "",
     aboutMe: "",
   });
@@ -34,8 +36,10 @@ export default function AuthForm() {
     dateOfBirth: "",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
-
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const router = useRouter();
 
@@ -63,7 +67,7 @@ export default function AuthForm() {
 
       setFormData({
         ...formData,
-        avatar: file,
+        avatarImage: file,
       });
 
       // Create preview URL
@@ -143,9 +147,9 @@ export default function AuthForm() {
       // Create FormData object to handle file upload
 
       try {
-        if (formData.avatar) {
+        if (formData.avatarImage) {
           const submitData = new FormData();
-          submitData.append("file", formData.avatar);
+          submitData.append("file", formData.avatarImage);
           formData.avatar = await uploadFile(submitData, "/avatars");
         } else {
           formData.avatar = "";
@@ -165,8 +169,7 @@ export default function AuthForm() {
           router.push("/app");
         }
       } catch (err) {
-        setPopup({ message: "Failed to Register.", status: "failure" });
-
+        setPopup({ message: "Failed to Register." + err, status: "failure" });
       }
     }
   };
@@ -268,9 +271,11 @@ export default function AuthForm() {
                 />
                 {avatarPreview && (
                   <div className="avatar-preview">
-                    <img
+                    <Image
                       src={avatarPreview || "/icons/placeholder.svg"}
                       alt="Avatar preview"
+                      width={100}
+                      height={100}
                     />
                   </div>
                 )}

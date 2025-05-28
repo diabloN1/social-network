@@ -120,7 +120,7 @@
   flex-shrink: 0;
 }
 
-.comment-user-avatar img {
+.comment-user-avatar {
   width: 30px;
   height: 30px;
   border-radius: 50%;

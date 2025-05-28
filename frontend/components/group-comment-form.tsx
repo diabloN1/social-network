@@ -122,10 +122,12 @@ export default function GroupCommentForm({
       {imagePreview && (
         <div className="image-preview-container">
           <div className="image-preview">
-            <img
+            <Image
               src={imagePreview || "/placeholder.svg"}
               alt="Preview"
               className="preview-image"
+              width={40}
+              height={40}
             />
             <button
               type="button"

@@ -8,46 +8,15 @@ import deleteFollow from "@/api/follow/deleteFollow";
 import requestFollow from "@/api/follow/requestFollow";
 import setPravicy from "@/api/profiles/setPrivacy";
 import Popup from "../../popup";
-
-interface Post {
-  id: number;
-  image: string;
-}
-
-interface Follow {
-  id: number;
-  followerId: number;
-  followingId: number;
-  isAccepted: number;
-}
-
-export interface User {
-  id: number;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  email: string;
-  birth: string;
-  avatar: string;
-  about: string;
-  online: boolean;
-  isprivate: boolean;
-  isaccepted: boolean;
-  follow: Follow;
-  posts: Post[];
-  followers: any[] | null;
-  following: any[] | null;
-  currentuser: boolean;
-  totalnotifications: number;
-  lastmessagedate: string;
-}
+import { Profile } from "@/types/user";
+import Image from "next/image";
 
 export default function ProfilePage() {
   const params = useParams();
   const router = useRouter();
   const userId = Number(params.id);
 
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Profile | null>(null);
   const [activeTab, setActiveTab] = useState("posts");
   const [isPending, setIsPending] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -178,15 +147,18 @@ export default function ProfilePage() {
 
       <div className="profile-header">
         <div className="profile-avatar">
-          <img
+          <Image
             src={
               user.avatar
-                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                    user.id
-                  }&path=${encodeURIComponent(user.avatar)}`
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                    user.avatar
+                  )}`
                 : "/icons/placeholder.svg"
             }
             alt="user avatar"
+            width={150}
+            height={150}
+            unoptimized
           />
         </div>
 
@@ -283,12 +255,15 @@ export default function ProfilePage() {
                       onClick={() => router.push(`/app/${post.id}`)}
                     >
                       {post.image && (
-                        <img
+                        <Image
                           src={`http://localhost:8080/getProtectedImage?type=posts&id=${
                             post.id
                           }&path=${encodeURIComponent(post.image)}`}
                           alt="Post content"
                           className="post-image"
+                          width={400}
+                          height={400}
+                          unoptimized
                         />
                       )}
                       <div className="post-overlay">
@@ -319,16 +294,18 @@ export default function ProfilePage() {
                       }
                     >
                       <div className="user-info">
-                        <img
+                        <Image
                           src={
                             follower.avatar
-                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                                  follower.id
-                                }&path=${encodeURIComponent(follower.avatar)}`
+                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                                  follower.avatar
+                                )}`
                               : "/icons/placeholder.svg"
                           }
-                          className="user-avatar"
                           alt="user avatar"
+                          width={40}
+                          height={40}
+                          unoptimized
                         />
                         <div className="user-details">
                           <span className="user-name">
@@ -358,16 +335,18 @@ export default function ProfilePage() {
                       }
                     >
                       <div className="user-info">
-                        <img
+                        <Image
                           src={
                             following.avatar
-                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                                  following.id
-                                }&path=${encodeURIComponent(following.avatar)}`
+                              ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                                  following.avatar
+                                )}`
                               : "/icons/placeholder.svg"
                           }
-                          className="user-avatar"
                           alt="user avatar"
+                          width={40}
+                          height={40}
+                          unoptimized
                         />
                         <div className="user-details">
                           <span className="user-name">

@@ -2,13 +2,13 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
 	"strings"
 )
 
-// CORS Middleware to allow cross-origin requests and handle JSON
 func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// // Allow CORS for the specified origin
@@ -20,7 +20,6 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-// CORS Middleware to allow cross-origin requests and handle JSON
 func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
@@ -76,6 +75,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 			}
 		case "group-posts":
 			hasAccess, err := s.repository.Group().IsMember(res.Userid, id)
+			fmt.Println(hasAccess, res.Userid)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return

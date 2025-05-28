@@ -1,15 +1,10 @@
 "use client";
 
+import { Comment } from "@/types/comment";
+import Image from "next/image";
+
 interface CommentProps {
-  comment: {
-    id: number;
-    author: string;
-    text: string;
-    image: string;
-    creation_date: string;
-    user_id: number;
-    user_avatar?: number;
-  };
+  comment: Comment;
   postID: number;
 }
 
@@ -17,7 +12,7 @@ export default function GroupComment({ comment, postID }: CommentProps) {
   return (
     <div className="post-comment">
       <div className="comment-user-avatar">
-        <img
+        <Image
           src={
             comment.user_avatar
               ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
@@ -25,8 +20,11 @@ export default function GroupComment({ comment, postID }: CommentProps) {
                 }&path=${encodeURIComponent(comment.user_avatar)}`
               : "/icons/placeholder.svg"
           }
-          alt={`${comment.author}'s avatar`}
+          alt={`user avatar`}
           className="user-avatar-small"
+          width={16}
+          height={16}
+          unoptimized
         />
       </div>
       <div className="comment-content">
@@ -37,7 +35,7 @@ export default function GroupComment({ comment, postID }: CommentProps) {
 
         {comment.image && (
           <div className="comment-image-container">
-            <img
+            <Image
               src={
                 comment.image
                   ? `http://localhost:8080/getProtectedImage?type=group-posts&id=${postID}&path=${encodeURIComponent(
@@ -47,14 +45,10 @@ export default function GroupComment({ comment, postID }: CommentProps) {
               }
               alt="Comment image"
               className="comment-image"
+              width={200}
+              height={400}
+              unoptimized
             />
-            {/* <img
-              src={`http://localhost:8080/getProtectedImage?type=comments&id=${
-                comment.id
-              }&path=${encodeURIComponent(comment.image)}`}
-              alt="Comment image"
-              className="comment-image"
-            /> */}
           </div>
         )}
 

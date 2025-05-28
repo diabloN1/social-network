@@ -7,9 +7,10 @@ import "./posts.css";
 import addPost from "@/api/posts/addPost";
 import getPosts from "@/api/posts/getPosts";
 import Popup from "../popup";
+import { Post as PostType, Reaction } from "@/types/post";
 
 export default function PostsPage() {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [posts, setPosts] = useState<PostType[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -64,7 +65,7 @@ export default function PostsPage() {
   };
 
   // Function to update post reaction in the posts list
-  const handleReactionUpdate = (postId: number, reactionData: any) => {
+  const handleReactionUpdate = (postId: number, reactionData: Reaction) => {
     setPosts((currentPosts) =>
       currentPosts.map((post) =>
         post.id === postId
@@ -73,7 +74,7 @@ export default function PostsPage() {
               reactions: {
                 likes: reactionData.likes,
                 dislikes: reactionData.dislikes,
-                user_reaction: reactionData.user_reaction,
+                userReaction: reactionData.userReaction,
               },
             }
           : post

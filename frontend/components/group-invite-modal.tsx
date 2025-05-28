@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import getAvailableUsersToInvite from "@/api/groups/getAvailableUsersToInvite";
 import inviteUserToGroup from "@/api/groups/inviteUserToGroup";
@@ -31,13 +31,7 @@ export default function GroupInviteModal({
   const [isLoading, setIsLoading] = useState(false);
   const [invitingUsers, setInvitingUsers] = useState<Set<number>>(new Set());
 
-  useEffect(() => {
-    if (isOpen) {
-      loadAvailableUsers();
-    }
-  }, [isOpen, groupId]);
-
-  const loadAvailableUsers = async () => {
+  const loadAvailableUsers = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getAvailableUsersToInvite(groupId);
@@ -55,7 +49,14 @@ export default function GroupInviteModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [groupId])
+
+
+  useEffect(() => {
+    if (isOpen) {
+      loadAvailableUsers();
+    }
+  }, [isOpen, groupId, loadAvailableUsers]);
 
   const handleInviteUser = async (userId: number) => {
     if (invitingUsers.has(userId)) return;
@@ -112,7 +113,7 @@ export default function GroupInviteModal({
                 availableUsers.map((user) => (
                   <div key={user.id} className="user-item">
                     <div className="user-info">
-                      <img
+                      <Image
                         src={
                           user.avatar
                             ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
@@ -122,6 +123,9 @@ export default function GroupInviteModal({
                         }
                         alt="user avatar"
                         className="user-avatar"
+                        width={25}
+                        height={25}
+                        unoptimized
                       />
                       <div className="user-details">
                         <div className="user-name">

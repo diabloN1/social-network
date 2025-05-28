@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
+import Image from "next/image";
 
 interface CreateGroupModalProps {
   onClose: () => void;
@@ -89,9 +90,12 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
               {imagePreview && (
                 <div className="image-preview">
-                  <img
+                  <Image
                     src={imagePreview || "/icons/placeholder.svg"}
                     alt="Preview"
+                    width={40}
+                    height={40}
+                    unoptimized
                   />
                 </div>
               )}

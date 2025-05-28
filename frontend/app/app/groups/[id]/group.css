@@ -70,7 +70,7 @@
   overflow: hidden;
 }
 
-.group-image img {
+.group-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -215,7 +215,7 @@
   border-radius: 4px;
 }
 
-.member-item img {
+.member-item {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -268,7 +268,7 @@
   gap: 12px;
 }
 
-.post-user img {
+.post-user {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -306,7 +306,7 @@
   overflow: hidden;
 }
 
-.post-image img {
+.post-image {
   width: 100%;
   height: auto;
   max-height: 500px;

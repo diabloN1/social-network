@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import getPostShares from "@/api/posts/getPostShares";
 import addPostShare from "@/api/posts/addPostShare";
@@ -36,13 +36,7 @@ export default function PostShareModal({
     status: "success" | "failure";
   } | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadPostShares();
-    }
-  }, [isOpen, postId]);
-
-  const loadPostShares = async () => {
+  const loadPostShares = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getPostShares(postId);
@@ -60,7 +54,13 @@ export default function PostShareModal({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [postId]);
+
+  useEffect(() => {
+    if (isOpen) {
+      loadPostShares();
+    }
+  }, [isOpen, postId, loadPostShares]);
 
   const handleAddUser = async (userId: number) => {
     try {
@@ -138,7 +138,7 @@ export default function PostShareModal({
                     currentShares.map((user) => (
                       <div key={user.id} className="user-item">
                         <div className="user-info">
-                          <img
+                          <Image
                             src={
                               user.avatar
                                 ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
@@ -148,6 +148,9 @@ export default function PostShareModal({
                             }
                             alt="user avatar"
                             className="user-avatar"
+                            width={16}
+                            height={16}
+                            unoptimized
                           />
                           <div className="user-details">
                             <div className="user-name">
@@ -182,16 +185,19 @@ export default function PostShareModal({
                     availableUsers.map((user) => (
                       <div key={user.id} className="user-item">
                         <div className="user-info">
-                          <img
+                          <Image
                             src={
                               user.avatar
-                                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                                    user.id
-                                  }&path=${encodeURIComponent(user.avatar)}`
+                                ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                                    user.avatar
+                                  )}`
                                 : "/icons/placeholder.svg"
                             }
                             alt="user avatar"
                             className="user-avatar"
+                            width={16}
+                            height={16}
+                            unoptimized
                           />
                           <div className="user-details">
                             <div className="user-name">

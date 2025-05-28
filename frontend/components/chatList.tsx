@@ -4,29 +4,9 @@ import { useState, useEffect } from "react";
 import getChatData from "@/api/messages/getChatData";
 import { onMessageType } from "@/helpers/webSocket";
 import Popup from "@/app/app/popup";
-
-// API response interfaces
-interface Conv {
-  groupId: number;
-  userId: number;
-  image: string;
-  fullName: string;
-  unreadcount: number;
-  lastmessagedate: string;
-}
-
-// Chat interface for the component
-export interface Chat {
-  id: string; // as "user_" or "group_"
-  name: string;
-  avatar: string;
-  lastMessage?: string;
-  lastMessageTime?: string;
-  unreadCount: number;
-  isGroup: boolean;
-  isNew: boolean;
-  isOnline?: boolean;
-}
+import { Chat, ResChat } from "@/types/chat";
+import { AddMessageEvent } from "@/types/message";
+import Image from "next/image";
 
 interface ChatListProps {
   activeChat: Chat | null;
@@ -56,7 +36,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
 
         const transformedChats: Chat[] = [
           // Transform group conversations
-          ...data.groupConvs.map((group: Conv) => ({
+          ...data.groupConvs.map((group: ResChat) => ({
             id: `group_${group.groupId}`,
             name: group.fullName,
             avatar: group.image || "/icons/placeholder.svg",
@@ -67,7 +47,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           })),
 
           // Transform private conversations
-          ...data.privateConvs.map((priv: Conv) => ({
+          ...data.privateConvs.map((priv: ResChat) => ({
             id: `user_${priv.userId}`,
             name: priv.fullName,
             avatar: priv.image || "/icons/placeholder.svg",
@@ -79,7 +59,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           })),
 
           // Transform new conversations
-          ...data.newConvs.map((newConv: Conv) => ({
+          ...data.newConvs.map((newConv: ResChat) => ({
             id: `user_${newConv.userId}`,
             name: newConv.fullName,
             avatar: newConv.image || "/icons/placeholder.svg",
@@ -103,14 +83,14 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
   }, []);
 
   useEffect(() => {
-    const unsubscribe = onMessageType("addMessage", (data: any) => {
+    const unsubscribe = onMessageType("addMessage", (data: AddMessageEvent) => {
       const currentChatId = activeChat?.id.split("_")[1];
       const isGroup = activeChat?.isGroup;
 
       const matchesCurrentChat = isGroup
         ? data.message.group_id === Number(currentChatId)
         : data.message.sender_id === Number(currentChatId) ||
-          data.message.receiver_id === Number(currentChatId);
+          data.message.recipient_id === Number(currentChatId);
 
       // Only show notification if it's NOT the active chat
       if (!matchesCurrentChat) {
@@ -237,15 +217,18 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
               onClick={() => onSelectChat(chat)}
             >
               <div className="chat-avatar">
-                <img
+                <Image
                   src={
                     chat.avatar
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                           chat.avatar
                         )}`
                       : "/icons/placeholder.svg"
                   }
                   alt="user avatar"
+                  width={40}
+                  height={40}
+                  unoptimized
                 />
                 {!chat.isGroup && chat.isOnline && (
                   <span className="online-indicator"></span>

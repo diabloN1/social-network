@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import getGroupData from "@/api/groups/getGroupData";
@@ -18,61 +18,10 @@ import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import "./group.css";
+import { Group } from "@/types/group";
+import { Post, Reaction } from "@/types/post";
+import { Comment } from "@/types/comment";
 import Popup from "../../popup";
-
-interface User {
-  id: number;
-  username?: string;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  avatar?: string;
-}
-
-interface Post {
-  id: number;
-  user: User;
-  image?: string;
-  caption?: string;
-  creation_date?: string;
-  reactions?: {
-    likes: number;
-    dislikes: number;
-    user_reaction: boolean | null;
-  };
-  comments?: any[];
-}
-
-interface Event {
-  id: number;
-  title: string;
-  description: string;
-  user_id: number;
-  group_id: number;
-  date: string;
-  place: string;
-  option_1: string;
-  option_2: string;
-  creation_date: string;
-  user: User;
-  current_option?: string;
-  opt1_users?: User[] | null;
-  opt2_users?: User[] | null;
-}
-
-interface Group {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  owner_id: number;
-  is_owner: boolean;
-  is_accepted: boolean;
-  is_pending?: boolean;
-  members: User[];
-  posts: Post[];
-  events: Event[];
-}
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -95,17 +44,17 @@ export default function GroupDetailPage() {
   } | null>(null);
 
   // Reaction and comment states
-  const [postReactions, setPostReactions] = useState<{ [key: number]: any }>(
+  const [postReactions, setPostReactions] = useState<{ [key: number]: Reaction }>(
     {}
   );
-  const [postComments, setPostComments] = useState<{ [key: number]: any[] }>(
+  const [postComments, setPostComments] = useState<{ [key: number]: Comment[] }>(
     {}
   );
   const [expandedComments, setExpandedComments] = useState<{
     [key: number]: boolean;
   }>({});
 
-  const fetchGroupData = async () => {
+  const fetchGroupData = useCallback(async () => {
     try {
       setIsLoading(true);
       const data = await getGroupData(groupId);
@@ -119,27 +68,27 @@ export default function GroupDetailPage() {
 
       // Initialize reactions for each post
       if (data.group?.posts) {
-        const reactions: { [key: number]: any } = {};
+        const reactions: { [key: number]: Reaction } = {};
         data.group.posts.forEach((post: Post) => {
           reactions[post.id] = {
             likes: post.reactions?.likes || 0,
             dislikes: post.reactions?.dislikes || 0,
-            userReaction: post.reactions?.user_reaction || null,
+            userReaction: post.reactions?.userReaction || null,
             isReacting: false,
           };
         });
         setPostReactions(reactions);
       }
     } catch (err) {
-      setError("Failed to load group data");
+      setError("Failed to load group data" + err);
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [groupId])
 
   useEffect(() => {
     fetchGroupData();
-  }, [groupId]);
+  }, [groupId, fetchGroupData]);
 
   // Reaction handling
   const handleReaction = async (postId: number, reaction: boolean) => {
@@ -362,8 +311,8 @@ export default function GroupDetailPage() {
   }
 
   // Get the owner from members array
-  const owner = group.members?.find((member) => member.id === group.owner_id);
-  const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown";
+  // const owner = group.members?.find((member) => member.id === group.owner_id);
+  // const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown";
 
   if (!group.is_accepted && !group.is_owner) {
     return (
@@ -375,15 +324,18 @@ export default function GroupDetailPage() {
 
         <div className="group-header">
           <div className="group-image">
-            <img
+            <Image
               src={
                 group.image
-                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                       group.image
                     )}`
                   : "/icons/placeholder.svg"
               }
-              alt="Group image"
+              alt="user avatar"
+              width={40}
+              height={40}
+              unoptimized
             />
           </div>
           <div className="group-info">
@@ -426,15 +378,18 @@ export default function GroupDetailPage() {
       {/* Group Header */}
       <div className="group-header">
         <div className="group-image">
-          <img
+          <Image
             src={
               group.image
-                ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                     group.image
                   )}`
                 : "/icons/placeholder.svg"
             }
-            alt="Group image"
+            alt="user avatar"
+            width={800}
+            height={400}
+            unoptimized
           />
         </div>
         <div className="group-info">
@@ -501,15 +456,18 @@ export default function GroupDetailPage() {
               <div key={post.id} className="group-post">
                 <div className="post-header">
                   <div className="post-user">
-                    <img
+                    <Image
                       src={
-                        post.user?.avatar
-                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                              post.user.id
-                            }&path=${encodeURIComponent(post.user.avatar)}`
+                        post.user.avatar
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
+                              post.user.avatar
+                            )}`
                           : "/icons/placeholder.svg"
                       }
-                      alt="User avatar"
+                      alt="user avatar"
+                      width={40}
+                      height={40}
+                      unoptimized
                     />
                     <div className="post-user-info">
                       <span className="post-user-name">
@@ -530,11 +488,14 @@ export default function GroupDetailPage() {
 
                 {post.image && (
                   <div className="post-image">
-                    <img
-                      src={`http://localhost:8080/getProtectedImage?type=group-posts&id=${1}&path=${encodeURIComponent(
+                    <Image
+                      src={`http://localhost:8080/getProtectedImage?type=group-posts&id=${groupId}&path=${encodeURIComponent(
                         post.image
                       )}`}
-                      alt="Post content"
+                      alt="Post image"
+                      width={400}
+                      height={200}
+                      unoptimized
                     />
                   </div>
                 )}
@@ -751,16 +712,18 @@ export default function GroupDetailPage() {
                       <div className="attendees-list">
                         {event.opt1_users.map((user) => (
                           <div key={user.id} className="attendee">
-                            <img
+                            <Image
                               src={
                                 user.avatar
-                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                                       user.avatar
                                     )}`
                                   : "/icons/placeholder.svg"
                               }
-                              className="user-avatar-small"
-                              alt={`${user.firstname} ${user.lastname}`}
+                              alt="user avatar"
+                              width={40}
+                              height={40}
+                              unoptimized
                             />
                             <span>{`${user.firstname} ${user.lastname}`}</span>
                           </div>
@@ -777,16 +740,18 @@ export default function GroupDetailPage() {
                       <div className="attendees-list">
                         {event.opt2_users.map((user) => (
                           <div key={user.id} className="attendee">
-                            <img
+                            <Image
                               src={
                                 user.avatar
-                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                                  ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                                       user.avatar
                                     )}`
                                   : "/icons/placeholder.svg"
                               }
-                              className="user-avatar-small"
-                              alt={`${user.firstname} ${user.lastname}`}
+                              alt="user avatar"
+                              width={40}
+                              height={40}
+                              unoptimized
                             />
                             <span>{`${user.firstname} ${user.lastname}`}</span>
                           </div>
@@ -812,17 +777,20 @@ export default function GroupDetailPage() {
               {group.members.map((member) => (
                 <div key={member.id} className="member-item">
                   <div className="member-info">
-                    <img
+                    <Image
                       src={
                         member.avatar
-                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                          ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
                               member.avatar
                             )}`
                           : "/icons/placeholder.svg"
                       }
-                      className="user-avatar"
-                      alt={`${member.firstname} ${member.lastname}`}
+                      alt="user avatar"
+                      width={40}
+                      height={40}
+                      unoptimized
                     />
+
                     <div className="member-details">
                       <span className="member-name">{`${member.firstname} ${member.lastname}`}</span>
                       <span className="member-nickname">
