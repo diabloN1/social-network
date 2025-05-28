@@ -329,14 +329,24 @@ func (s *Server) AddGroupEvent(request map[string]any) map[string]any {
 	e.User.Avatar = res.User.Avatar
 
 	// Should pretect insertion fields
-	err := s.repository.Group().AddGroupEvent(e, int(groupId))
+	members, err := s.repository.Group().AddGroupEvent(e, int(groupId))
+if err != nil {
+	response["error"] = "Error adding event: " + err.Error()
+	return response
+}
 
-	if err != nil {
-		response["error"] = "Error adding post: " + err.Error()
-		return response
+// Send realtime notifications
+for _, member := range members {
+	if member.ID == e.User.ID {
+		continue
 	}
-
-	response["event"] = e
+	notification := map[string]any{
+		"type":      "eventCreated",
+		"message":   "A new group event has been created",
+		"timestamp": time.Now().Unix(),
+	}
+	s.sendNotificationToUser(member.ID, notification)
+}
 	return response
 }
 

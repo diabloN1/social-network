@@ -375,7 +375,7 @@ export default function GroupsPage() {
                 />
               </div>
               {group.new_event && (
-        <span className="event-notification-dot">New Event</span> // 👈 show notification
+        <span className="event-notification-dot">New Event</span> 
       )}
               <div
                 className="group-info"
