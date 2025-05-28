@@ -329,24 +329,14 @@ func (s *Server) AddGroupEvent(request map[string]any) map[string]any {
 	e.User.Avatar = res.User.Avatar
 
 	// Should pretect insertion fields
-	members, err := s.repository.Group().AddGroupEvent(e, int(groupId))
+	err := s.repository.Group().AddGroupEvent(e, int(groupId))
+
 	if err != nil {
-		response["error"] = "Error adding event: " + err.Error()
+		response["error"] = "Error adding post: " + err.Error()
 		return response
 	}
 
-	
-	for _, member := range members {
-		if member.ID == e.User.ID {
-			continue
-		}
-		notification := map[string]any{
-			"type":      "eventCreated",
-			"message":   "A new group event has been created",
-			"timestamp": time.Now().Unix(),
-		}
-		s.sendNotificationToUser(member.ID, notification)
-	}
+	response["event"] = e
 	return response
 }
 
@@ -498,6 +488,7 @@ func (s *Server) GetJoinRequestCount(request map[string]any) map[string]any {
 	response["count"] = count
 	return response
 }
+
 func (s *Server) GetUnreadMessagesCountResponse(request map[string]any) map[string]any {
 	response := make(map[string]any)
 	response["error"] = ""
@@ -670,4 +661,173 @@ func (s *Server) getGroupPostHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.GetGroupPost(request)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
+}
+
+// GROUP INVITATION METHODS
+
+// GetGroupInviteUsers returns users available to invite to the group
+func (s *Server) GetGroupInviteUsers(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "groupInviteUsers",
+		Error: "",
+	}
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	var groupId float64
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response.Error = "Missing 'groupId' field"
+		return response
+	}
+	groupId, ok = groupIdRaw.(float64)
+	if !ok {
+		response.Error = "'groupId' must be a number"
+		return response
+	}
+
+	// Check if user is a member of the group
+	isMember, err := s.repository.Group().IsMember(res.Userid, int(groupId))
+	if err != nil || !isMember {
+		response.Error = "You are not a member of this group"
+		return response
+	}
+
+	// Get available users to invite
+	availableUsers, err := s.repository.Group().GetAvailableUsersToInvite(int(groupId), res.Userid)
+	if err != nil {
+		response.Error = "Error getting available users"
+		log.Println("Error getting available users:", err)
+		return response
+	}
+
+	response.AllUsers = availableUsers
+	response.Success = true
+
+	return response
+}
+
+// InviteUserToGroup invites a user to join a group
+func (s *Server) InviteUserToGroup(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "inviteUser",
+		Error: "",
+	}
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response.Error = "Missing 'groupId' field"
+		return response
+	}
+	groupId, ok := groupIdRaw.(float64)
+	if !ok {
+		response.Error = "'groupId' must be a number"
+		return response
+	}
+
+	userIdRaw, ok := request["userId"]
+	if !ok {
+		response.Error = "Missing 'userId' field"
+		return response
+	}
+	userId, ok := userIdRaw.(float64)
+	if !ok {
+		response.Error = "'userId' must be a number"
+		return response
+	}
+
+	// Check if user is a member of the group
+	isMember, err := s.repository.Group().IsMember(res.Userid, int(groupId))
+	if err != nil || !isMember {
+		response.Error = "You are not a member of this group"
+		return response
+	}
+
+	// Invite the user
+	err = s.repository.Group().InviteUserToGroup(res.Userid, int(userId), int(groupId))
+	if err != nil {
+		log.Println("Error inviting user to group:", err)
+		response.Error = err.Error()
+		return response
+	}
+
+	// Send notification to the invited user
+	notification := map[string]any{
+		"type":      "groupInvitation",
+		"groupId":   int(groupId),
+		"inviterId": res.Userid,
+		"message":   "You have been invited to join a group",
+		"timestamp": time.Now().Unix(),
+	}
+	s.sendNotificationToUser(int(userId), notification)
+
+	response.Success = true
+	response.Data = "User invited successfully"
+
+	return response
+}
+
+// RespondToGroupInvitation accepts or rejects a group invitation
+func (s *Server) RespondToGroupInvitation(request map[string]any) *model.Response {
+	response := &model.Response{
+		Type:  "respondToInvitation",
+		Error: "",
+	}
+
+	res := s.ValidateSession(request)
+	if res.Error != "" {
+		response.Error = "Invalid session"
+		return response
+	}
+
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response.Error = "Missing 'groupId' field"
+		return response
+	}
+	groupId, ok := groupIdRaw.(float64)
+	if !ok {
+		response.Error = "'groupId' must be a number"
+		return response
+	}
+
+	acceptRaw, ok := request["accept"]
+	if !ok {
+		response.Error = "Missing 'accept' field"
+		return response
+	}
+	accept, ok := acceptRaw.(bool)
+	if !ok {
+		response.Error = "'accept' must be a boolean"
+		return response
+	}
+
+	var err error
+	if accept {
+		err = s.repository.Group().AcceptGroupInvitation(res.Userid, int(groupId))
+		response.Data = "Invitation accepted"
+	} else {
+		err = s.repository.Group().RejectGroupInvitation(res.Userid, int(groupId))
+		response.Data = "Invitation rejected"
+	}
+
+	if err != nil {
+		log.Println("Error responding to group invitation:", err)
+		response.Error = err.Error()
+		return response
+	}
+
+	response.Success = true
+
+	return response
 }
