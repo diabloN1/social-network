@@ -25,7 +25,7 @@ export default function ProfilesPage() {
     message: string;
     status: "success" | "failure";
   } | null>(null);
-  const [newFollowers] = useState<User[]>([]);
+const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
     try {
@@ -33,6 +33,7 @@ export default function ProfilesPage() {
         getProfiles(),
         hasNewFollowNotification(),
       ]);
+console.log("ddd",followNotifData);
 
     if (profileData.error || followNotifData.error) {
       alert(profileData.error || followNotifData.error);
@@ -43,7 +44,7 @@ export default function ProfilesPage() {
     setUsers(profileData.allusers);
     setFollowRequests(profileData.followrequests);
     setHasNewFollow(followNotifData.hasNewFollow);
-
+setNewFollowers(followNotifData.newFollowers || []);
     return profileData;
   } catch (error) {
     alert(error);
