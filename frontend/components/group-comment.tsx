@@ -14,11 +14,6 @@ interface CommentProps {
 }
 
 export default function GroupComment({ comment, postID }: CommentProps) {
-  console.log("------------------------");
-  console.log("------------------------");
-  console.log("------------------------");
-  console.log("------------------------");
-  console.log(comment);
   return (
     <div className="post-comment">
       <div className="comment-user-avatar">

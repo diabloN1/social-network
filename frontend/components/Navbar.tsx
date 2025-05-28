@@ -58,6 +58,7 @@ export default function Navbar() {
       try {
         await clearSessionCookie();
       } catch (cookieError) {
+        // 
         console.error("Failed to clear session cookie:", cookieError);
       }
     } finally {
