@@ -9,27 +9,47 @@ import { User } from "./[id]/page";
 import getProfiles from "@/api/profiles/getProfiles";
 import acceptFollow from "@/api/follow/acceptFollow";
 import deleteFollow from "@/api/follow/deleteFollow";
+import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
+import Popup from "../popup";
+import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
 
 export default function ProfilesPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState("");
   const [followRequests, setFollowRequests] = useState<User[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [hasNewFollow, setHasNewFollow] = useState(false);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
+  const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
     try {
-      const data = await getProfiles();
-      if (data.error) {
-        alert(data.error);
+      const [profileData, followNotifData] = await Promise.all([
+        getProfiles(),
+        hasNewFollowNotification(),
+      ]);
+
+      if (profileData.error || followNotifData.error) {
+        setPopup({
+          message: profileData.error || followNotifData.error,
+          status: "failure",
+        });
         return;
       }
+      console.log("profileeeee", profileData, "follooo", followNotifData);
 
-      setUsers(data.allusers);
-      setFollowRequests(data.followrequests);
-
-      return data;
+      setCurrentUser(profileData.currentuser);
+      setUsers(profileData.allusers);
+      setFollowRequests(profileData.followrequests);
+      setHasNewFollow(followNotifData.hasNewFollow);
+      setNewFollowers(followNotifData.newFollowers || []);
+      return profileData;
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -54,7 +74,7 @@ export default function ProfilesPage() {
     try {
       const data = await acceptFollow(userId);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -62,7 +82,7 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -71,7 +91,7 @@ export default function ProfilesPage() {
     try {
       const data = await deleteFollow(userId, false);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -79,12 +99,17 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
   // Navigate to user profile
-  const navigateToProfile = (id: number) => {
+  const navigateToProfile = async (id: number) => {
+    try {
+      await deleteFollowNotification(id);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
     router.push(`/app/profiles/${id}`);
   };
 
@@ -162,9 +187,65 @@ export default function ProfilesPage() {
           </div>
         </section>
       )}
+      {hasNewFollow && newFollowers.length > 0 && (
+        <div className="notification-banner">
+          <p>🔔 You have new followers:</p>
+          <ul className="followers-list">
+            {newFollowers.map((follower) => (
+              <li
+                key={follower.id}
+                onClick={() => navigateToProfile(follower.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <img
+                  src={
+                    follower.avatar
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                          follower.id
+                        }&path=${encodeURIComponent(follower.avatar)}`
+                      : "/icons/placeholder.svg"
+                  }
+                  alt="follower-avatar"
+                  className="user-avatar"
+                />
+                <span className="user-name">
+                  {follower.firstname} (@{follower.nickname}) followed you
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <section className="users-section">
-        <h2>Browse Users</h2>
+        {currentUser && (
+          <div className="current-user-section">
+            <h2>Current User</h2>
+            <div
+              className="current-user-card"
+              onClick={() => navigateToProfile(currentUser.id)}
+              style={{ cursor: "pointer" }}
+            >
+              <img
+                src={
+                  currentUser.avatar
+                    ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                        currentUser.id
+                      }&path=${encodeURIComponent(currentUser.avatar)}`
+                    : "/icons/placeholder.svg"
+                }
+                alt={currentUser.nickname}
+                className="user-avatar"
+              />
+              <div className="current-user-details">
+                <span className="user-name">{currentUser.firstname}</span>
+                <span className="nickname">@{currentUser.nickname}</span>
+              </div>
+            </div>
+          </div>
+        )}
+        <h2>Browse Other Users</h2>
+
         <div className="users-list">
           {filteredUsers?.map((user) => (
             <div key={user.id} className="user-card">
@@ -203,6 +284,13 @@ export default function ProfilesPage() {
           )}
         </div>
       </section>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

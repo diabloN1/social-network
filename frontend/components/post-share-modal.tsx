@@ -6,6 +6,7 @@ import getPostShares from "@/api/posts/getPostShares";
 import addPostShare from "@/api/posts/addPostShare";
 import removePostShare from "@/api/posts/removePostShare";
 import "./post-share-modal.css";
+import Popup from "@/app/app/popup";
 
 interface User {
   id: number;
@@ -30,6 +31,10 @@ export default function PostShareModal({
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"current" | "add">("current");
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -51,7 +56,7 @@ export default function PostShareModal({
       setAvailableUsers(data.data?.availableUsers || []);
     } catch (error) {
       console.error("Error loading post shares:", error);
-      alert("Failed to load post shares");
+      setPopup({ message: "Failed to load post shares", status: "failure" });
     } finally {
       setIsLoading(false);
     }
@@ -70,7 +75,7 @@ export default function PostShareModal({
       await loadPostShares();
     } catch (error) {
       console.error("Error adding user:", error);
-      alert("Failed to add user");
+      setPopup({ message: "Failed to add user", status: "failure" });
     }
   };
 
@@ -79,7 +84,7 @@ export default function PostShareModal({
       const data = await removePostShare(postId, userId);
 
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -87,7 +92,7 @@ export default function PostShareModal({
       await loadPostShares();
     } catch (error) {
       console.error("Error removing user:", error);
-      alert("Failed to remove user");
+      setPopup({ message: "Failed to remove user", status: "failure" });
     }
   };
 
@@ -214,6 +219,13 @@ export default function PostShareModal({
           )}
         </div>
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

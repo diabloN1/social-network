@@ -7,6 +7,7 @@ import "./auth-form.css";
 import postAuth from "@/api/auth/postAuth";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/api/auth/uploadFile";
+import Popup from "@/app/app/popup";
 
 export default function AuthForm() {
   const [isLogin, setIsLogin] = useState(true);
@@ -33,6 +34,8 @@ export default function AuthForm() {
     dateOfBirth: "",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+
 
   const router = useRouter();
 
@@ -149,8 +152,7 @@ export default function AuthForm() {
         }
 
         const data = await postAuth(path, formData);
-        console.log(data)
-
+        
         if (data.error && errors.hasOwnProperty(data.type)) {
           setErrors({
             ...errors,
@@ -163,7 +165,8 @@ export default function AuthForm() {
           router.push("/app");
         }
       } catch (err) {
-        alert(err);
+        setPopup({ message: "Failed to Register.", status: "failure" });
+
       }
     }
   };
@@ -364,6 +367,13 @@ export default function AuthForm() {
           </p>
         </div>
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

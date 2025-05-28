@@ -4,6 +4,7 @@ import type React from "react";
 import { useState } from "react";
 import { uploadFile } from "@/api/auth/uploadFile";
 import "./styles/create-post-modal.css";
+import Popup from "@/app/app/popup";
 
 interface CreatePostModalProps {
   onClose: () => void;
@@ -26,6 +27,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,7 +72,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
       onSubmit(data);
     } catch (err) {
-      alert(err);
+      setPopup({ message: "Failed to load comments.", status: "failure" });
+
       console.error(err);
     } finally {
       setIsSubmitting(false);
@@ -166,7 +170,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
           </div>
         </form>
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
+
   );
 };
 

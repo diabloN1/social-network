@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import addComment from "@/api/posts/addComment";
 import { uploadFile } from "@/api/auth/uploadFile";
+import Popup from "@/app/app/popup";
 
 interface CommentFormProps {
   postId: number;
@@ -22,19 +23,27 @@ export default function CommentForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
+        setPopup({ message: "Please select an image file", status: "failure" });
+
         return;
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        alert("Image size must be less than 10MB");
+        setPopup({
+          message: "Image size must be less than 10MB",
+          status: "failure",
+        });
         return;
       }
 
@@ -81,7 +90,10 @@ export default function CommentForm({
       const result = await addComment(postId, newComment.trim(), filename);
 
       if (result.error) {
-        alert(`Failed to add comment: ${result.error}`);
+        setPopup({
+          message: `Failed to add comment: ${result.error}`,
+          status: "failure",
+        });
         return;
       }
 
@@ -96,8 +108,7 @@ export default function CommentForm({
       // Notify parent component
       onCommentAdded();
     } catch (error) {
-      console.error("Error adding comment:", error);
-      alert("Failed to add comment");
+      setPopup({ message: `Failed to add comment`, status: "failure" });
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +187,13 @@ export default function CommentForm({
           </button>
         </div>
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </form>
   );
 }

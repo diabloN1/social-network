@@ -96,6 +96,12 @@ func Start() error {
 	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
 	//notif
 	s.router.HandleFunc("/getAllNotifications", s.GetAllNotificationsHandler)
+	s.router.HandleFunc("/getNewFollowNotification", s.GetNewFollowNotificationHandler)
+	s.router.HandleFunc("/deleteFollowNotif", s.DeleteFollowNotif)
+
+
+	
+
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
 

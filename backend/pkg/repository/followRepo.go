@@ -85,6 +85,13 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 	query = `INSERT INTO followers (follower_id, following_id, is_accepted) VALUES ($1, $2, $3) RETURNING id`
 	err = r.Repository.db.QueryRow(query, userId, profileId, !res.IsPrivate).Scan(&id)
 
+	if !res.IsPrivate {
+		notifQuery := `INSERT INTO notifications (sender_id, receiver_id, type) VALUES ($1, $2, $3)`
+		_, err := r.Repository.db.Exec(notifQuery, userId, profileId, "follow_request")
+		if err != nil {
+			return fmt.Errorf("Error creating notification for public follow")
+		}
+	}
 	return err
 }
 
@@ -109,6 +116,14 @@ func (r *FollowRepository) DeleteFollow(profileId, userId int) error {
 	}
 
 	return nil
+}
+func (r *FollowRepository) DeleteNotif(sender, reciever int) error {
+
+	_, err := r.Repository.db.Exec(`
+    DELETE FROM notifications
+    WHERE sender_id = $1 AND receiver_id = $2 AND type = 'follow_request'
+`, sender, reciever)
+	return err
 }
 
 func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
@@ -150,4 +165,38 @@ func (r *FollowRepository) GetFollowRequestCount(userId int) (int, error) {
 	}
 
 	return count, nil
+}
+
+func (r *FollowRepository) CountPublicFollowRequests(userID int) (int, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM notifications
+		WHERE receiver_id = $1 AND type = 'follow_request' 
+	`
+	err := r.Repository.db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}
+
+func (r *FollowRepository) GetNewFollowers(userID int) ([]*model.User, error) {
+	query := `
+	SELECT users.id, users.firstname, users.nickname, users.avatar
+	FROM notifications
+	JOIN users ON notifications.sender_id = users.id
+	WHERE notifications.receiver_id = $1 AND notifications.type = 'follow_request'
+	`
+	rows, err := r.Repository.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var followers []*model.User
+	for rows.Next() {
+		user := &model.User{}
+		if err := rows.Scan(&user.ID, &user.Firstname, &user.Nickname, &user.Avatar); err != nil {
+			return nil, err
+		}
+		followers = append(followers, user)
+	}
+	return followers, nil
 }
