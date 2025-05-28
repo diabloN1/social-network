@@ -17,6 +17,7 @@ import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import "./group.css";
+import Popup from "../../popup";
 
 interface User {
   id: number;
@@ -88,6 +89,10 @@ export default function GroupDetailPage() {
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
   const [inviteUsername, setInviteUsername] = useState("");
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   // Reaction and comment states
   const [postReactions, setPostReactions] = useState<{ [key: number]: any }>(
@@ -110,8 +115,6 @@ export default function GroupDetailPage() {
         return;
       }
 
-      console.log("Group data:", data);
-
       setGroup(data.group);
 
       // Initialize reactions for each post
@@ -129,7 +132,6 @@ export default function GroupDetailPage() {
       }
     } catch (err) {
       setError("Failed to load group data");
-      console.error(err);
     } finally {
       setIsLoading(false);
     }
@@ -151,7 +153,6 @@ export default function GroupDetailPage() {
 
     const newReaction =
       currentReaction?.userReaction === reaction ? null : reaction;
-
     // Optimistic UI update
     setPostReactions((prev) => {
       const current = prev[postId];
@@ -210,7 +211,7 @@ export default function GroupDetailPage() {
         }));
       }
     } catch (error) {
-      console.error("Failed to react to group post:", error);
+      setPopup({ message: `${error}`, status: "failure" });
       setPostReactions((prev) => ({
         ...prev,
         [postId]: { ...currentReaction, isReacting: false },
@@ -237,7 +238,7 @@ export default function GroupDetailPage() {
         }));
       }
     } catch (error) {
-      console.error("Error loading comments:", error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -899,6 +900,13 @@ export default function GroupDetailPage() {
         <CreateEventModal
           onClose={() => setShowCreateEventModal(false)}
           onSubmit={handleCreateEvent}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </div>
