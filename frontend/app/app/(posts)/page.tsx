@@ -6,12 +6,17 @@ import Post from "@/components/post";
 import "./posts.css";
 import addPost from "@/api/posts/addPost";
 import getPosts from "@/api/posts/getPosts";
+import Popup from "../popup";
 
 export default function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const fetchPosts = async () => {
     try {
@@ -24,7 +29,7 @@ export default function PostsPage() {
         setCurrentUserId(data.userid);
       }
     } catch (error) {
-      console.error(error);
+      setPopup({ message: `${error}`, status: "failure" });
     } finally {
       setIsLoading(false);
     }
@@ -44,7 +49,7 @@ export default function PostsPage() {
       const data = await addPost(newPost);
 
       if (data.error && data.error !== "Invalid session") {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -52,7 +57,7 @@ export default function PostsPage() {
         setPosts([data.posts[0], ...posts]);
       }
     } catch (err) {
-      console.error(err);
+      setPopup({ message: `${err}`, status: "failure" });
     }
 
     setIsModalOpen(false);
@@ -108,6 +113,13 @@ export default function PostsPage() {
         <CreatePostModal
           onClose={() => setIsModalOpen(false)}
           onSubmit={handleCreatePost}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </div>

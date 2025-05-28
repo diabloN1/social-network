@@ -273,14 +273,14 @@ export default function GroupDetailPage() {
     try {
       const data = await addGroupPost(postData);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: `${error}`, status: "failure" });
         return;
       }
 
       setShowCreatePostModal(false);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -306,7 +306,7 @@ export default function GroupDetailPage() {
       setShowCreateEventModal(false);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -318,7 +318,7 @@ export default function GroupDetailPage() {
       console.log(data);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -327,13 +327,12 @@ export default function GroupDetailPage() {
     try {
       const data = await requestJoinGroup(groupId);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
       fetchGroupData();
-      console.log("Request sent successfully");
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 

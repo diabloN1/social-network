@@ -11,6 +11,7 @@ import getComments from "@/api/posts/getComments";
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
+import Popup from "../../popup";
 
 export default function SinglePostPage() {
   const params = useParams();
@@ -29,6 +30,10 @@ export default function SinglePostPage() {
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [popup, setPopup] = useState<{
+      message: string;
+      status: "success" | "failure";
+    } | null>(null);
 
   const pageLoadHandler = async () => {
     try {
@@ -41,7 +46,6 @@ export default function SinglePostPage() {
       }
 
       const foundData = data.posts[0];
-      console.log("Post data loaded:", foundData);
 
       if (!foundData || foundData.id === 0) {
         router.push("/404");
@@ -65,7 +69,7 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      console.error(error);
+      setPopup({ message: `${error}`, status: "failure" });
     } finally {
       setIsLoading(false);
     }
@@ -86,7 +90,7 @@ export default function SinglePostPage() {
         setComments(commentsData.posts[0].comments);
       }
     } catch (error) {
-      console.error("Error loading comments:", error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -152,7 +156,7 @@ export default function SinglePostPage() {
         });
       }
     } catch (error) {
-      console.error("Failed to react to post:", error);
+      setPopup({ message: `${error}`, status: "failure" });
       if (post.reactions) {
         setReactions({
           likes: post.reactions.likes || 0,
@@ -418,6 +422,13 @@ export default function SinglePostPage() {
           postId={post.id}
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </>
