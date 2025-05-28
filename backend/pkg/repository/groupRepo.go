@@ -93,6 +93,15 @@ func (r *GroupRepository) CountPendingJoinRequests(ownerId int) (int, error) {
 
 	return count, err
 }
+func (r *GroupRepository) CountNewEvents(userID int) (int, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM notifications
+		WHERE receiver_id = $1 AND type = 'event_created'
+	`
+	err := r.Repository.db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}
 
 func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
 	_, err := r.Repository.db.Exec(
@@ -109,13 +118,36 @@ func (r *GroupRepository) AddGroupPost(p *model.Post, groupId int) error {
 	).Scan(&p.ID)
 }
 
-func (r *GroupRepository) AddGroupEvent(e *model.GroupEvent, groupId int) error {
-	return r.Repository.db.QueryRow(
-		"INSERT INTO group_events (group_id, user_id, title, description, option_1, option_2, date, place) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING (id)",
+func (r *GroupRepository) AddGroupEvent(e *model.GroupEvent, groupId int) ([]*model.User, error) {
+	err := r.Repository.db.QueryRow(
+		"INSERT INTO group_events (group_id, user_id, title, description, option_1, option_2, date, place) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id",
 		groupId, e.User.ID, e.Title, e.Description, e.Option1, e.Option2, e.Date, e.Place,
 	).Scan(&e.ID)
-}
+	if err != nil {
+		return nil, err
+	}
 
+	memberIDs, err := r.GetGroupMembers(groupId)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, member := range memberIDs {
+		if member.ID == e.User.ID {
+			continue
+		}
+		_, err := r.Repository.db.Exec(
+			"INSERT INTO notifications (sender_id, receiver_id, group_id, type) VALUES ($1, $2, $3, $4)",
+			e.User.ID, member.ID, groupId, "event_created",
+		)
+		if err != nil {
+			fmt.Println("Notification error:", err)
+		}
+	}
+
+	return memberIDs, nil
+
+}
 func (r *GroupRepository) AddEventOption(opt *model.EventOption, groupId int) error {
 	value, err := r.Repository.Group().getEventOption(opt)
 	if err != nil && err != sql.ErrNoRows {
@@ -217,9 +249,24 @@ func (r *GroupRepository) GetJoinRequestsByOwnerId(ownerId int) ([]*model.Group,
 func (r *GroupRepository) GetGroups(userId int) ([]*model.Group, error) {
 
 	var groups []*model.Group
-	query := `SELECT g.id, g.user_id, g.title, g.image, COALESCE(m.id, 0) as mId, COALESCE(m.is_accepted, false) as is_accepted
-	FROM groups g
-	LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id`
+	query := `SELECT 
+  g.id, 
+  g.user_id, 
+  g.title, 
+  g.image,
+  COALESCE(m.id, 0) AS mId,
+  COALESCE(m.is_accepted, false) AS is_accepted,
+  EXISTS (
+    SELECT 1 
+    FROM notifications n 
+    WHERE n.receiver_id = $1 
+      AND n.group_id = g.id
+      AND n.type = 'event_created'
+    
+  ) AS has_new_event
+FROM groups g
+LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id
+`
 
 	rows, err := r.Repository.db.Query(query, userId)
 	if err != nil {
@@ -230,9 +277,12 @@ func (r *GroupRepository) GetGroups(userId int) ([]*model.Group, error) {
 		group := &model.Group{}
 
 		var memberId int
-		if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted); err != nil {
-			return nil, err
-		}
+		var hasNewEvent bool
+if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
+	return nil, err
+}
+group.HasNewEvent = hasNewEvent
+
 
 		if group.OwnerId == userId {
 			group.IsOwner = true
@@ -471,15 +521,13 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 	return users, nil
 }
 
-
-
 // NEW METHODS FOR GROUP INVITATIONS
 
 // GetAvailableUsersToInvite returns users who can be invited to the group
 // Only returns users who have a follower relationship with the current user
 func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
 	var users []*model.User
-	
+
 	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
 			  FROM users u
 			  WHERE u.id IN (
@@ -523,11 +571,11 @@ func (r *GroupRepository) InviteUserToGroup(inviterId, userId, groupId int) erro
 	var existingId int
 	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2`
 	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&existingId)
-	
+
 	if err == nil {
 		return errors.New("user is already a member or has a pending invitation")
 	}
-	
+
 	if err != sql.ErrNoRows {
 		return err
 	}
@@ -549,7 +597,7 @@ func (r *GroupRepository) AcceptGroupInvitation(userId, groupId int) error {
 	var invitationId int
 	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2 AND is_accepted = FALSE AND inviter_id != 0`
 	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&invitationId)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("no pending invitation found")
@@ -571,7 +619,7 @@ func (r *GroupRepository) RejectGroupInvitation(userId, groupId int) error {
 	var invitationId int
 	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2 AND is_accepted = FALSE AND inviter_id != 0`
 	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&invitationId)
-	
+
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.New("no pending invitation found")
