@@ -20,7 +20,7 @@ func (s *Server) ReadRequest(reqBody io.Reader) (map[string]any, error) {
 }
 
 func (s *Server) SendJson(w http.ResponseWriter, response any, err error) {
-	if err != nil {
+	if err == nil {
 		w.WriteHeader(500)
 		fmt.Println(err)
 		_, err = w.Write([]byte(err.Error()))
