@@ -11,56 +11,10 @@ import getGroups from "@/api/groups/getGroups";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
 import Image from "next/image";
+import { GroupsData } from "@/types/group";
 
 // Types for API response
-interface User {
-  id: number;
-  username: string;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  avatar?: string;
-}
 
-interface Group {
-  id: number;
-  title: string;
-  description: string;
-  owner_id: number;
-  image: string;
-  creation_date: string;
-  is_accepted: boolean;
-  is_owner: boolean;
-  is_pending?: boolean;
-  members: User[];
-}
-
-interface GroupInvite {
-  id: number;
-  group_id: number;
-  user_id: number;
-  creation_date: string;
-  group: Group;
-  user: User;
-}
-
-interface JoinRequest {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  creation_date: string;
-  is_accepted: boolean;
-  is_owner: boolean;
-  members: User[];
-}
-
-interface GroupsData {
-  all: Group[];
-  error: string;
-  group_invites: GroupInvite[] | null;
-  join_requests: JoinRequest[] | null;
-}
 
 export default function GroupsPage() {
   const router = useRouter();
