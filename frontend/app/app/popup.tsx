@@ -13,7 +13,7 @@ const Popup: FC<PopupProps> = ({ message, status, onClose }) => {
   const isSuccess = status === "success";
 
   useEffect(() => {
-    const timer = setTimeout(onClose, 5000); 
+    const timer = setTimeout(onClose, 3000); 
     return () => clearTimeout(timer);
   }, [onClose]);
 
@@ -21,12 +21,15 @@ const Popup: FC<PopupProps> = ({ message, status, onClose }) => {
   return (
     <div className="popup-overlay">
       <div className={`popup-box ${isSuccess ? "popup-success" : "popup-failure"}`}>
-          <h2>{isSuccess ? <i className="fa-solid fa-circle-check"></i> : <i className="fa-solid fa-circle-exclamation"></i>}</h2>
+        <div className="popup-content">
+        <h2>{isSuccess ? <i className="fa-solid fa-circle-check"></i> : <i className="fa-solid fa-circle-exclamation"></i>}</h2>
          
-        <p>{message}</p>
-        <button className="popup-close" onClick={onClose} aria-label="Close">
-            <i className="fa-solid fa-circle-xmark"></i>
-        </button>
+         <p>{message}</p>
+         <button className="popup-close" onClick={onClose} aria-label="Close">
+             <i className="fa-solid fa-circle-xmark"></i>
+         </button>
+        </div>
+         
         <div className="popup-timer"></div>
 
       </div>
