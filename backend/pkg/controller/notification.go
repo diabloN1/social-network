@@ -126,3 +126,37 @@ func (s *Server) DeleteFollowNotification(request map[string]any) map[string]any
 	response["message"] = "Notification deleted"
 	return response
 }
+func (s *Server) DeleteNewEventNotification(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	res := s.ValidateSession(request)
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	groupIdRaw, ok := request["groupId"]
+	if !ok {
+		response["error"] = "Missing group ID"
+		return response
+	}
+	groupId, ok := groupIdRaw.(float64)
+	if !ok {
+		response["error"] = "Invalid group ID format"
+		return response
+	}
+
+	err := s.repository.Follow().DeleteEventNotif(int(groupId), res.Userid)
+	if err != nil {
+		response["error"] = "Error deleting follow notification"
+		log.Println("Error deleting follow notification:", err)
+		return response
+	}
+	notification := map[string]any{
+		"type":       "DeletefollowHandled",
+	}
+	s.sendNotificationToUser(int(res.Userid), notification)
+	response["message"] = "Notification deleted"
+	return response
+}
