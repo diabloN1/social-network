@@ -12,6 +12,7 @@ import GroupCommentForm from "@/components/group-comment-form";
 import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
 import CreateEventModal from "@/components/create-event-modal";
+import GroupInviteModal from "@/components/group-invite-modal";
 import addGroupPost from "@/api/groups/addGroupPost";
 import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
@@ -87,7 +88,6 @@ export default function GroupDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [inviteUsername, setInviteUsername] = useState("");
 
   // Reaction and comment states
   const [postReactions, setPostReactions] = useState<{ [key: number]: any }>(
@@ -336,13 +336,10 @@ export default function GroupDetailPage() {
     }
   };
 
-  // Invite user
-  const handleInviteUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteUsername.trim()) return;
-    console.log("Inviting user:", inviteUsername);
-    setInviteUsername("");
-    setShowInviteModal(false);
+  // Handle invitation sent callback
+  const handleInvitationSent = () => {
+    console.log("Invitation sent successfully");
+    // Optionally refresh group data or show success message
   };
 
   if (isLoading) {
@@ -851,38 +848,14 @@ export default function GroupDetailPage() {
         </div>
       )}
 
-      {/* Invite Modal */}
+      {/* Enhanced Invite Modal */}
       {showInviteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Invite User to Group</h2>
-            <form onSubmit={handleInviteUser}>
-              <div className="form-group">
-                <label htmlFor="invite-username">Username</label>
-                <input
-                  type="text"
-                  id="invite-username"
-                  value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
-                  placeholder="Enter username to invite"
-                  required
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => setShowInviteModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="submit-button">
-                  Send Invitation
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <GroupInviteModal
+          groupId={groupId}
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          onInviteSent={handleInvitationSent}
+        />
       )}
 
       {/* Create Post Modal */}

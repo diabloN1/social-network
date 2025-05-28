@@ -271,3 +271,22 @@ func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.ServeFile(w, r, fullPath)
 }
+
+// Group Invitation Handlers
+func (s *Server) getGroupInviteUsersHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetGroupInviteUsers(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) inviteUserToGroupHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.InviteUserToGroup(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) respondToGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.RespondToGroupInvitation(request)
+	s.SendJson(w, response, err)
+}

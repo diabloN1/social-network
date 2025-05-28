@@ -38,7 +38,7 @@ func (r *GroupRepository) Create(g *model.Group) error {
 func (r *GroupRepository) GetGroupOwner(groupId int) (int, error) {
 	var ownerId int
 	err := r.Repository.db.QueryRow(
-		"SELECT COALESCE(user_id, 0) FROM groups WHERE id = $2",
+		"SELECT COALESCE(user_id, 0) FROM groups WHERE id = $1",
 		groupId,
 	).Scan(&ownerId)
 	if err != nil {
@@ -54,7 +54,7 @@ func (r *GroupRepository) IsMember(userId, groupId int) (bool, error) {
             SELECT EXISTS(
                 SELECT 1 
                 FROM group_members 
-                WHERE user_id = ? AND group_id = ? AND is_accepted = TRUE
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE
             )`
 	err := r.Repository.db.QueryRow(query, userId, groupId).Scan(&isMember)
 	return isMember, err
@@ -81,6 +81,7 @@ func (r *GroupRepository) AcceptMember(m *model.GroupMember) error {
 	)
 	return err
 }
+
 func (r *GroupRepository) CountPendingJoinRequests(ownerId int) (int, error) {
 	var count int
 	err := r.Repository.db.QueryRow(`
@@ -471,3 +472,117 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 }
 
 
+
+// NEW METHODS FOR GROUP INVITATIONS
+
+// GetAvailableUsersToInvite returns users who can be invited to the group
+// Only returns users who have a follower relationship with the current user
+func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
+	var users []*model.User
+	
+	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
+			  FROM users u
+			  WHERE u.id IN (
+				  SELECT f.follower_id FROM followers f 
+				  WHERE f.following_id = $2 AND f.is_accepted = TRUE
+				  UNION
+				  SELECT f.following_id FROM followers f 
+				  WHERE f.follower_id = $2 AND f.is_accepted = TRUE
+			  )
+			  AND u.id NOT IN (
+				  SELECT gm.user_id 
+				  FROM group_members gm 
+				  WHERE gm.group_id = $1
+			  )
+			  ORDER BY u.firstname, u.lastname`
+
+	rows, err := r.Repository.db.Query(query, groupId, currentUserId)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		user := &model.User{}
+		if err := rows.Scan(&user.ID, &user.Firstname, &user.Lastname, &user.Nickname, &user.Avatar); err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
+// InviteUserToGroup creates an invitation for a user to join a group
+func (r *GroupRepository) InviteUserToGroup(inviterId, userId, groupId int) error {
+	// Check if invitation or membership already exists
+	var existingId int
+	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2`
+	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&existingId)
+	
+	if err == nil {
+		return errors.New("user is already a member or has a pending invitation")
+	}
+	
+	if err != sql.ErrNoRows {
+		return err
+	}
+
+	// Create the invitation
+	member := &model.GroupMember{
+		UserId:     userId,
+		InviterId:  inviterId,
+		GroupId:    groupId,
+		IsAccepted: false,
+	}
+
+	return r.AddMember(member)
+}
+
+// AcceptGroupInvitation accepts a group invitation
+func (r *GroupRepository) AcceptGroupInvitation(userId, groupId int) error {
+	// Check if invitation exists
+	var invitationId int
+	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2 AND is_accepted = FALSE AND inviter_id != 0`
+	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&invitationId)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("no pending invitation found")
+		}
+		return err
+	}
+
+	// Accept the invitation
+	_, err = r.Repository.db.Exec(
+		"UPDATE group_members SET is_accepted = TRUE WHERE user_id = $1 AND group_id = $2",
+		userId, groupId,
+	)
+	return err
+}
+
+// RejectGroupInvitation rejects a group invitation
+func (r *GroupRepository) RejectGroupInvitation(userId, groupId int) error {
+	// Check if invitation exists
+	var invitationId int
+	checkQuery := `SELECT id FROM group_members WHERE user_id = $1 AND group_id = $2 AND is_accepted = FALSE AND inviter_id != 0`
+	err := r.Repository.db.QueryRow(checkQuery, userId, groupId).Scan(&invitationId)
+	
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return errors.New("no pending invitation found")
+		}
+		return err
+	}
+
+	// Remove the invitation
+	_, err = r.Repository.db.Exec(
+		"DELETE FROM group_members WHERE user_id = $1 AND group_id = $2 AND is_accepted = FALSE AND inviter_id != 0",
+		userId, groupId,
+	)
+	return err
+}
