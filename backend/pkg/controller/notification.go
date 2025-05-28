@@ -58,11 +58,12 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 		eventCreatedCount = 0
 	}
 	groupRequests+=eventCreatedCount
+	
 	response["notifications"] = map[string]int{
 	"messageUnread":     messageUnread,
 	"groupRequests":     groupRequests,
 	"followRequests":    followRequests,
-}
+	}
 
 	response["totalCount"] = messageUnread + groupRequests + followRequests
 	return response

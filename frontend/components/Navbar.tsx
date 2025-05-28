@@ -84,11 +84,7 @@ export default function Navbar() {
       setActiveTab("groups");
     } else if (pathname.includes("/app/chat")) {
       setActiveTab("chat");
-    } else if (pathname.includes("/app/notifications")) {
-      setActiveTab("notification");
-    }else if (pathname.includes("/app/notifications")) {
-  setActiveTab("notification");
-}
+    } 
 
     const notificationTypes = [
       "followRequestHandled",
@@ -109,7 +105,7 @@ const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
 fetchAllNotificationCounts();});
 
 const unsubscribeEventCreated = onMessageType("eventCreated", () => {
-  fetchAllNotificationCounts();
+  fetchAllNotificationCounts(); 
 });
     const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
       fetchAllNotificationCounts();
@@ -221,31 +217,7 @@ const unsubscribeEventCreated = onMessageType("eventCreated", () => {
       ),
       link: "/app/profiles",
       notifications: followRequestCount,
-    },{
-  id: "notification",
-  label: "Notifications",
-  icon: (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="icon"
-    >
-      <path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"></path>
-      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-    </svg>
-  ),
-  link: "/app/notifications",
-  notifications:
-    chatUnreadCount + joinRequestCount + followRequestCount,
-},
-
+    },
   ];
 
   useEffect(() => {
