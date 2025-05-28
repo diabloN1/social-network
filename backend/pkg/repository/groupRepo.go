@@ -278,10 +278,10 @@ LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id
 
 		var memberId int
 		var hasNewEvent bool
-if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
-	return nil, err
-}
-group.HasNewEvent = hasNewEvent
+	if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
+		return nil, err
+	}
+	group.HasNewEvent = hasNewEvent
 
 
 		if group.OwnerId == userId {
