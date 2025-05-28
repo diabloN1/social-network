@@ -125,6 +125,14 @@ func (r *FollowRepository) DeleteNotif(sender, reciever int) error {
 `, sender, reciever)
 	return err
 }
+func (r *FollowRepository) DeleteEventNotif(groupid, reciever int) error {
+
+	_, err := r.Repository.db.Exec(`
+    DELETE FROM notifications
+    WHERE group_id = $1 AND receiver_id = $2 AND type = 'event_created'
+`, groupid, reciever)
+	return err
+}
 
 func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
 	var users []*model.User

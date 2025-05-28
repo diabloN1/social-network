@@ -11,6 +11,7 @@ import getGroups from "@/api/groups/getGroups";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
 import Popup from "../popup";
+import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
 
 // Types for API response
 interface User {
@@ -180,10 +181,15 @@ export default function GroupsPage() {
   };
 
   // Navigate to group detail page
-  const navigateToGroup = (groupId: number) => {
+
+ const navigateToGroup = async (groupId: number) => {
+    try {
+      await deleteNewEventNotification(groupId);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
     router.push(`/app/groups/${groupId}`);
   };
-
   return (
     <div className="groups-container">
       <header className="groups-header">

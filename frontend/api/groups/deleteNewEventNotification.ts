@@ -2,19 +2,19 @@
 
 import { cookies } from 'next/headers'
 
-const deleteFollowNotification = async (profileId: number) => {
+const deleteNewEventNotification = async (groupId: number) => {
   try {
     const cookieStore = await cookies()
     const token = cookieStore.get('token')?.value || ''
 
-    const response = await fetch("http://localhost:8080/deleteFollowNotif", {
+    const response = await fetch("http://localhost:8080/deleteNotifNewEvent", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
         session: token,
-         profileId :profileId
+         groupId :groupId
       }),
     });
 
@@ -31,4 +31,4 @@ const deleteFollowNotification = async (profileId: number) => {
   }
 };
 
-export default deleteFollowNotification
+export default deleteNewEventNotification

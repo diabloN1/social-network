@@ -212,6 +212,11 @@ func (s *Server) AddGroupEventHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.AddGroupEvent(request)
 	s.SendJson(w, response, err)
 }
+func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
+    request, err := s.ReadRequest(r.Body)
+    response := s.DeleteNewEventNotification(request)
+    s.SendJson(w, response, err)
+}
 
 func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 
