@@ -43,6 +43,12 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 		log.Println("Error getting follow requests:", err)
 		followRequests = 0
 	}
+	publicFollowRequests, err := s.repository.Follow().CountPublicFollowRequests(res.Userid)
+	if err != nil {
+		log.Println("Error getting public follow requests:", err)
+		publicFollowRequests = 0
+	}
+	followRequests += publicFollowRequests
 
 	response["notifications"] = map[string]int{
 		"messageUnread":  messageUnread,
@@ -51,5 +57,24 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 	}
 
 	response["totalCount"] = messageUnread + groupRequests + followRequests
+	return response
+}
+
+func (s *Server) CheckNewFollowNotification(request map[string]any) map[string]any {
+	response := make(map[string]any)
+	response["error"] = ""
+
+	res := s.ValidateSession(request)
+	if res.Session == "" {
+		response["error"] = "Invalid session"
+		return response
+	}
+
+	exists, err := s.repository.Follow().GetCountPublicFollowRequests(res.Userid)
+	if err != nil {
+		response["error"] = "Database error"
+		return response
+	}
+	response["hasNewFollow"] = exists
 	return response
 }

@@ -85,6 +85,13 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 	query = `INSERT INTO followers (follower_id, following_id, is_accepted) VALUES ($1, $2, $3) RETURNING id`
 	err = r.Repository.db.QueryRow(query, userId, profileId, !res.IsPrivate).Scan(&id)
 
+	if !res.IsPrivate {
+		notifQuery := `INSERT INTO notifications (sender_id, receiver_id, type) VALUES ($1, $2, $3)`
+		_, err := r.Repository.db.Exec(notifQuery, userId, profileId, "follow_request")
+		if err != nil {
+			return fmt.Errorf("Error creating notification for public follow")
+		}
+	}
 	return err
 }
 
@@ -109,6 +116,14 @@ func (r *FollowRepository) DeleteFollow(profileId, userId int) error {
 	}
 
 	return nil
+}
+func (r *FollowRepository) DeleteNotif(sender, reciever int) error {
+
+	_, err := r.Repository.db.Exec(`
+    DELETE FROM notifications
+    WHERE sender_id = $1 AND receiver_id = $2 AND type = 'follow_request'
+`, sender, reciever)
+return err
 }
 
 func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
@@ -151,3 +166,24 @@ func (r *FollowRepository) GetFollowRequestCount(userId int) (int, error) {
 
 	return count, nil
 }
+
+func (r *FollowRepository) CountPublicFollowRequests(userID int) (int, error) {
+	var count int
+	query := `
+		SELECT COUNT(*) FROM notifications
+		WHERE receiver_id = $1 AND type = 'follow_request' 
+	`
+	err := r.Repository.db.QueryRow(query, userID).Scan(&count)
+	return count, err
+}
+
+func (r *FollowRepository) GetCountPublicFollowRequests(userID int) (bool, error) {
+	 query := `SELECT EXISTS (SELECT 1 FROM notifications WHERE receiver_id = $1 AND type = 'follow_request')`
+    var exists bool
+    err := r.Repository.db.QueryRow(query, userID).Scan(&exists)
+    
+	return exists, err
+}
+
+
+

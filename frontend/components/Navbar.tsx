@@ -98,27 +98,29 @@ export default function Navbar() {
     );
 
     const unsubscribe = onMessageType("addMessage", () => {
-      if (!pathname.includes("/app/chat")) {
-        setChatUnreadCount((prev) => prev + 1);
-      }
+     fetchAllNotificationCounts();
     });
+const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
+  console.log("deelteee");
+  
+fetchAllNotificationCounts();});
 
     const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
-      if (!pathname.includes("/app/groups")) {
-        setJoinRequestCount((prev) => prev + 1);
-      }
+      fetchAllNotificationCounts();
     });
 
-    const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
-      if (!pathname.includes("/app/profiles")) {
-        setFollowRequestCount((prev) => prev + 1);
-      }
-    });
+   const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+    console.log("joiiiiiiiii");
+    
+  fetchAllNotificationCounts(); 
+});
+
 
     return () => {
       unsubscribe();
       unsubscribeJoinRequest();
       unsubscribeFollowRequest();
+      unsubscribeDeleteFollow()
       notificationUnsubs.forEach((unsub) => unsub());
     };
   }, [pathname]);

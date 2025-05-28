@@ -9,6 +9,7 @@ import { User } from "./[id]/page";
 import getProfiles from "@/api/profiles/getProfiles";
 import acceptFollow from "@/api/follow/acceptFollow";
 import deleteFollow from "@/api/follow/deleteFollow";
+import hasNewFollowNotification from "@/api/profiles/getPuplicFollowReq";
 
 export default function ProfilesPage() {
   const router = useRouter();
@@ -16,24 +17,29 @@ export default function ProfilesPage() {
   const [followRequests, setFollowRequests] = useState<User[] | null>(null);
   const [users, setUsers] = useState<User[] | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [hasNewFollow, setHasNewFollow] = useState(false);
 
   const getData = async () => {
     try {
-      const data = await getProfiles();
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
-      
-      setCurrentUser(data.currentuser);
-      console.log("ssss",data.currentuser);
-      setUsers(data.allusers);
-      setFollowRequests(data.followrequests);
-      console.log(data.allusers);
-      return data;
-    } catch (error) {
-      alert(error);
+    const [profileData, followNotifData] = await Promise.all([
+      getProfiles(),
+      hasNewFollowNotification(),
+    ]);
+
+    if (profileData.error || followNotifData.error) {
+      alert(profileData.error || followNotifData.error);
+      return;
     }
+
+    setCurrentUser(profileData.currentuser);
+    setUsers(profileData.allusers);
+    setFollowRequests(profileData.followrequests);
+    setHasNewFollow(followNotifData.hasNewFollow);
+
+    return profileData;
+  } catch (error) {
+    alert(error);
+  }
   };
 
   useEffect(() => {
@@ -165,7 +171,11 @@ export default function ProfilesPage() {
           </div>
         </section>
       )}
-
+  {hasNewFollow && (
+    <div className="notification-banner">
+      <p>🔔 You have a new follower!</p>
+    </div>
+  )}
       <section className="users-section">
         {currentUser && (
           <div className="current-user-section">

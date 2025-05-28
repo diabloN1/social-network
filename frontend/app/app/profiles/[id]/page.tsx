@@ -108,7 +108,6 @@ export default function ProfilePage() {
 
   // Handle follow/unfollow
   const handleFollowAction = async () => {
-    console.log(1111111);
     try {
       if (isFollowing || isPending) {
         const data = await deleteFollow(userId, true);
