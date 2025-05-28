@@ -14,6 +14,7 @@ export interface Group {
   members: User[];
   posts: Post[];
   events: GroupEvent[];
+  new_event: boolean;
 }
 
 export interface GroupInvite {

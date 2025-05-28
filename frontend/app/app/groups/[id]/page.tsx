@@ -12,6 +12,7 @@ import GroupCommentForm from "@/components/group-comment-form";
 import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
 import CreateEventModal from "@/components/create-event-modal";
+import GroupInviteModal from "@/components/group-invite-modal";
 import addGroupPost from "@/api/groups/addGroupPost";
 import addGroupEvent from "@/api/groups/addGroupEvent";
 import addEventOption from "@/api/groups/addEventOption";
@@ -20,6 +21,7 @@ import "./group.css";
 import { Group } from "@/types/group";
 import { Post, Reaction } from "@/types/post";
 import { Comment } from "@/types/comment";
+import Popup from "../../popup";
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -36,7 +38,10 @@ export default function GroupDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [inviteUsername, setInviteUsername] = useState("");
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   // Reaction and comment states
   const [postReactions, setPostReactions] = useState<{ [key: number]: Reaction }>(
@@ -59,8 +64,6 @@ export default function GroupDetailPage() {
         return;
       }
 
-      console.log("Group data:", data);
-
       setGroup(data.group);
 
       // Initialize reactions for each post
@@ -77,8 +80,7 @@ export default function GroupDetailPage() {
         setPostReactions(reactions);
       }
     } catch (err) {
-      setError("Failed to load group data");
-      console.error(err);
+      setError("Failed to load group data" + err);
     } finally {
       setIsLoading(false);
     }
@@ -100,7 +102,6 @@ export default function GroupDetailPage() {
 
     const newReaction =
       currentReaction?.userReaction === reaction ? null : reaction;
-
     // Optimistic UI update
     setPostReactions((prev) => {
       const current = prev[postId];
@@ -159,7 +160,7 @@ export default function GroupDetailPage() {
         }));
       }
     } catch (error) {
-      console.error("Failed to react to group post:", error);
+      setPopup({ message: `${error}`, status: "failure" });
       setPostReactions((prev) => ({
         ...prev,
         [postId]: { ...currentReaction, isReacting: false },
@@ -186,7 +187,7 @@ export default function GroupDetailPage() {
         }));
       }
     } catch (error) {
-      console.error("Error loading comments:", error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -221,14 +222,14 @@ export default function GroupDetailPage() {
     try {
       const data = await addGroupPost(postData);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: `${error}`, status: "failure" });
         return;
       }
 
       setShowCreatePostModal(false);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -254,7 +255,7 @@ export default function GroupDetailPage() {
       setShowCreateEventModal(false);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -266,7 +267,7 @@ export default function GroupDetailPage() {
       console.log(data);
       fetchGroupData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -275,23 +276,19 @@ export default function GroupDetailPage() {
     try {
       const data = await requestJoinGroup(groupId);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
       fetchGroupData();
-      console.log("Request sent successfully");
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
-  // Invite user
-  const handleInviteUser = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!inviteUsername.trim()) return;
-    console.log("Inviting user:", inviteUsername);
-    setInviteUsername("");
-    setShowInviteModal(false);
+  // Handle invitation sent callback
+  const handleInvitationSent = () => {
+    console.log("Invitation sent successfully");
+    // Optionally refresh group data or show success message
   };
 
   if (isLoading) {
@@ -819,38 +816,14 @@ export default function GroupDetailPage() {
         </div>
       )}
 
-      {/* Invite Modal */}
+      {/* Enhanced Invite Modal */}
       {showInviteModal && (
-        <div className="modal-overlay">
-          <div className="modal-content">
-            <h2>Invite User to Group</h2>
-            <form onSubmit={handleInviteUser}>
-              <div className="form-group">
-                <label htmlFor="invite-username">Username</label>
-                <input
-                  type="text"
-                  id="invite-username"
-                  value={inviteUsername}
-                  onChange={(e) => setInviteUsername(e.target.value)}
-                  placeholder="Enter username to invite"
-                  required
-                />
-              </div>
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="cancel-button"
-                  onClick={() => setShowInviteModal(false)}
-                >
-                  Cancel
-                </button>
-                <button type="submit" className="submit-button">
-                  Send Invitation
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+        <GroupInviteModal
+          groupId={groupId}
+          isOpen={showInviteModal}
+          onClose={() => setShowInviteModal(false)}
+          onInviteSent={handleInvitationSent}
+        />
       )}
 
       {/* Create Post Modal */}
@@ -867,6 +840,13 @@ export default function GroupDetailPage() {
         <CreateEventModal
           onClose={() => setShowCreateEventModal(false)}
           onSubmit={handleCreateEvent}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </div>

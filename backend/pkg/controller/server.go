@@ -67,7 +67,6 @@ func Start() error {
 
 	// Follows
 	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
-
 	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
 
@@ -87,12 +86,21 @@ func Start() error {
 	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
 	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
 
+	// Group Invitation Routes
+	s.router.HandleFunc("/getGroupInviteUsers", s.getGroupInviteUsersHandler)
+	s.router.HandleFunc("/inviteUserToGroup", s.inviteUserToGroupHandler)
+	s.router.HandleFunc("/respondToGroupInvitation", s.respondToGroupInvitationHandler)
+
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)
 	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
 	//notif
 	s.router.HandleFunc("/getAllNotifications", s.GetAllNotificationsHandler)
 	s.router.HandleFunc("/getNewFollowNotification", s.GetNewFollowNotificationHandler)
+	s.router.HandleFunc("/deleteFollowNotif", s.DeleteFollowNotif)
+	s.router.HandleFunc("/deleteNotifNewEvent", s.deleteNotifNewEvent)
+
+
 
 	
 
@@ -108,7 +116,6 @@ func Start() error {
 	log.Println("Server started at http://localhost:8080/")
 	return http.ListenAndServe(":8080", s.corsMiddleware(s))
 }
-
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.router.ServeHTTP(w, r)
@@ -131,6 +138,7 @@ func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 		clients:    make(map[int][]*Client),
 	}
 }
+
 
 func (s *Server) addClient(userid int, session string, client *websocket.Conn) *Client {
 	s.mu.Lock()

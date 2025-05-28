@@ -5,6 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 import addGroupComment from "@/api/groups/addGroupComment";
 import { uploadFile } from "@/api/auth/uploadFile";
+import Popup from "@/app/app/popup";
 
 interface GroupCommentFormProps {
   postId: number;
@@ -22,19 +23,28 @@ export default function GroupCommentForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        alert("Please select an image file");
+        setPopup({ message: "Please select an image file", status: "failure" });
+
         return;
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        alert("Image size must be less than 10MB");
+        setPopup({
+          message: "Image size must be less than 10MB",
+          status: "failure",
+        });
+
         return;
       }
 
@@ -81,7 +91,11 @@ export default function GroupCommentForm({
       const result = await addGroupComment(postId, newComment.trim(), filename);
 
       if (result.error) {
-        alert(`Failed to add comment: ${result.error}`);
+        setPopup({
+          message: `Failed to add comment: ${result.error}`,
+          status: "failure",
+        });
+
         return;
       }
 
@@ -97,7 +111,7 @@ export default function GroupCommentForm({
       onCommentAdded();
     } catch (error) {
       console.error("Error adding group comment:", error);
-      alert("Failed to add comment");
+      setPopup({ message: `Failed to add comment`, status: "failure" });
     } finally {
       setIsSubmitting(false);
     }
@@ -178,6 +192,13 @@ export default function GroupCommentForm({
           </button>
         </div>
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </form>
   );
 }

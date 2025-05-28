@@ -10,6 +10,8 @@ import createGroup from "@/api/groups/createGroup";
 import getGroups from "@/api/groups/getGroups";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
+import Popup from "../popup";
+import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
 import Image from "next/image";
 import { GroupsData } from "@/types/group";
 
@@ -22,21 +24,26 @@ export default function GroupsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const fetchGroupsData = async () => {
     try {
       const data = await getGroups();
       if (data.error) {
-        alert(data.error);
+        console.log(data.error);
+        
+        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
 
-      console.log(data);
       setGroupsData(data);
 
       // Extract group IDs from join_requests to track pending requests
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -71,7 +78,7 @@ export default function GroupsPage() {
     try {
       const data = await createGroup(group);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
 
@@ -79,7 +86,7 @@ export default function GroupsPage() {
       // Refresh groups data
       fetchGroupsData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -88,15 +95,15 @@ export default function GroupsPage() {
     try {
       const data = await requestJoinGroup(groupId);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: `${data.error}`, status: "failure" });
+
         return;
       }
 
       // Refresh groups data to update the is_pending status
       fetchGroupsData();
-      console.log("Join request sent successfully");
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -117,20 +124,26 @@ export default function GroupsPage() {
     try {
       const data = await respondToJoinRequest(userId, groupId, accept);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: `${data.error}`, status: "failure" });
+
         return;
       }
       fetchGroupsData();
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
   // Navigate to group detail page
-  const navigateToGroup = (groupId: number) => {
+
+ const navigateToGroup = async (groupId: number) => {
+    try {
+      await deleteNewEventNotification(groupId);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
     router.push(`/app/groups/${groupId}`);
   };
-
   return (
     <div className="groups-container">
       <header className="groups-header">
@@ -324,6 +337,9 @@ export default function GroupsPage() {
                   unoptimized
                 />
               </div>
+              {group.new_event && (
+        <span className="event-notification-dot">New Event</span> 
+      )}
               <div
                 className="group-info"
                 onClick={() => navigateToGroup(group.id)}
@@ -362,6 +378,13 @@ export default function GroupsPage() {
         <CreateGroupModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateGroup}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </div>

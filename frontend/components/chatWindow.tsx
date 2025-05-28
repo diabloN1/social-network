@@ -6,6 +6,7 @@ import getMessages from "@/api/messages/getMesages";
 import { addMessage } from "@/helpers/addMessage";
 import { onMessageType, socket } from "@/helpers/webSocket";
 import getToken from "@/api/auth/getToken";
+import Popup from "@/app/app/popup";
 import { Chat } from "@/types/chat";
 import { AddMessageEvent, Message } from "@/types/message";
 import Image from "next/image";
@@ -23,6 +24,8 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[] | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
+  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+  
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -32,14 +35,13 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       try {
         const data = await getMessages(id, chat?.isGroup || false);
         if (data.error) {
-          alert(data.error);
+          setPopup({ message: data.error, status: "failure" });
           return;
         }
-        console.log("--------", data);
 
         setMessages(data?.messages);
       } catch (error) {
-        alert(error);
+        setPopup({ message: `${error}`, status: "failure" });
       }
     };
     initMessages();
@@ -65,20 +67,19 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
               prev != null ? [...prev, data.message] : [data.message]
             );
 
-            socket?.send(
-              JSON.stringify({
-                type: "updateseenmessages",
-                id: currentChatId,
-                isGroup,
-                session: (await getToken()).session,
-              })
-            );
-          } catch (error) {
-            alert(error);
-          }
+          socket?.send(
+            JSON.stringify({
+              type: "updateseenmessages",
+              id: currentChatId,
+              isGroup,
+              session: (await getToken()).session,
+            })
+          );
+        } catch (error) {
+          setPopup({ message: `${error}`, status: "failure" });
         }
       }
-    );
+    });
 
     return () => {
       unsubscribe(); // Clean up listener when chat change or component unmounts
@@ -104,7 +105,7 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       setMessageInput("");
       setShowEmojis(false);
     } catch (error) {
-      alert(error);
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -287,6 +288,13 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
           &#10148;
         </button>
       </form>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

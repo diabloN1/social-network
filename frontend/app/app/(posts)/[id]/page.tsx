@@ -11,6 +11,7 @@ import getComments from "@/api/posts/getComments";
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
+import Popup from "../../popup";
 import { Post } from "@/types/post";
 import { Comment as CommentType } from "@/types/comment";
 
@@ -31,6 +32,10 @@ export default function SinglePostPage() {
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [popup, setPopup] = useState<{
+      message: string;
+      status: "success" | "failure";
+    } | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -62,7 +67,6 @@ export default function SinglePostPage() {
       }
 
       const foundData = data.posts[0];
-      console.log("Post data loaded:", foundData);
 
       if (!foundData || foundData.id === 0) {
         router.push("/404");
@@ -86,7 +90,7 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      console.error(error);
+      setPopup({ message: `${error}`, status: "failure" });
     } finally {
       setIsLoading(false);
     }
@@ -423,6 +427,13 @@ export default function SinglePostPage() {
           postId={post.id}
           isOpen={isShareModalOpen}
           onClose={() => setIsShareModalOpen(false)}
+        />
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
         />
       )}
     </>

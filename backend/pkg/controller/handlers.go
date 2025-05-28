@@ -140,6 +140,12 @@ func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.
     s.SendJson(w, response, err)
 }
 
+func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
+    request, err := s.ReadRequest(r.Body)
+    response := s.DeleteFollowNotification(request)
+    s.SendJson(w, response, err)
+}
+
 
 
 func (s *Server) getFollowRequestCountHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +189,6 @@ func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
-
 	request, err := s.ReadRequest(r.Body)
 	response := s.GetJoinRequestCount(request)
 	s.SendJson(w, response, err)
@@ -206,6 +211,11 @@ func (s *Server) AddGroupEventHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
 	response := s.AddGroupEvent(request)
 	s.SendJson(w, response, err)
+}
+func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
+    request, err := s.ReadRequest(r.Body)
+    response := s.DeleteNewEventNotification(request)
+    s.SendJson(w, response, err)
 }
 
 func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
@@ -279,4 +289,23 @@ func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	http.ServeFile(w, r, fullPath)
+}
+
+// Group Invitation Handlers
+func (s *Server) getGroupInviteUsersHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetGroupInviteUsers(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) inviteUserToGroupHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.InviteUserToGroup(request)
+	s.SendJson(w, response, err)
+}
+
+func (s *Server) respondToGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+	request, err := s.ReadRequest(r.Body)
+	response := s.RespondToGroupInvitation(request)
+	s.SendJson(w, response, err)
 }
