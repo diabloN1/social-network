@@ -177,13 +177,30 @@ func (r *FollowRepository) CountPublicFollowRequests(userID int) (int, error) {
 	return count, err
 }
 
-func (r *FollowRepository) GetCountPublicFollowRequests(userID int) (bool, error) {
-	 query := `SELECT EXISTS (SELECT 1 FROM notifications WHERE receiver_id = $1 AND type = 'follow_request')`
-    var exists bool
-    err := r.Repository.db.QueryRow(query, userID).Scan(&exists)
-    
-	return exists, err
+func (r *FollowRepository) GetNewFollowers(userID int) ([]*model.User, error) {
+	query := `
+	SELECT users.id, users.firstname, users.nickname, users.avatar
+	FROM notifications
+	JOIN users ON notifications.sender_id = users.id
+	WHERE notifications.receiver_id = $1 AND notifications.type = 'follow_request'
+	`
+	rows, err := r.Repository.db.Query(query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var followers []*model.User
+	for rows.Next() {
+		 user:= &model.User{}
+		if err := rows.Scan(&user.ID, &user.Firstname, &user.Nickname, &user.Avatar); err != nil {
+			return nil, err
+		}
+		followers = append(followers, user)
+	}
+	return followers, nil
 }
+
 
 
 

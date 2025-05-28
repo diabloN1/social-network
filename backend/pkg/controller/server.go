@@ -93,6 +93,8 @@ func Start() error {
 	//notif
 	s.router.HandleFunc("/getAllNotifications", s.GetAllNotificationsHandler)
 	s.router.HandleFunc("/getNewFollowNotification", s.GetNewFollowNotificationHandler)
+	s.router.HandleFunc("/deleteFollowNotif", s.DeleteFollowNotif)
+
 
 	
 
