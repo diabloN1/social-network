@@ -140,6 +140,12 @@ func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.
     s.SendJson(w, response, err)
 }
 
+func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
+    request, err := s.ReadRequest(r.Body)
+    response := s.DeleteFollowNotification(request)
+    s.SendJson(w, response, err)
+}
+
 
 
 func (s *Server) getFollowRequestCountHandler(w http.ResponseWriter, r *http.Request) {
@@ -183,7 +189,6 @@ func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
-
 	request, err := s.ReadRequest(r.Body)
 	response := s.GetJoinRequestCount(request)
 	s.SendJson(w, response, err)

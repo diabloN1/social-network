@@ -9,8 +9,9 @@ import { User } from "./[id]/page";
 import getProfiles from "@/api/profiles/getProfiles";
 import acceptFollow from "@/api/follow/acceptFollow";
 import deleteFollow from "@/api/follow/deleteFollow";
-import hasNewFollowNotification from "@/api/profiles/getPuplicFollowReq";
+import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
 import Popup from "../popup";
+import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
 
 export default function ProfilesPage() {
   const router = useRouter();
@@ -19,29 +20,37 @@ export default function ProfilesPage() {
   const [users, setUsers] = useState<User[] | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasNewFollow, setHasNewFollow] = useState(false);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
+  const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
     try {
-    const [profileData, followNotifData] = await Promise.all([
-      getProfiles(),
-      hasNewFollowNotification(),
-    ]);
+      const [profileData, followNotifData] = await Promise.all([
+        getProfiles(),
+        hasNewFollowNotification(),
+      ]);
 
-    if (profileData.error || followNotifData.error) {
-      setPopup({ message: profileData.error || followNotifData.error, status: "failure" });
-      return;
+      if (profileData.error || followNotifData.error) {
+        setPopup({
+          message: profileData.error || followNotifData.error,
+          status: "failure",
+        });
+        return;
+      }
+      console.log("profileeeee", profileData, "follooo", followNotifData);
+
+      setCurrentUser(profileData.currentuser);
+      setUsers(profileData.allusers);
+      setFollowRequests(profileData.followrequests);
+      setHasNewFollow(followNotifData.hasNewFollow);
+      setNewFollowers(followNotifData.newFollowers || []);
+      return profileData;
+    } catch (error) {
+      setPopup({ message: `${error}`, status: "failure" });
     }
-
-    setCurrentUser(profileData.currentuser);
-    setUsers(profileData.allusers);
-    setFollowRequests(profileData.followrequests);
-    setHasNewFollow(followNotifData.hasNewFollow);
-
-    return profileData;
-  } catch (error) {
-    setPopup({ message: `${error}`, status: "failure" });
-  }
   };
 
   useEffect(() => {
@@ -95,7 +104,12 @@ export default function ProfilesPage() {
   };
 
   // Navigate to user profile
-  const navigateToProfile = (id: number) => {
+  const navigateToProfile = async (id: number) => {
+    try {
+      await deleteFollowNotification(id);
+    } catch (error) {
+      console.error("Failed to delete notification:", error);
+    }
     router.push(`/app/profiles/${id}`);
   };
 
@@ -173,11 +187,36 @@ export default function ProfilesPage() {
           </div>
         </section>
       )}
-  {hasNewFollow && (
-    <div className="notification-banner">
-      <p>🔔 You have a new follower!</p>
-    </div>
-  )}
+      {hasNewFollow && newFollowers.length > 0 && (
+        <div className="notification-banner">
+          <p>🔔 You have new followers:</p>
+          <ul className="followers-list">
+            {newFollowers.map((follower) => (
+              <li
+                key={follower.id}
+                onClick={() => navigateToProfile(follower.id)}
+                style={{ cursor: "pointer" }}
+              >
+                <img
+                  src={
+                    follower.avatar
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                          follower.id
+                        }&path=${encodeURIComponent(follower.avatar)}`
+                      : "/icons/placeholder.svg"
+                  }
+                  alt="follower-avatar"
+                  className="user-avatar"
+                />
+                <span className="user-name">
+                  {follower.firstname} (@{follower.nickname}) followed you
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       <section className="users-section">
         {currentUser && (
           <div className="current-user-section">
@@ -188,13 +227,13 @@ export default function ProfilesPage() {
               style={{ cursor: "pointer" }}
             >
               <img
-                 src={
-                      currentUser.avatar
-                        ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                            currentUser.id
-                          }&path=${encodeURIComponent(currentUser.avatar)}`
-                        : "/icons/placeholder.svg"
-                    }
+                src={
+                  currentUser.avatar
+                    ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                        currentUser.id
+                      }&path=${encodeURIComponent(currentUser.avatar)}`
+                    : "/icons/placeholder.svg"
+                }
                 alt={currentUser.nickname}
                 className="user-avatar"
               />
@@ -246,12 +285,12 @@ export default function ProfilesPage() {
         </div>
       </section>
       {popup && (
-              <Popup
-                message={popup.message}
-                status={popup.status}
-                onClose={() => setPopup(null)}
-              />
-            )}
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

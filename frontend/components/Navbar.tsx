@@ -106,6 +106,9 @@ const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
   
 fetchAllNotificationCounts();});
 
+const unsubscribeEventCreated = onMessageType("eventCreated", () => {
+  fetchAllNotificationCounts();
+});
     const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
       fetchAllNotificationCounts();
     });
@@ -122,6 +125,7 @@ fetchAllNotificationCounts();});
       unsubscribeJoinRequest();
       unsubscribeFollowRequest();
       unsubscribeDeleteFollow()
+      unsubscribeEventCreated();
       notificationUnsubs.forEach((unsub) => unsub());
     };
   }, [pathname]);
