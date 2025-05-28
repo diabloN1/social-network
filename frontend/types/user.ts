@@ -9,6 +9,8 @@ export interface User {
   nickname: string;
   avatar?: string;
   online?: boolean;
+  isaccepted?: boolean;
+
 }
 
 export interface Profile {

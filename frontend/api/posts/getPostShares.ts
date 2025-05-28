@@ -1,5 +1,6 @@
 "use server";
 
+import { User } from "@/types/user";
 import { cookies } from "next/headers";
 
 const getPostShares = async (postId: number) => {
@@ -34,10 +35,10 @@ const getPostShares = async (postId: number) => {
     // Transform the response to separate current shares from available users
     if (data.allusers) {
       const currentShares = data.allusers.filter(
-        (user: any) => user.isaccepted === true
+        (user: User) => user.isaccepted === true
       );
       const availableUsers = data.allusers.filter(
-        (user: any) => user.isaccepted === false
+        (user: User) => user.isaccepted === false
       );
 
       return {
