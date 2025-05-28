@@ -22,5 +22,9 @@ ToDo :
 
 
 
+#install font-awesome
+npm install @fortawesome/fontawesome-free
+
+
 golangci-lint run ./...
 gocritic check ./...
