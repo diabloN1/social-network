@@ -50,12 +50,19 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 		publicFollowRequests = 0
 	}
 	followRequests += publicFollowRequests
+	var eventCreatedCount int = 0
 
-	response["notifications"] = map[string]int{
-		"messageUnread":  messageUnread,
-		"groupRequests":  groupRequests,
-		"followRequests": followRequests,
+	eventCreatedCount, err = s.repository.Group().CountNewEvents(res.Userid)
+	if err != nil {
+		log.Println("Error getting event created count:", err)
+		eventCreatedCount = 0
 	}
+	groupRequests+=eventCreatedCount
+	response["notifications"] = map[string]int{
+	"messageUnread":     messageUnread,
+	"groupRequests":     groupRequests,
+	"followRequests":    followRequests,
+}
 
 	response["totalCount"] = messageUnread + groupRequests + followRequests
 	return response

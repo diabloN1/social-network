@@ -33,6 +33,7 @@ interface Group {
   is_owner: boolean;
   is_pending?: boolean;
   members: User[];
+  new_event:boolean;
 }
 
 interface GroupInvite {
@@ -77,6 +78,8 @@ export default function GroupsPage() {
     try {
       const data = await getGroups();
       if (data.error) {
+        console.log(data.error);
+        
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
@@ -365,6 +368,9 @@ export default function GroupsPage() {
                   alt="group image"
                 />
               </div>
+              {group.new_event && (
+        <span className="event-notification-dot">New Event</span> // 👈 show notification
+      )}
               <div
                 className="group-info"
                 onClick={() => navigateToGroup(group.id)}

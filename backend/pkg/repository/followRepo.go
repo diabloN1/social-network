@@ -123,7 +123,7 @@ func (r *FollowRepository) DeleteNotif(sender, reciever int) error {
     DELETE FROM notifications
     WHERE sender_id = $1 AND receiver_id = $2 AND type = 'follow_request'
 `, sender, reciever)
-return err
+	return err
 }
 
 func (r *FollowRepository) GetFollowRequests(userid int) ([]*model.User, error) {
@@ -192,7 +192,7 @@ func (r *FollowRepository) GetNewFollowers(userID int) ([]*model.User, error) {
 
 	var followers []*model.User
 	for rows.Next() {
-		 user:= &model.User{}
+		user := &model.User{}
 		if err := rows.Scan(&user.ID, &user.Firstname, &user.Nickname, &user.Avatar); err != nil {
 			return nil, err
 		}
@@ -200,7 +200,3 @@ func (r *FollowRepository) GetNewFollowers(userID int) ([]*model.User, error) {
 	}
 	return followers, nil
 }
-
-
-
-
