@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import getChatData from "@/api/messages/getChatData";
 import { onMessageType } from "@/helpers/webSocket";
+import Popup from "@/app/app/popup";
 
 // API response interfaces
 interface Conv {
@@ -39,17 +40,19 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
   const [activeTab, setActiveTab] = useState<
     "+" | "all" | "private" | "groups"
   >("all");
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   useEffect(() => {
     const getChat = async () => {
       try {
         const data = await getChatData();
         if (data.error) {
-          alert(data.error);
+          setPopup({ message: data.error, status: "failure" });
           return;
         }
-
-        console.log("chats", data);
 
         const transformedChats: Chat[] = [
           // Transform group conversations
@@ -92,7 +95,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
         setChats(transformedChats);
         setLoading(false);
       } catch (error) {
-        alert("Error fetching chat data:" + error);
+        setPopup({ message: `${error}`, status: "failure" });
         setLoading(false);
       }
     };
@@ -237,9 +240,9 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
                 <img
                   src={
                     chat.avatar
-                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
-                          0
-                        }&path=${encodeURIComponent(chat.avatar)}`
+                      ? `http://localhost:8080/getProtectedImage?type=avatars&id=${0}&path=${encodeURIComponent(
+                          chat.avatar
+                        )}`
                       : "/icons/placeholder.svg"
                   }
                   alt="user avatar"
@@ -270,6 +273,13 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           </div>
         )}
       </div>
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
+      )}
     </div>
   );
 }

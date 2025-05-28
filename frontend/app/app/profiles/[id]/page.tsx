@@ -7,6 +7,7 @@ import getProfileData from "@/api/profiles/getProfileData";
 import deleteFollow from "@/api/follow/deleteFollow";
 import requestFollow from "@/api/follow/requestFollow";
 import setPravicy from "@/api/profiles/setPrivacy";
+import Popup from "../../popup";
 
 interface Post {
   id: number;
@@ -52,6 +53,8 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+  
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -60,12 +63,11 @@ export default function ProfilePage() {
         // Use the provided initProfileData function
         const response = await getProfileData(userId);
         if (response.error) {
-          alert(response.error);
+          setPopup({ message: response.error, status: "failure" });
           return;
         }
 
         const userData = response.user;
-        console.log(userData);
         setUser(userData);
         setIsPending(userData.follow?.id && !userData.follow?.isAccepted);
         setIsFollowing(userData.follow?.isAccepted);
@@ -75,7 +77,7 @@ export default function ProfilePage() {
             userData.follow?.isAccepted
         );
       } catch (error) {
-        console.error("Error fetching profile data:", error);
+        setPopup({ message: `${error}`, status: "failure" });
       } finally {
         setLoading(false);
       }
@@ -90,7 +92,7 @@ export default function ProfilePage() {
     try {
       const data = await setPravicy(!user.isprivate);
       if (data.error) {
-        alert(data.error);
+        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -102,7 +104,7 @@ export default function ProfilePage() {
         };
       });
     } catch (error) {
-      alert(error);
+        setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -112,7 +114,7 @@ export default function ProfilePage() {
       if (isFollowing || isPending) {
         const data = await deleteFollow(userId, true);
         if (data.error) {
-          alert(data.error);
+          setPopup({ message: data.error, status: "failure" });
           return;
         }
 
@@ -125,8 +127,8 @@ export default function ProfilePage() {
       } else if (!user?.follow?.id) {
         const data = await requestFollow(userId);
         if (data.error) {
-          alert(data.error);
-          return;
+            setPopup({ message: data.error , status: "failure" });
+            return;
         }
 
         if (user?.isprivate) {
@@ -137,8 +139,8 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-      alert(error);
-      return;
+        setPopup({ message: `${error}`, status: "failure" });
+        return;
     }
   };
 
@@ -386,6 +388,13 @@ export default function ProfilePage() {
             )}
           </div>
         </>
+      )}
+      {popup && (
+        <Popup
+          message={popup.message}
+          status={popup.status}
+          onClose={() => setPopup(null)}
+        />
       )}
     </div>
   );
