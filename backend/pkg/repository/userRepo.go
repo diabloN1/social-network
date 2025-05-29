@@ -67,7 +67,7 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE id = $1"
 		value = v
 	case string:
-		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE email = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE email = $1 or nickname = $1"
 		value = v
 	default:
 		return nil, errors.New("invalid identifier type")

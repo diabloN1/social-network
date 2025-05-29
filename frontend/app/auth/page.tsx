@@ -88,7 +88,7 @@ export default function AuthForm() {
     if (!formData.email) {
       newErrors.email = "Email is required";
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email) && !isLogin) {
       newErrors.email = "Email is invalid";
       isValid = false;
     } else {
