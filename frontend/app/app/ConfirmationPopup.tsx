@@ -11,13 +11,14 @@ interface ConfirmationPopupProps {
 const ConfirmationPopup: FC<ConfirmationPopupProps> = ({ message, onConfirm, onCancel }) => {
   return (
     <div className="popup-overlay">
-      <div className="popup-box popup-confirmation">
+      <div className=" popup-confirmation">
         <div className="popup-content">
           <h2>
             <i className="fa-solid fa-circle-question"></i>
           </h2>
-          <p>{message}</p>
-          <div className="popup-actions">
+          <p className="message">{message}</p>
+        </div>
+        <div className="popup-actions">
             <button className="popup-confirm" onClick={onConfirm}>
               <i className="fa-solid fa-check"></i> Confirm
             </button>
@@ -25,8 +26,7 @@ const ConfirmationPopup: FC<ConfirmationPopupProps> = ({ message, onConfirm, onC
               <i className="fa-solid fa-times"></i> Cancel
             </button>
           </div>
-        </div>
-      </div>
+      </div>    
     </div>
   );
 };

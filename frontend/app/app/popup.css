@@ -7,7 +7,10 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
   }
-  
+  .message{
+    margin-left: 10px;
+    margin-right: 10px;
+  }
   .popup-box {
     width: 300px;
     border-radius: 10px;
@@ -75,16 +78,17 @@
 
 
   .popup-confirmation {
-    background-color: #fff;
+    background-color: #2e2e2e;
     border: 2px solid #ccc;
-    border-radius: 10px;
+    border-radius: 10px;  
     text-align: center;
   }
   
   .popup-actions {
     display: flex;
-    justify-content: space-between;
-    margin-top: 20px;
+    justify-content: center;
+  
+    margin-bottom: 10px;
   }
   
   .popup-confirm {
@@ -92,6 +96,7 @@
     color: #fff;
     border: none;
     padding: 10px 20px;
+    margin-right: 10px;
     border-radius: 5px;
     cursor: pointer;
   }
