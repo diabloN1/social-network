@@ -7,7 +7,7 @@ type User struct {
 	Username           string    `json:"username"`
 	Firstname          string    `json:"firstname"`
 	Lastname           string    `json:"lastname"`
-	Nickname           string    `json:"nickname"`
+	Nickname           *string   `json:"nickname"`
 	Password           string    `json:"password"`
 	EncryptedPassword  string    `json:"-"`
 	Email              string    `json:"email"`
@@ -22,7 +22,7 @@ type User struct {
 	Posts              []*Post   `json:"posts"`
 	Followers          []*User   `json:"followers"`
 	Following          []*User   `json:"following"`
-	CurrentUser		   bool `json:"currentuser"`
+	CurrentUser        bool      `json:"currentuser"`
 	TotalNotifications int       `json:"totalnotifications"`
 	LastMessageDate    string    `json:"lastmessagedate"`
 }
