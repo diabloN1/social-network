@@ -18,6 +18,11 @@ type UserRepository struct {
 func (r *UserRepository) Create(u *request.Register) (id int, res *response.RegisterError) {
 	res = &response.RegisterError{}
 	res.Code = 400
+
+	var nickname *string
+	if u.Nickname == "" {
+		nickname = nil
+	}
 	query := `INSERT INTO users (email, password, firstname, lastname, birth, nickname, avatar, about) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	err := r.Repository.db.QueryRow(
 		query,
@@ -26,7 +31,7 @@ func (r *UserRepository) Create(u *request.Register) (id int, res *response.Regi
 		u.Firstname,
 		u.Lastname,
 		u.Birth,
-		u.Nickname,
+		nickname,
 		u.Avatar,
 		u.About,
 	).Scan(&id)
