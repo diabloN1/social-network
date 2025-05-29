@@ -36,7 +36,7 @@ func (s *Server) RequestFollow(request map[string]any) *model.Response {
 		log.Println("Error requesting follow:", err)
 	}
 	notification := map[string]any{
-		"type":       "newfollowrequest",
+		"type":       "notification",
 		"followerId": res.Userid,
 		"message":    "New follow request",
 		"timestamp":  time.Now().Unix(),
