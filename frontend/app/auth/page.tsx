@@ -157,14 +157,20 @@ export default function AuthForm() {
         }
 
         const data = await postAuth(path, formData);
-        
-        
-        if (data.error && errors.hasOwnProperty(data.error.field)) {
-          setErrors({
-            ...errors,
-            [data.error.field]: data.error.cause,
-          });
-          return;
+
+        if (data.error) {
+          if (errors.hasOwnProperty(data.error.field)) {
+            setErrors({
+              ...errors,
+              [data.error.field]: data.error.cause,
+            });
+            return;
+          } else {
+            setPopup({
+              message: `Failed to Register.\n${data.error.cause}`,
+              status: "failure",
+            });
+          }
         }
 
         if (data.session) {
@@ -246,7 +252,7 @@ export default function AuthForm() {
                   onChange={handleChange}
                   placeholder="Enter your nickname"
                 />
-                 {errors.nickname && (
+                {errors.nickname && (
                   <span className="error-message">{errors.nickname}</span>
                 )}
               </div>
