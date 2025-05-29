@@ -5,7 +5,7 @@ import (
 )
 
 type Payload struct {
-	Type  string `json:"type"`
+	Type  string `json:"type,omitempty"`
 	Data  any    `json:"data,omitempty"`
 	Error any    `json:"error,omitempty"`
 }
