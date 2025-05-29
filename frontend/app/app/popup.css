@@ -7,7 +7,10 @@
     background: rgba(0, 0, 0, 0.5);
     z-index: 1000;
   }
-  
+  .message{
+    margin-left: 10px;
+    margin-right: 10px;
+  }
   .popup-box {
     width: 300px;
     border-radius: 10px;
@@ -70,5 +73,48 @@
     to {
       width: 0%;
     }
+  }
+  
+
+
+  .popup-confirmation {
+    background-color: #2e2e2e;
+    border: 2px solid #ccc;
+    border-radius: 10px;  
+    text-align: center;
+  }
+  
+  .popup-actions {
+    display: flex;
+    justify-content: center;
+  
+    margin-bottom: 10px;
+  }
+  
+  .popup-confirm {
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin-right: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .popup-confirm:hover {
+    background-color: #45a049;
+  }
+  
+  .popup-cancel {
+    background-color: #f44336;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .popup-cancel:hover {
+    background-color: #e53935;
   }
   

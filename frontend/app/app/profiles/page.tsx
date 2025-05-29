@@ -47,8 +47,8 @@ console.log("ddd",followNotifData);
 setNewFollowers(followNotifData.newFollowers || []);
     return profileData;
   } catch (error) {
-    alert(error);
-  }
+    setPopup({ message: `${error}`, status: "failure" });
+    }
   };
 
   useEffect(() => {
