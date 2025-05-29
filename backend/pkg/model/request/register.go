@@ -37,49 +37,49 @@ func (r *Register) Validate() (err *response.RegisterError) {
 
 	if !emailRegex.MatchString(r.Email) {
 		err.Field = "email"
-		err.Message = "invalid email format"
+		err.Cause = "invalid email format"
 		return
 	}
 
 	if !nameRegex.MatchString(r.Firstname) {
 		err.Field = "firstname"
-		err.Message = "only letters allowed, 1-50 chars"
+		err.Cause = "only letters allowed, 1-50 chars"
 		return
 	}
 
 	if !nameRegex.MatchString(r.Lastname) {
 		err.Field = "lastname"
-		err.Message = "only letters allowed, 1-50 chars"
+		err.Cause = "only letters allowed, 1-50 chars"
 		return
 	}
 
 	if len(r.Nickname) > 0 && !nicknameRegex.MatchString(r.Nickname) {
 		err.Field = "nickname"
-		err.Message = "3-25 chars, letters/numbers/dots only"
+		err.Cause = "3-25 chars, letters/numbers/dots only"
 		return
 	}
 
 	if len(r.About) > 1000 {
 		err.Field = "about"
-		err.Message = "about section too long (max 1000 characters)"
+		err.Cause = "about section too long (max 1000 characters)"
 		return
 	}
 
 	if passErr := r.ValidatePassword(); passErr != "" {
 		err.Field = "password"
-		err.Message = passErr
+		err.Cause = passErr
 		return
 	}
 
 	if birthErr := r.ValidateBirth(); birthErr != "" {
 		err.Field = "birth"
-		err.Message = birthErr
+		err.Cause = birthErr
 		return
 	}
 	if hashErr := r.HashPassword(); hashErr != "" {
 		err.Code = 500
 		err.Field = "password"
-		err.Message = hashErr
+		err.Cause = hashErr
 	}
 	return nil
 }

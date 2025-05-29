@@ -5,10 +5,10 @@ import (
 )
 
 type Payload struct {
-	Type string `json:"type"`
-	Data any    `json:"data"`
+	Type  string `json:"type"`
+	Data  any    `json:"data,omitempty"`
+	Error any    `json:"error,omitempty"`
 }
-type Data interface{ Type() string }
 type Errored interface {
 	IamError()
 	getCode() int
@@ -18,20 +18,18 @@ type Error struct {
 	Cause string
 }
 
-func NewError(code int, cause string) struct{ *Error } {
-	return struct{ *Error }{Error: &Error{Code: code, Cause: cause}}
-}
 func (e *Error) getCode() int { return e.Code }
 func (Error) IamError()       {}
 
 func Marchal(data any) (status int, result []byte) {
-	r := Payload{Data: data}
+	r := Payload{}
 	status = 200
 	switch v := data.(type) {
 	case Errored:
 		status = v.getCode()
-	case Data:
-		r.Type = v.Type()
+		r.Error = data
+	default:
+		r.Data = data
 	}
 
 	result, err := json.Marshal(r)
