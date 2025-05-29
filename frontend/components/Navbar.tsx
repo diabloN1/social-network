@@ -98,8 +98,6 @@ export default function Navbar() {
     });
 
    const NotificationsWs = onMessageType("notifications", () => {
-    
-    
   fetchAllNotificationCounts(); 
 });
 
