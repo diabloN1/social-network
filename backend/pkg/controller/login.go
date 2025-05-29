@@ -9,9 +9,12 @@ import (
 func (s *Server) Login(payload any) any {
 	u, ok := payload.(*request.Login)
 	if !ok {
-		return response.NewError(400, "Invalid payload type")
+		return &response.Error{
+			Code:  400,
+			Cause: "Invalid payload type",
+		}
 	}
-	invalidCredError := response.NewError(400, "username or password invalid")
+	invalidCredError := &response.Error{Code: 400, Cause: "username or password invalid"}
 	foundUser, err := s.repository.User().Find(u.Email)
 	if err != nil {
 		log.Println("Failed to find a user:", err)
@@ -25,10 +28,10 @@ func (s *Server) Login(payload any) any {
 	session, err := s.repository.Session().Create(foundUser.ID)
 	if err != nil {
 		log.Println("Failed to create a session:", err)
-		return response.NewError(500, "Failed to create session")
+		return &response.Error{Code: 500, Cause: "Failed to create session"}
 	}
 
-	return response.Login{
+	return &response.Login{
 		Session:  session,
 		UserId:   foundUser.ID,
 		Username: foundUser.Username,

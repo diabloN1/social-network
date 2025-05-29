@@ -10,42 +10,21 @@ const postAuth = async (path: string, formData: any) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        type: path, // "register" or "login"
-        data: {
-          ...formData,
-          birth: formData.birth ? new Date(formData.birth).toISOString() : null,
-        },
+        type: path,
+        data: formData,
       }),
     });
+    const data = await response.json();
 
-    const result = await response.json();
-    const { data } = result;
-
-    if (data?.session) {
-      await setSessionCookie(data.session);
-      return { session: true };
+    console.log(data);
+    if (data.data?.session && !data.error) {
+      await setSessionCookie(data.data?.session);
+      data.data.session = "true";
     }
 
-    if (data?.error) {
-      return {
-        error: true,
-        field: data.field || "form",
-        message: data.message || "Something went wrong.",
-      };
-    }
-
-    return {
-      error: true,
-      field: "form",
-      message: "Invalid server response.",
-    };
+    return data;
   } catch (err) {
     console.error(err);
-    return {
-      error: true,
-      field: "form",
-      message: "Network error.",
-    };
   }
 };
 

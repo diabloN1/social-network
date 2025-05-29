@@ -30,11 +30,11 @@ export default function AuthForm() {
     email: "",
     password: "",
     username: "",
+    nickname: "",
     confirmPassword: "",
     firstName: "",
     lastName: "",
     birth: "",
-    nickname: "", // add this
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [popup, setPopup] = useState<{
@@ -157,22 +157,18 @@ export default function AuthForm() {
         }
 
         const data = await postAuth(path, formData);
-
-        if (data?.session) {
-          router.push("/app");
+        
+        
+        if (data.error && errors.hasOwnProperty(data.error.field)) {
+          setErrors({
+            ...errors,
+            [data.error.field]: data.error.cause,
+          });
           return;
         }
 
-        if (data?.error) {
-          const { field, message } = data;
-          if (field && message) {
-            setErrors((prev) => ({ ...prev, [field]: message }));
-          } else {
-            setPopup({
-              message: "Unexpected error occurred.",
-              status: "failure",
-            });
-          }
+        if (data.session) {
+          router.push("/app");
         }
       } catch (err) {
         setPopup({ message: "Failed to Register." + err, status: "failure" });
@@ -189,9 +185,9 @@ export default function AuthForm() {
       username: "",
       confirmPassword: "",
       firstName: "",
+      nickname: "",
       lastName: "",
       birth: "",
-      nickname: "",
     });
     // Reset avatar preview
     setAvatarPreview(null);
@@ -250,7 +246,7 @@ export default function AuthForm() {
                   onChange={handleChange}
                   placeholder="Enter your nickname"
                 />
-                {errors.nickname && (
+                 {errors.nickname && (
                   <span className="error-message">{errors.nickname}</span>
                 )}
               </div>
