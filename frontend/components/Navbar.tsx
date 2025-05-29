@@ -94,19 +94,19 @@ export default function Navbar() {
     const unsubscribe = onMessageType("addMessage", () => {
      fetchAllNotificationCounts();
     });
-const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
-  console.log("deelteee");
+// const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
+//   console.log("deelteee");
   
-fetchAllNotificationCounts();});
+// fetchAllNotificationCounts();});
 
-const unsubscribeEventCreated = onMessageType("eventCreated", () => {
-  fetchAllNotificationCounts(); 
-});
-    const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
-      fetchAllNotificationCounts();
-    });
+// const unsubscribeEventCreated = onMessageType("eventCreated", () => {
+//   fetchAllNotificationCounts(); 
+// });
+//     const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
+//       fetchAllNotificationCounts();
+//     });
 
-   const unsubscribeFollowRequest = onMessageType("newfollowrequest", () => {
+   const unsubscribeFollowRequest = onMessageType("notifications", () => {
     console.log("joiiiiiiiii");
     
   fetchAllNotificationCounts(); 
@@ -115,10 +115,10 @@ const unsubscribeEventCreated = onMessageType("eventCreated", () => {
 
     return () => {
       unsubscribe();
-      unsubscribeJoinRequest();
+      // unsubscribeJoinRequest();
       unsubscribeFollowRequest();
-      unsubscribeDeleteFollow()
-      unsubscribeEventCreated();
+      // unsubscribeDeleteFollow()
+      // unsubscribeEventCreated();
       notificationUnsubs.forEach((unsub) => unsub());
     };
   }, [pathname]);

@@ -118,7 +118,7 @@ func (s *Server) DeleteFollowNotification(request map[string]any) map[string]any
 		return response
 	}
 	notification := map[string]any{
-		"type":       "DeletefollowHandled",
+		"type":       "notifications",
 		"followerId": profileID,
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),
@@ -155,7 +155,7 @@ func (s *Server) DeleteNewEventNotification(request map[string]any) map[string]a
 		return response
 	}
 	notification := map[string]any{
-		"type":       "DeletefollowHandled",
+		"type":       "notifications",
 	}
 	s.sendNotificationToUser(int(res.Userid), notification)
 	response["message"] = "Notification deleted"
