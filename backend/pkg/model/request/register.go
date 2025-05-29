@@ -43,13 +43,13 @@ func (r *Register) Validate() (err *response.RegisterError) {
 	}
 
 	if !nameRegex.MatchString(r.Firstname) {
-		err.Field = "firstname"
+		err.Field = "firstName"
 		err.Cause = "only letters allowed, 1-50 chars"
 		return
 	}
 
 	if !nameRegex.MatchString(r.Lastname) {
-		err.Field = "lastname"
+		err.Field = "lastName"
 		err.Cause = "only letters allowed, 1-50 chars"
 		return
 	}
