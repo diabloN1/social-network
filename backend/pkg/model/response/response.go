@@ -14,8 +14,8 @@ type Errored interface {
 	getCode() int
 }
 type Error struct {
-	Code  int
-	Cause string
+	Code  int    `json:"code"`
+	Cause string `json:"cause"`
 }
 
 func (e *Error) getCode() int { return e.Code }
