@@ -96,7 +96,7 @@ export default function Navbar() {
     });
 
    const NotificationsWs = onMessageType("notifications", () => {
-    console.log("joiiiiiiiii");
+    
     
   fetchAllNotificationCounts(); 
 });
