@@ -36,7 +36,7 @@ func (s *Server) RequestFollow(request map[string]any) *model.Response {
 		log.Println("Error requesting follow:", err)
 	}
 	notification := map[string]any{
-		"type":       "newfollowrequest",
+		"type":       "notifications",
 		"followerId": res.Userid,
 		"message":    "New follow request",
 		"timestamp":  time.Now().Unix(),
@@ -131,7 +131,7 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 			log.Println("Error deletting notif follow:", err)
 		}
 		notification := map[string]any{
-		"type":       "DeletefollowHandled",
+		"type":       "notifications",
 		"followerId": res.Userid,
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),
@@ -144,7 +144,7 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 			log.Println("Error deletting follow:", err)
 		}
 		notification := map[string]any{
-		"type":       "DeletefollowHandled",
+		"type":       "notifications",
 		"followerId": profileId,
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),
@@ -157,7 +157,7 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	}
 
 		notification := map[string]any{
-		"type":       "DeletefollowHandled",
+		"type":       "notifications",
 		"followerId": res.Userid,
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),

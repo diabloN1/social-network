@@ -341,7 +341,7 @@ for _, member := range members {
 		continue
 	}
 	notification := map[string]any{
-		"type":      "eventCreated",
+		"type":      "notifications",
 		"message":   "A new group event has been created",
 		"timestamp": time.Now().Unix(),
 	}
@@ -468,7 +468,7 @@ func (s *Server) RequestJoinGroup(request map[string]any) map[string]any {
 	ownerId, err := s.repository.Group().GetGroupOwner(m.GroupId)
 	if err == nil {
 		notification := map[string]any{
-			"type":      "newjoinrequest",
+			"type":      "notifications",
 			"groupId":   m.GroupId,
 			"userId":    m.UserId,
 			"message":   "New join request to your group",
