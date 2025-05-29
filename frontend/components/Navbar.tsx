@@ -94,19 +94,8 @@ export default function Navbar() {
     const unsubscribe = onMessageType("addMessage", () => {
      fetchAllNotificationCounts();
     });
-// const unsubscribeDeleteFollow = onMessageType("DeletefollowHandled", () => {
-//   console.log("deelteee");
-  
-// fetchAllNotificationCounts();});
 
-// const unsubscribeEventCreated = onMessageType("eventCreated", () => {
-//   fetchAllNotificationCounts(); 
-// });
-//     const unsubscribeJoinRequest = onMessageType("newjoinrequest", () => {
-//       fetchAllNotificationCounts();
-//     });
-
-   const unsubscribeFollowRequest = onMessageType("notifications", () => {
+   const NotificationsWs = onMessageType("notifications", () => {
     console.log("joiiiiiiiii");
     
   fetchAllNotificationCounts(); 
@@ -115,10 +104,8 @@ export default function Navbar() {
 
     return () => {
       unsubscribe();
-      // unsubscribeJoinRequest();
-      unsubscribeFollowRequest();
-      // unsubscribeDeleteFollow()
-      // unsubscribeEventCreated();
+      NotificationsWs();
+
       notificationUnsubs.forEach((unsub) => unsub());
     };
   }, [pathname]);
