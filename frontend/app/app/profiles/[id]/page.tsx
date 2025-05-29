@@ -10,6 +10,7 @@ import setPravicy from "@/api/profiles/setPrivacy";
 import Popup from "../../popup";
 import { Profile } from "@/types/user";
 import Image from "next/image";
+import ConfirmationPopup from "../../ConfirmationPopup";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -23,7 +24,10 @@ export default function ProfilePage() {
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
   const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
-  
+  const [confirmation, setConfirmation] = useState<{
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   useEffect(() => {
     const fetchProfileData = async () => {
@@ -58,41 +62,56 @@ export default function ProfilePage() {
   // Toggle private/public profile
   const togglePrivateProfile = async () => {
     if (!user) return;
-    try {
-      const data = await setPravicy(!user.isprivate);
-      if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
-        return;
-      }
+    setConfirmation({
+      message: `Are you sure you want to make your profile ${
+        user.isprivate ? "public" : "private"
+      }?`,
+      onConfirm: async () => {
+        try {
+          const data = await setPravicy(!user.isprivate);
+          if (data.error) {
+            setPopup({ message: data.error, status: "failure" });
+            return;
+          }
 
-      setUser((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          isprivate: !prev.isprivate,
-        };
-      });
-    } catch (error) {
-        setPopup({ message: `${error}`, status: "failure" });
-    }
+          setUser((prev) => prev && { ...prev, isprivate: !prev.isprivate });
+        } catch (error) {
+          setPopup({ message: `${error}`, status: "failure" });
+        } finally {
+          setConfirmation(null);
+        }
+      },
+    });
   };
+
 
   // Handle follow/unfollow
   const handleFollowAction = async () => {
     try {
       if (isFollowing || isPending) {
-        const data = await deleteFollow(userId, true);
-        if (data.error) {
-          setPopup({ message: data.error, status: "failure" });
-          return;
-        }
-
-        setIsFollowing(false);
-        setIsPending(false);
-
-        if (user?.isprivate) {
-          setCanViewProfile(false);
-        }
+        setConfirmation({
+          message: "Are you sure you want to unfollow this user?",
+          onConfirm: async () => {
+            try {
+              const data = await deleteFollow(userId, true);
+              if (data.error) {
+                setPopup({ message: data.error, status: "failure" });
+                return;
+              }
+  
+              setIsFollowing(false);
+              setIsPending(false);
+  
+              if (user?.isprivate) {
+                setCanViewProfile(false);
+              }
+            } catch (error) {
+              setPopup({ message: `${error}`, status: "failure" });
+            } finally {
+              setConfirmation(null);
+            }
+          },
+        });
       } else if (!user?.follow?.id) {
         const data = await requestFollow(userId);
         if (data.error) {
@@ -367,6 +386,13 @@ export default function ProfilePage() {
             )}
           </div>
         </>
+      )}
+      {confirmation && (
+        <ConfirmationPopup
+          message={confirmation.message}
+          onConfirm={confirmation.onConfirm}
+          onCancel={() => setConfirmation(null)}
+        />
       )}
       {popup && (
         <Popup
