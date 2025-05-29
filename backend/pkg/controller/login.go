@@ -2,72 +2,35 @@ package controller
 
 import (
 	"log"
-	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Login(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "login",
-		Error: "",
-	}
-
-	// Validate email
-	emailRaw, ok := request["email"]
+func (s *Server) Login(payload any) any {
+	u, ok := payload.(*request.Login)
 	if !ok {
-		response.Type = "email"
-		response.Error = "Missing 'email' field"
-		return response
+		return response.NewError(400, "Invalid payload type")
 	}
-	email, ok := emailRaw.(string)
-	if !ok {
-		response.Type = "email"
-		response.Error = "'email' must be a string"
-		return response
-	}
-
-	// Validate password
-	passwordRaw, ok := request["password"]
-	if !ok {
-		response.Type = "password"
-		response.Error = "Missing 'password' field"
-		return response
-	}
-	password, ok := passwordRaw.(string)
-	if !ok {
-		response.Type = "password"
-		response.Error = "'password' must be a string"
-		return response
-	}
-
-	u := &model.User{
-		Email:    email,
-		Password: password,
-	}
-
+	invalidCredError := response.NewError(400, "username or password invalid")
 	foundUser, err := s.repository.User().Find(u.Email)
 	if err != nil {
 		log.Println("Failed to find a user:", err)
-		response.Type = "email"
-		response.Error = "Email does not exists!"
-		return response
+		return invalidCredError
 	}
 
 	if !ComparePasswords(foundUser.EncryptedPassword, u.Password) {
-		response.Type = "password"
-		response.Error = "Password is wrong!"
-		return response
+		return invalidCredError
 	}
 
-	session := model.CreateSession(foundUser.ID)
-	err = s.repository.Session().Create(session)
+	session, err := s.repository.Session().Create(foundUser.ID)
 	if err != nil {
 		log.Println("Failed to create a session:", err)
-		response.Error = "Failed to create a session!"
-		return response
+		return response.NewError(500, "Failed to create session")
 	}
 
-	response.Username = foundUser.Username
-	response.Userid = foundUser.ID
-	response.Session = session.Session
-	return response
+	return response.Login{
+		Session:  session,
+		UserId:   foundUser.ID,
+		Username: foundUser.Username,
+	}
 }

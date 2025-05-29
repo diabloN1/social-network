@@ -20,7 +20,7 @@ export default function AuthForm() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    dateOfBirth: "",
+    birth: "",
     avatarImage: null as File | null,
     avatar: "",
     nickname: "",
@@ -33,7 +33,8 @@ export default function AuthForm() {
     confirmPassword: "",
     firstName: "",
     lastName: "",
-    dateOfBirth: "",
+    birth: "",
+    nickname: "", // add this
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [popup, setPopup] = useState<{
@@ -121,11 +122,11 @@ export default function AuthForm() {
         newErrors.lastName = "";
       }
 
-      if (!formData.dateOfBirth) {
-        newErrors.dateOfBirth = "Date of birth is required";
+      if (!formData.birth) {
+        newErrors.birth = "Date of birth is required";
         isValid = false;
       } else {
-        newErrors.dateOfBirth = "";
+        newErrors.birth = "";
       }
 
       if (formData.password !== formData.confirmPassword) {
@@ -156,17 +157,22 @@ export default function AuthForm() {
         }
 
         const data = await postAuth(path, formData);
-        
-        if (data.error && errors.hasOwnProperty(data.type)) {
-          setErrors({
-            ...errors,
-            [data.type]: data.error,
-          });
+
+        if (data?.session) {
+          router.push("/app");
           return;
         }
 
-        if (data.session) {
-          router.push("/app");
+        if (data?.error) {
+          const { field, message } = data;
+          if (field && message) {
+            setErrors((prev) => ({ ...prev, [field]: message }));
+          } else {
+            setPopup({
+              message: "Unexpected error occurred.",
+              status: "failure",
+            });
+          }
         }
       } catch (err) {
         setPopup({ message: "Failed to Register." + err, status: "failure" });
@@ -184,7 +190,8 @@ export default function AuthForm() {
       confirmPassword: "",
       firstName: "",
       lastName: "",
-      dateOfBirth: "",
+      birth: "",
+      nickname: "",
     });
     // Reset avatar preview
     setAvatarPreview(null);
@@ -243,20 +250,23 @@ export default function AuthForm() {
                   onChange={handleChange}
                   placeholder="Enter your nickname"
                 />
+                {errors.nickname && (
+                  <span className="error-message">{errors.nickname}</span>
+                )}
               </div>
 
               <div className="form-group">
-                <label htmlFor="dateOfBirth">Date of Birth</label>
+                <label htmlFor="birth">Date of Birth</label>
                 <input
                   type="date"
-                  id="dateOfBirth"
-                  name="dateOfBirth"
-                  value={formData.dateOfBirth}
+                  id="birth"
+                  name="birth"
+                  value={formData.birth}
                   onChange={handleChange}
-                  className={errors.dateOfBirth ? "error" : ""}
+                  className={errors.birth ? "error" : ""}
                 />
-                {errors.dateOfBirth && (
-                  <span className="error-message">{errors.dateOfBirth}</span>
+                {errors.birth && (
+                  <span className="error-message">{errors.birth}</span>
                 )}
               </div>
 

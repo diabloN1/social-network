@@ -1,4 +1,4 @@
-'use server'
+"use server";
 
 import setSessionCookie from "./setSession";
 
@@ -9,19 +9,43 @@ const postAuth = async (path: string, formData: any) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        type: path, // "register" or "login"
+        data: {
+          ...formData,
+          birth: formData.birth ? new Date(formData.birth).toISOString() : null,
+        },
+      }),
     });
-    const data = await response.json();
 
-    console.log(data);
-    if (data.session && !data.error) {
+    const result = await response.json();
+    const { data } = result;
+
+    if (data?.session) {
       await setSessionCookie(data.session);
-      data.session = "true";
+      return { session: true };
     }
 
-    return data;
+    if (data?.error) {
+      return {
+        error: true,
+        field: data.field || "form",
+        message: data.message || "Something went wrong.",
+      };
+    }
+
+    return {
+      error: true,
+      field: "form",
+      message: "Invalid server response.",
+    };
   } catch (err) {
     console.error(err);
+    return {
+      error: true,
+      field: "form",
+      message: "Network error.",
+    };
   }
 };
 

@@ -4,31 +4,59 @@ import (
 	"database/sql"
 	"errors"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
+	"strings"
+
+	"github.com/mattn/go-sqlite3"
 )
 
 type UserRepository struct {
 	Repository *Repository
 }
 
-func (r *UserRepository) Create(u *model.User) error {
-
-	foundUser, _ := r.Find(u.Email)
-
-	if foundUser != nil {
-		return errors.New("email already taken")
-	}
-
-	return r.Repository.db.QueryRow(
-		"INSERT INTO users (email, password, firstname, lastname, birth, nickname, avatar, about) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id",
+func (r *UserRepository) Create(u *request.Register) (id int, res *response.RegisterError) {
+	res = &response.RegisterError{}
+	res.Code = 400
+	query := `INSERT INTO users (email, password, firstname, lastname, birth, nickname, avatar, about) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
+	err := r.Repository.db.QueryRow(
+		query,
 		u.Email,
-		u.EncryptedPassword,
+		u.Password,
 		u.Firstname,
 		u.Lastname,
 		u.Birth,
 		u.Nickname,
 		u.Avatar,
 		u.About,
-	).Scan(&u.ID)
+	).Scan(&id)
+
+	if err != nil {
+		if sqliteErr, ok := err.(sqlite3.ErrNoExtended); ok {
+			if sqliteErr == sqlite3.ErrConstraintUnique {
+				switch {
+				case strings.Contains(err.Error(), "users.email"):
+					res.Code = 400
+					res.Field = "email"
+					res.Message = "email already taken"
+				case strings.Contains(err.Error(), "users.nickname"):
+					res.Code = 400
+					res.Field = "nickname"
+					res.Message = "nickname already taken"
+				default:
+					res.Code = 400
+					res.Message = "unique constraint violation"
+				}
+				return
+			}
+		}
+
+		res.Code = 500
+		res.Message = "Internal server error"
+		return
+	}
+
+	return id, nil
 }
 
 func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {

@@ -2,26 +2,28 @@ package repository
 
 import (
 	"database/sql"
-	"log"
-	"real-time-forum/pkg/model"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type SessionRepository struct {
 	Repository *Repository
 }
 
-func (r *SessionRepository) Create(s *model.Session) error {
+func (r *SessionRepository) Create(id int) (string, error) {
+	session := uuid.NewString()
+	expiresAt := time.Now().Add(12000 * time.Second)
 	_, err := r.Repository.db.Exec(
-		"INSERT INTO sessions (user_id, session, expiresAt) VALUES ($1, $2, $3)",
-		s.UserID,
-		s.Session,
-		s.ExpiresAt,
+		"INSERT INTO sessions (user_id, session, expiresAt) VALUES (?, ?, ?)",
+		id,
+		session,
+		expiresAt,
 	)
 	if err != nil {
-		log.Fatal(err)
-		return err
+		return "", err
 	}
-	return nil
+	return session, nil
 }
 
 func (r *SessionRepository) FindUserIDBySession(session string) (int, error) {

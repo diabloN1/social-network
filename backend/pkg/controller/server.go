@@ -4,10 +4,13 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"real-time-forum/pkg/db/sqlite"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 	"real-time-forum/pkg/repository"
 	"sync"
 	"time"
@@ -21,6 +24,30 @@ type Server struct {
 	upgrader   *websocket.Upgrader
 	clients    map[int][]*Client
 	mu         sync.RWMutex
+}
+
+func Respond() {
+
+}
+func (s *Server) AddRoute(pattern string, handler func(any) any, middlewares ...http.HandlerFunc) {
+	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
+		body, err := io.ReadAll(req.Body)
+		if err != nil {
+			http.Error(resp, "oops, something went wrong", http.StatusInternalServerError)
+			return
+		}
+		reqData, err := request.Unmarshal(body)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(resp, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		resp.Header().Set("Content-Type", "application/json")
+		status, body := response.Marchal(handler(reqData))
+		resp.WriteHeader(status)
+		resp.Write(body)
+		fmt.Println(string(body))
+	})
 }
 
 type Client struct {
@@ -40,8 +67,11 @@ func Start() error {
 	s := NewServer(http.NewServeMux(), db)
 
 	// Login
-	s.router.HandleFunc("/login", s.LoginHanlder)
-	s.router.HandleFunc("/register", s.RegisterHandler)
+	s.AddRoute("/login", s.Login)
+
+	s.AddRoute("/register", s.Register)
+	// s.router.HandleFunc("/register", s.RegisterHandler)
+
 	s.router.HandleFunc("/session", s.SessionHandler)
 	s.router.HandleFunc("/logout", s.LogoutHandler)
 
@@ -50,12 +80,12 @@ func Start() error {
 	s.router.HandleFunc("/getPost", s.getPostHandler)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
-	
+
 	// Post Shares
 	s.router.HandleFunc("/getPostShares", s.getPostSharesHandler)
 	s.router.HandleFunc("/addPostShare", s.addPostShareHandler)
 	s.router.HandleFunc("/removePostShare", s.removePostShareHandler)
-	
+
 	// Comments
 	s.router.HandleFunc("/addComment", s.addCommentHandler)
 	s.router.HandleFunc("/getComments", s.getCommentsHandler)
@@ -100,10 +130,6 @@ func Start() error {
 	s.router.HandleFunc("/deleteFollowNotif", s.DeleteFollowNotif)
 	s.router.HandleFunc("/deleteNotifNewEvent", s.deleteNotifNewEvent)
 
-
-
-	
-
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
 
@@ -138,7 +164,6 @@ func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 		clients:    make(map[int][]*Client),
 	}
 }
-
 
 func (s *Server) addClient(userid int, session string, client *websocket.Conn) *Client {
 	s.mu.Lock()

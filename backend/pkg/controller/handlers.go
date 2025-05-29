@@ -29,22 +29,7 @@ func (s *Server) WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// AUTH Handlers
-func (s *Server) LoginHanlder(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.Login(request)
-	s.SendJson(w, response, err)
-}
-
-func (s *Server) RegisterHandler(w http.ResponseWriter, r *http.Request) {
-
-	request, err := s.ReadRequest(r.Body)
-	response := s.Register(request)
-	s.SendJson(w, response, err)
-}
-
 func (s *Server) SessionHandler(w http.ResponseWriter, r *http.Request) {
-
 	request, err := s.ReadRequest(r.Body)
 	response := s.ValidateSession(request)
 	s.SendJson(w, response, err)
@@ -119,7 +104,8 @@ func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
 	response := s.setProfilePrivacy(request)
 	s.SendJson(w, response, err)
 }
-//notification
+
+// notification
 func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
 	response := s.GetAllNotifications(request)
@@ -135,18 +121,16 @@ func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.Request) {
-    request, err := s.ReadRequest(r.Body)
-    response := s.CheckNewFollowNotification(request)
-    s.SendJson(w, response, err)
+	request, err := s.ReadRequest(r.Body)
+	response := s.CheckNewFollowNotification(request)
+	s.SendJson(w, response, err)
 }
 
 func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
-    request, err := s.ReadRequest(r.Body)
-    response := s.DeleteFollowNotification(request)
-    s.SendJson(w, response, err)
+	request, err := s.ReadRequest(r.Body)
+	response := s.DeleteFollowNotification(request)
+	s.SendJson(w, response, err)
 }
-
-
 
 func (s *Server) getFollowRequestCountHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
@@ -194,9 +178,9 @@ func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 func (s *Server) GetUnreadMessagesCount(w http.ResponseWriter, r *http.Request) {
-    request, err := s.ReadRequest(r.Body)
-    response := s.GetUnreadMessagesCountResponse( request)
-    s.SendJson(w, response, err)
+	request, err := s.ReadRequest(r.Body)
+	response := s.GetUnreadMessagesCountResponse(request)
+	s.SendJson(w, response, err)
 }
 
 func (s *Server) AddGroupPostHandler(w http.ResponseWriter, r *http.Request) {
@@ -213,9 +197,9 @@ func (s *Server) AddGroupEventHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
-    request, err := s.ReadRequest(r.Body)
-    response := s.DeleteNewEventNotification(request)
-    s.SendJson(w, response, err)
+	request, err := s.ReadRequest(r.Body)
+	response := s.DeleteNewEventNotification(request)
+	s.SendJson(w, response, err)
 }
 
 func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
