@@ -24,6 +24,7 @@ ToDo :
 
 #install font-awesome
 npm install @fortawesome/fontawesome-free
+npm install --save @fortawesome/react-fontawesome @fortawesome/free-solid-svg-icons @fortawesome/fontawesome-svg-core
 
 
 golangci-lint run ./...
