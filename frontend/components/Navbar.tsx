@@ -34,6 +34,8 @@ export default function Navbar() {
     }
   };
 
+
+  
   // Updated handleLogout function for cookie-based sessions
   const handleLogout = async () => {
     if (isLoggingOut) return;

@@ -30,11 +30,11 @@ export default function AuthForm() {
     email: "",
     password: "",
     username: "",
+    nickname: "",
     confirmPassword: "",
     firstName: "",
     lastName: "",
     birth: "",
-    nickname: "", // add this
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [popup, setPopup] = useState<{
@@ -88,7 +88,7 @@ export default function AuthForm() {
     if (!formData.email) {
       newErrors.email = "Email is required";
       isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+    } else if (!/\S+@\S+\.\S+/.test(formData.email) && !isLogin) {
       newErrors.email = "Email is invalid";
       isValid = false;
     } else {
@@ -158,21 +158,23 @@ export default function AuthForm() {
 
         const data = await postAuth(path, formData);
 
-        if (data?.session) {
-          router.push("/app");
-          return;
-        }
-
-        if (data?.error) {
-          const { field, message } = data;
-          if (field && message) {
-            setErrors((prev) => ({ ...prev, [field]: message }));
+        if (data.error) {
+          if (errors.hasOwnProperty(data.error.field)) {
+            setErrors({
+              ...errors,
+              [data.error.field]: data.error.cause,
+            });
+            return;
           } else {
             setPopup({
-              message: "Unexpected error occurred.",
+              message: `Failed to Register.\n${data.error.cause}`,
               status: "failure",
             });
           }
+        }
+
+        if (data.session) {
+          router.push("/app");
         }
       } catch (err) {
         setPopup({ message: "Failed to Register." + err, status: "failure" });
@@ -189,9 +191,9 @@ export default function AuthForm() {
       username: "",
       confirmPassword: "",
       firstName: "",
+      nickname: "",
       lastName: "",
       birth: "",
-      nickname: "",
     });
     // Reset avatar preview
     setAvatarPreview(null);

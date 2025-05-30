@@ -18,6 +18,11 @@ type UserRepository struct {
 func (r *UserRepository) Create(u *request.Register) (id int, res *response.RegisterError) {
 	res = &response.RegisterError{}
 	res.Code = 400
+
+	var nickname *string
+	if u.Nickname == "" {
+		nickname = nil
+	}
 	query := `INSERT INTO users (email, password, firstname, lastname, birth, nickname, avatar, about) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id`
 	err := r.Repository.db.QueryRow(
 		query,
@@ -26,33 +31,32 @@ func (r *UserRepository) Create(u *request.Register) (id int, res *response.Regi
 		u.Firstname,
 		u.Lastname,
 		u.Birth,
-		u.Nickname,
+		nickname,
 		u.Avatar,
 		u.About,
 	).Scan(&id)
 
 	if err != nil {
-		if sqliteErr, ok := err.(sqlite3.ErrNoExtended); ok {
-			if sqliteErr == sqlite3.ErrConstraintUnique {
+		if sqliteErr, ok := err.(sqlite3.Error); ok {
+			if sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
 				switch {
 				case strings.Contains(err.Error(), "users.email"):
 					res.Code = 400
 					res.Field = "email"
-					res.Message = "email already taken"
+					res.Cause = "email already taken"
 				case strings.Contains(err.Error(), "users.nickname"):
 					res.Code = 400
 					res.Field = "nickname"
-					res.Message = "nickname already taken"
+					res.Cause = "nickname already taken"
 				default:
 					res.Code = 400
-					res.Message = "unique constraint violation"
+					res.Cause = "unique constraint violation"
 				}
 				return
 			}
 		}
-
 		res.Code = 500
-		res.Message = "Internal server error"
+		res.Cause = "Internal server error"
 		return
 	}
 
@@ -68,7 +72,7 @@ func (r *UserRepository) Find(identifier interface{}) (*model.User, error) {
 		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE id = $1"
 		value = v
 	case string:
-		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE email = $1"
+		query = "SELECT id, email, password, firstname, lastname, nickname, avatar, birth, about, is_private from users WHERE email = $1 or nickname = $1"
 		value = v
 	default:
 		return nil, errors.New("invalid identifier type")

@@ -8,7 +8,7 @@ import (
 func (s *Server) Register(payload any) any {
 	data, ok := payload.(*request.Register)
 	if !ok {
-		return response.NewError(400, "Invalid payload type")
+		return response.Error{400, "Invalid payload type"}
 	}
 
 	err := data.Validate()
@@ -22,7 +22,7 @@ func (s *Server) Register(payload any) any {
 	}
 	session, sessionErr := s.repository.Session().Create(id)
 	if sessionErr != nil {
-		return response.NewError(500, "Failed to create a session!")
+		return response.Error{500, "Failed to create a session!"}
 	}
 
 	return &response.Login{
