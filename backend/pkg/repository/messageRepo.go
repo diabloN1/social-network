@@ -83,17 +83,22 @@ func (r *MessageRepository) GetMessages(m *model.Message) ([]*model.Message, err
 func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, error) {
 	var conversations []*model.Conv
 	query := `SELECT 
-			u.id,
-			u.firstname || ' ' || u.lastname AS full_name,
-			u.avatar
-			FROM messages m
-			INNER JOIN users u ON (
-			(m.sender_id = $1 AND u.id = m.recipient_id) OR
-			(m.recipient_id = $1 AND u.id = m.sender_id)
-			)
-			WHERE m.group_id = 0
-			GROUP BY u.id;
-	`
+			      u.id,
+			      u.firstname || ' ' || u.lastname AS full_name,
+			      u.avatar,
+				  m.text,
+			      m.creation_date
+			  FROM users u
+			  INNER JOIN messages m ON m.id = (
+			      SELECT id 
+			      FROM messages 
+			      WHERE 
+			          (sender_id = $1 AND u.id = recipient_id) 
+			          OR (recipient_id = $1 AND u.id = sender_id)
+			          AND m.group_id = 0
+			      ORDER BY creation_date DESC, id DESC 
+			      LIMIT 1
+			  )`
 	rows, err := r.Repository.db.Query(query, userId)
 
 	if err != nil {
@@ -103,7 +108,7 @@ func (r *MessageRepository) GetPrivateConversations(userId int) ([]*model.Conv, 
 	defer rows.Close()
 	for rows.Next() {
 		conv := &model.Conv{}
-		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image); err != nil {
+		if err := rows.Scan(&conv.UserId, &conv.FullName, &conv.Image, &conv.LastMessage, &conv.LastMessageDate); err != nil {
 			fmt.Println(err)
 			return nil, err
 		}
