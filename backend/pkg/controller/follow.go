@@ -125,18 +125,23 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 	// isFollower or been followed.
 	if isFollower {
 		err = s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
-		err = s.repository.Follow().DeleteNotif( res.Userid,int(profileId),)
+		if err != nil {
+			response.Error = err.Error()
+			log.Println("Error deletting follow:", err)
+		}
+
+		err = s.repository.Follow().DeleteNotif(res.Userid, int(profileId))
 		if err != nil {
 			response.Error = err.Error()
 			log.Println("Error deletting notif follow:", err)
 		}
 		notification := map[string]any{
-		"type":       "notifications",
-		"followerId": res.Userid,
-		"message":    "unfollow ",
-		"timestamp":  time.Now().Unix(),
-	}
-	s.sendNotificationToUser(int(profileId), notification)
+			"type":       "notifications",
+			"followerId": res.Userid,
+			"message":    "unfollow ",
+			"timestamp":  time.Now().Unix(),
+		}
+		s.sendNotificationToUser(int(profileId), notification)
 	} else {
 		err = s.repository.Follow().DeleteFollow(res.Userid, int(profileId))
 		if err != nil {
@@ -144,19 +149,19 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 			log.Println("Error deletting follow:", err)
 		}
 		notification := map[string]any{
-		"type":       "notifications",
-		"followerId": profileId,
-		"message":    "unfollow ",
-		"timestamp":  time.Now().Unix(),
-	}
-	s.sendNotificationToUser(int(res.Userid), notification)
+			"type":       "notifications",
+			"followerId": profileId,
+			"message":    "unfollow ",
+			"timestamp":  time.Now().Unix(),
+		}
+		s.sendNotificationToUser(int(res.Userid), notification)
 	}
 	if err != nil {
 		response.Error = err.Error()
 		log.Println("Error deletting follow:", err)
 	}
 
-		notification := map[string]any{
+	notification := map[string]any{
 		"type":       "notifications",
 		"followerId": res.Userid,
 		"message":    "unfollow ",
@@ -166,6 +171,7 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 
 	return response
 }
+
 func (s *Server) GetFollowRequestCount(request map[string]any) map[string]any {
 	response := make(map[string]any)
 	response["error"] = ""

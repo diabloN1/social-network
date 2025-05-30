@@ -130,6 +130,7 @@ func (s *Server) getFollowRequestCountHandler(w http.ResponseWriter, r *http.Req
 	response := s.GetFollowRequestCount(request)
 	s.SendJson(w, response, err)
 }
+
 func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
 
 	request, err := s.ReadRequest(r.Body)

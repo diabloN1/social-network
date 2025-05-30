@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS group_posts (
   user_id INTEGER,
   group_id INTEGER,
   caption TEXT,
-  image varchar(255),
+  image TEXT,
   creation_date DATETIME DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (user_id) REFERENCES users (id)
 );
