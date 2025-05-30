@@ -46,7 +46,7 @@ func (s *Server) AddRoute(pattern string, handler func(any) any, middlewares ...
 		status, body := response.Marchal(handler(reqData))
 		resp.WriteHeader(status)
 		resp.Write(body)
-		fmt.Println(string(body))
+		// fmt.Println(string(body))
 	})
 }
 
@@ -76,7 +76,7 @@ func Start() error {
 	s.router.HandleFunc("/logout", s.LogoutHandler)
 
 	// Posts
-	s.router.HandleFunc("/getPosts", s.getPostsHandler)
+	s.AddRoute("/getPosts", s.GetPosts)
 	s.router.HandleFunc("/getPost", s.getPostHandler)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)

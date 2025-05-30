@@ -3,42 +3,32 @@ package controller
 import (
 	"log"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPosts(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "posts",
-		Error: "",
+func (s *Server) GetPosts(payload any) any {
+	data, ok := payload.(*request.GetPosts)
+	if !ok {
+		return response.Error{400, "Invalid payload type"}
+
 	}
 
-	res := s.ValidateSession(request)
+	res := s.ValidateSession(map[string]any{"session": data.Session})
 	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
+		return response.Error{401, "Unauthorized"}
 	}
 
-	var startId float64
-	startIdRaw, ok := request["startId"]
-	if !ok {
-		response.Error = "Missing 'startId' field"
-		return response
-	}
-	startId, ok = startIdRaw.(float64)
-	if !ok {
-		response.Error = "'startId' must be a float64"
-		return response
-	}
-
-	posts, err := s.repository.Post().GetPosts(res.Userid, int(startId))
-
+	posts, err := s.repository.Post().GetPosts(res.Userid, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
+		return response.Error{400, "Error in getting feed data"}
 	}
 
-	response.Posts = posts
-	response.Userid = res.Userid
-
-	return response
+	return &response.GetPosts{
+		Posts:  posts,
+		Userid: res.Userid,
+	}
 }
 
 func (s *Server) GetPostData(request map[string]any) *model.Response {

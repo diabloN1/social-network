@@ -12,8 +12,9 @@ type Payload struct {
 }
 
 var requestTypes = map[string]any{
-	model.TYPE_REGISTER: &Register{},
-	model.TYPE_LOGIN:    &Login{},
+	model.TYPE_REGISTER:  &Register{},
+	model.TYPE_LOGIN:     &Login{},
+	model.Type_GET_POSTS: &GetPosts{},
 }
 
 func (r Payload) Decode() (any, error) {
