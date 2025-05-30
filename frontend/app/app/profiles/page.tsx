@@ -59,8 +59,8 @@ export default function ProfilesPage() {
   console.log("Users", users);
   const filteredUsers = users?.filter(
     (user) =>
-      user.firstname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.lastname.toLowerCase().includes(searchTerm.toLowerCase())
+      user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.firstname?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle search input change

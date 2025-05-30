@@ -19,7 +19,7 @@ func (r *UserRepository) Create(u *request.Register) (id int, res *response.Regi
 	res = &response.RegisterError{}
 	res.Code = 400
 
-	var nickname *string
+	nickname := &u.Nickname
 	if u.Nickname == "" {
 		nickname = nil
 	}
