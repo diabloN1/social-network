@@ -18,16 +18,38 @@ export default function PostsPage() {
     message: string;
     status: "success" | "failure";
   } | null>(null);
+  const [hasMore, setHasMore] = useState(true);
 
   const fetchPosts = async () => {
     try {
       setIsLoading(true);
       const data = await getPosts(0);
-      if (data && data.posts) {
+      if (data && data.data?.posts) {
+        const { posts, userid } = data.data;
         console.log("Fetched posts:", data);
-        console.log("Current user ID from API:", data.userid);
-        setPosts(data.posts);
-        setCurrentUserId(data.userid);
+        console.log("Current user ID from API:", userid);
+        setPosts(posts);
+        setCurrentUserId(userid);
+        setHasMore(posts.length === 10);
+      }
+    } catch (error) {
+      setPopup({ message: `${error}`, status: "failure" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+  const fetchMorePosts = async () => {
+    if (posts.length === 0) return;
+
+    const lastId = posts[posts.length - 1].id;
+    console.log("posts", posts);
+
+    try {
+      setIsLoading(true);
+      const data = await getPosts(lastId);
+      if (data?.data?.posts?.length) {
+        setPosts((prev) => [...prev, ...data.data.posts]);
+        setHasMore(data.data.posts.length === 10);
       }
     } catch (error) {
       setPopup({ message: `${error}`, status: "failure" });
@@ -107,6 +129,11 @@ export default function PostsPage() {
               />
             );
           })
+        )}
+        {!isLoading && posts.length > 0 && hasMore && (
+          <button onClick={fetchMorePosts} className="load-more-btn">
+            Load More
+          </button>
         )}
       </main>
 

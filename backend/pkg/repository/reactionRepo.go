@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"real-time-forum/pkg/model"
+	"strings"
 )
 
 type ReactionRepository struct {
@@ -86,28 +87,24 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 	// Initialize result map
 	result := make(map[int]model.ReactionCounts)
 
-	// Prepare placeholders for query
-	placeholders := ""
+	// Generate ? placeholders
+	placeholders := make([]string, len(postIds))
 	args := make([]interface{}, len(postIds))
-
 	for i, id := range postIds {
-		if i > 0 {
-			placeholders += ", "
-		}
-		placeholders += "$" + string(rune('2'+i))
 		args[i] = id
+		placeholders[i] = "?"
 	}
+	inClause := strings.Join(placeholders, ",")
 
 	// Get all likes and dislikes counts
 	query := `
-		SELECT post_id, 
-			SUM(CASE WHEN is_like = TRUE THEN 1 ELSE 0 END) as likes,
-			SUM(CASE WHEN is_like = FALSE THEN 1 ELSE 0 END) as dislikes
-		FROM post_reactions
-		WHERE post_id IN (` + placeholders + `)
-		GROUP BY post_id
-	`
-
+	SELECT post_id, 
+		SUM(CASE WHEN is_like = TRUE THEN 1 ELSE 0 END) as likes,
+		SUM(CASE WHEN is_like = FALSE THEN 1 ELSE 0 END) as dislikes
+	FROM post_reactions
+	WHERE post_id IN (` + inClause + `)
+	GROUP BY post_id
+`
 	rows, err := r.Repository.db.Query(query, args...)
 	if err != nil {
 		return nil, err
@@ -131,7 +128,7 @@ func (r *ReactionRepository) GetReactionsForPosts(userId int, postIds []int) (ma
 		query = `
 			SELECT post_id, is_like
 			FROM post_reactions
-			WHERE user_id = $1 AND post_id IN (` + placeholders + `)
+			WHERE user_id = $1 AND post_id IN (` + inClause + `)
 		`
 
 		args = append([]interface{}{userId}, args...)
