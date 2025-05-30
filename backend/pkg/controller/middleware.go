@@ -85,7 +85,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "group-posts":
-			hasAccess, err := s.repository.Group().IsMember(res.Userid, id) // Switch is member to check if has access
+			hasAccess, err := s.repository.Group().HasAccessToGroupPost(res.Userid, id, path) // Switch is member to check if has access
 			fmt.Println(hasAccess, err, res.Userid)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
