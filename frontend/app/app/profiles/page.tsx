@@ -58,8 +58,8 @@ setNewFollowers(followNotifData.newFollowers || []);
   // Filter users based on search term
   const filteredUsers = users?.filter(
     (user) =>
-      user.nickname.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.firstname.toLowerCase().includes(searchTerm.toLowerCase())
+      user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.firstname?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   // Handle search input change
