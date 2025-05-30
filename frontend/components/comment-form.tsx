@@ -83,7 +83,7 @@ export default function CommentForm({
         formData.append("file", selectedImage);
 
         // Use your existing uploadFile function
-        filename = await uploadFile(formData, "posts");
+        filename = await uploadFile(formData, "post-comments");
       }
 
       // Add comment
