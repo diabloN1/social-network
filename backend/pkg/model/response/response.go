@@ -10,7 +10,6 @@ type Payload struct {
 	Error any    `json:"error,omitempty"`
 }
 type Errored interface {
-	IamError()
 	getCode() int
 }
 type Error struct {
@@ -19,7 +18,6 @@ type Error struct {
 }
 
 func (e *Error) getCode() int { return e.Code }
-func (Error) IamError()       {}
 
 func Marchal(data any) (status int, result []byte) {
 	r := Payload{}
