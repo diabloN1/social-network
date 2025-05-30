@@ -33,13 +33,17 @@ func (r *PostRepository) GetPosts(userId, startId int) ([]*model.Post, error) {
 				LEFT JOIN users u ON u.id = p.user_id
 				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1
 
-				WHERE 
+				WHERE (
 					p.user_id = $1
 					OR (p.privacy = 'public' AND u.is_private = FALSE)
 					OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 					OR (p.privacy = 'private' AND ps.id IS NOT NULL)
+					)
+					AND (
+					$2 = 0 OR p.creation_date < (SELECT creation_date FROM posts WHERE id = $2)
+					)
 				ORDER BY p.creation_date DESC
-				LIMIT 10 OFFSET $2;`
+				LIMIT 10;`
 
 	rows, err := r.Repository.db.Query(query, userId, startId)
 
@@ -125,7 +129,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 	user := &model.User{}
 
 	// Should fix this query to get post data based on (comments, likes, and is allowed to see)
-	
+
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id, p.privacy, p.user_id, p.caption, p.image, p.creation_date,
 				u.avatar,

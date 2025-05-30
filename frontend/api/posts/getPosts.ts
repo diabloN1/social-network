@@ -13,8 +13,11 @@ const getPosts = async (startId: number) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        startId: startId,
+        type: "get-posts",
+        data: {
+        startId,
         session: token,
+      }
       }),
       cache: "no-store",
     });
