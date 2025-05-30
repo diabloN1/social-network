@@ -16,4 +16,5 @@ type Group struct {
 	IsAccepted   bool      `json:"is_accepted"`
 	IsPending   bool      `json:"is_pending"`
 	HasNewEvent     bool   `json:"new_event"`
+	Inviter 		User   `json:"inviter"`
 }

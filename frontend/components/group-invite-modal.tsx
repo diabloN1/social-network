@@ -36,6 +36,7 @@ export default function GroupInviteModal({
       setIsLoading(true);
       const data = await getAvailableUsersToInvite(groupId);
 
+      console.log("data", data);
       if (data.error) {
         console.error("Error loading users:", data.error);
         setAvailableUsers([]);
@@ -49,8 +50,7 @@ export default function GroupInviteModal({
     } finally {
       setIsLoading(false);
     }
-  }, [groupId])
-
+  }, [groupId]);
 
   useEffect(() => {
     if (isOpen) {

@@ -18,12 +18,13 @@ export interface Group {
 }
 
 export interface GroupInvite {
+  title: string;
   id: number;
   group_id: number;
   user_id: number;
   creation_date: string;
   group: Group;
-  user: User;
+  inviter: User;
 }
 
 export interface JoinRequest {

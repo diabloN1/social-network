@@ -25,7 +25,7 @@ export default function ProfilesPage() {
     message: string;
     status: "success" | "failure";
   } | null>(null);
-const [newFollowers, setNewFollowers] = useState<User[]>([]);
+  const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
     try {
@@ -33,21 +33,21 @@ const [newFollowers, setNewFollowers] = useState<User[]>([]);
         getProfiles(),
         hasNewFollowNotification(),
       ]);
-console.log("ddd",followNotifData);
+      console.log("ddd", followNotifData);
 
-    if (profileData.error || followNotifData.error) {
-      alert(profileData.error || followNotifData.error);
-      return;
-    }
+      if (profileData.error || followNotifData.error) {
+        alert(profileData.error || followNotifData.error);
+        return;
+      }
 
-    setCurrentUser(profileData.currentuser);
-    setUsers(profileData.allusers);
-    setFollowRequests(profileData.followrequests);
-    setHasNewFollow(followNotifData.hasNewFollow);
-setNewFollowers(followNotifData.newFollowers || []);
-    return profileData;
-  } catch (error) {
-    setPopup({ message: `${error}`, status: "failure" });
+      setCurrentUser(profileData.currentuser);
+      setUsers(profileData.allusers);
+      setFollowRequests(profileData.followrequests);
+      setHasNewFollow(followNotifData.hasNewFollow);
+      setNewFollowers(followNotifData.newFollowers || []);
+      return profileData;
+    } catch (error) {
+      setPopup({ message: `${error}`, status: "failure" });
     }
   };
 
@@ -56,6 +56,7 @@ setNewFollowers(followNotifData.newFollowers || []);
   }, []);
 
   // Filter users based on search term
+  console.log("Users", users);
   const filteredUsers = users?.filter(
     (user) =>
       user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -161,6 +162,7 @@ setNewFollowers(followNotifData.newFollowers || []);
                       alt="user avatar"
                       width={40}
                       height={40}
+                      className="user-avatar"
                       unoptimized
                     />
                     <div className="user-details">
@@ -238,8 +240,9 @@ setNewFollowers(followNotifData.newFollowers || []);
                     : "/icons/placeholder.svg"
                 }
                 alt="user avatar"
-                width={40}
-                height={40}
+                width={50}
+                height={50}
+                className="user-avatar"
                 unoptimized
               />
               <div className="current-user-details">
@@ -274,6 +277,7 @@ setNewFollowers(followNotifData.newFollowers || []);
                     alt="user avatar"
                     width={40}
                     height={40}
+                    className="user-avatar"
                     unoptimized
                   />
                 </div>
