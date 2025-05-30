@@ -616,6 +616,7 @@ export default function GroupDetailPage() {
                             key={comment.id}
                             comment={comment}
                             postID={post.id}
+                            groupID={groupId}
                           />
                         ))
                       ) : (

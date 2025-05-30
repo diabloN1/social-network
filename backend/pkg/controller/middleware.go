@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"strconv"
@@ -40,15 +39,9 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 			return
 		}
 		typ := r.URL.Query().Get("type")
-		if typ == "" {
-			return
-		}
-		idStr := r.URL.Query().Get("id")
-		if idStr == "" {
-			return
-		}
-		id, err := strconv.Atoi(idStr)
+		id, err := strconv.Atoi(r.URL.Query().Get("id"))
 		if err != nil {
+			http.Error(w, "id is not a number", http.StatusBadRequest)
 			return
 		}
 
@@ -85,8 +78,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "group-posts":
-			hasAccess, err := s.repository.Group().HasAccessToGroupPost(res.Userid, id, path) // Switch is member to check if has access
-			fmt.Println(hasAccess, err, res.Userid)
+			hasAccess, err := s.repository.Group().HasAccessToGroupPost(res.Userid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -96,18 +88,23 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				http.Error(w, "Access forbidden", http.StatusForbidden)
 				return
 			}
-		// case "group-post-comments":
-		// 	hasAccess, err := s.repository.Group().IsMember(res.Userid, id)
-		// 	fmt.Println(hasAccess, res.Userid)
-		// 	if err != nil {
-		// 		http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
-		// 		return
-		// 	}
+		case "group-post-comments":
+			postId, err := strconv.Atoi(r.URL.Query().Get("postId"))
+			if err != nil {
+				http.Error(w, "postId is not a number", http.StatusBadRequest)
+				return
+			}
 
-		// 	if !hasAccess {
-		// 		http.Error(w, "Access forbidden", http.StatusForbidden)
-		// 		return
-		// 	}
+			hasAccess, err := s.repository.Group().HasAccessToGroupComment(res.Userid, id, postId, path)
+			if err != nil {
+				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if !hasAccess {
+				http.Error(w, "Access forbidden", http.StatusForbidden)
+				return
+			}
 
 		case "avatars":
 

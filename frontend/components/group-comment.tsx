@@ -6,9 +6,10 @@ import Image from "next/image";
 interface CommentProps {
   comment: Comment;
   postID: number;
+  groupID?: number;
 }
 
-export default function GroupComment({ comment, postID }: CommentProps) {
+export default function GroupComment({ comment, postID, groupID }: CommentProps) {
   return (
     <div className="post-comment">
       <div className="comment-user-avatar">
@@ -38,7 +39,7 @@ export default function GroupComment({ comment, postID }: CommentProps) {
             <Image
               src={
                 comment.image
-                  ? `http://localhost:8080/getProtectedImage?type=group-posts&id=${postID}&path=${encodeURIComponent(
+                  ? `http://localhost:8080/getProtectedImage?type=group-post-comments&id=${groupID}&postId=${postID}&path=${encodeURIComponent(
                       comment.image
                     )}`
                   : "/icons/placeholder.svg"
