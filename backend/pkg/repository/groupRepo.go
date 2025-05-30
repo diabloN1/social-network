@@ -279,11 +279,10 @@ LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id
 
 		var memberId int
 		var hasNewEvent bool
-	if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
-		return nil, err
-	}
-	group.HasNewEvent = hasNewEvent
-
+		if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
+			return nil, err
+		}
+		group.HasNewEvent = hasNewEvent
 
 		if group.OwnerId == userId {
 			group.IsOwner = true
@@ -634,4 +633,41 @@ func (r *GroupRepository) RejectGroupInvitation(userId, groupId int) error {
 		userId, groupId,
 	)
 	return err
+}
+
+func (r *GroupRepository) HasAccessToGroupPost(userId, groupId int, path string) (bool, error) {
+	var isMember bool
+	query := `
+            SELECT is_accepted
+                FROM group_members 
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE 
+				AND (
+					SELECT id FROM group_posts WHERE group_id = $2 AND image = $3
+				) IS NOT NULL`
+	err := r.Repository.db.QueryRow(query, userId, groupId, path).Scan(&isMember)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return isMember, err
+}
+
+func (r *GroupRepository) HasAccessToGroupComment(userId, groupId, postId int, path string) (bool, error) {
+	var isMember bool
+	query := `
+            SELECT is_accepted
+                FROM group_members 
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE 
+				AND (
+					SELECT id FROM group_posts WHERE id = $3 AND group_id = $2
+				) IS NOT NULL 
+				AND (
+					SELECT id FROM group_comments WHERE post_id = $3 AND image = $4
+				) IS NOT NULL`
+	err := r.Repository.db.QueryRow(query, userId, groupId, postId, path).Scan(&isMember)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return isMember, err
 }

@@ -30,7 +30,7 @@ export default function Comment({ comment, postID }: CommentProps) {
             <Image
               src={
                 comment.image
-                  ? `http://localhost:8080/getProtectedImage?type=posts&id=${postID}&path=${encodeURIComponent(
+                  ? `http://localhost:8080/getProtectedImage?type=post-comments&id=${postID}&path=${encodeURIComponent(
                       comment.image
                     )}`
                   : "/icons/placeholder.svg"
