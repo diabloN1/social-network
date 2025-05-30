@@ -171,24 +171,3 @@ func (s *Server) DeleteFollow(request map[string]any) *model.Response {
 
 	return response
 }
-
-func (s *Server) GetFollowRequestCount(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
-	response["count"] = 0
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-
-	count, err := s.repository.Follow().GetFollowRequestCount(res.Userid)
-	if err != nil {
-		response["error"] = err.Error()
-		return response
-	}
-
-	response["count"] = count
-	return response
-}
