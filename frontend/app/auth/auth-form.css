@@ -138,8 +138,11 @@
 
 .password-input {
   position: relative;
+  display: inline-block;
 }
-
+.password-input > input{
+  padding-right: 40px ;
+}
 .toggle-password {
   position: absolute;
   right: 16px;

@@ -1,1 +1,5 @@
-*.{db,jpg,jpeg,png,gif}
+*.db
+*.jpg
+*.jpeg
+*.png
+*.gif
