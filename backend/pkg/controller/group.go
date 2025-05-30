@@ -715,8 +715,11 @@ func (s *Server) GetGroupInviteUsers(request map[string]any) *model.Response {
 		return response
 	}
 
+	
 	response.AllUsers = availableUsers
 	response.Success = true
+	data, _ := json.MarshalIndent(response.AllUsers, "", "  ")
+log.Println(string(data))
 
 	return response
 }

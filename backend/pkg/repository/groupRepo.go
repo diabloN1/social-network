@@ -206,8 +206,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
 			return nil, err
 		}
-
-		group.Members = append(group.Members, inviter)
+		group.Inviter =  *inviter
 		groups = append(groups, group)
 	}
 
@@ -530,23 +529,23 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
 	var users []*model.User
 
-	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
-			  FROM users u
-			  WHERE u.id IN (
-				  SELECT f.follower_id FROM followers f 
-				  WHERE f.following_id = $2 AND f.is_accepted = TRUE
-				  UNION
-				  SELECT f.following_id FROM followers f 
-				  WHERE f.follower_id = $2 AND f.is_accepted = TRUE
-			  )
-			  AND u.id NOT IN (
-				  SELECT gm.user_id 
-				  FROM group_members gm 
-				  WHERE gm.group_id = $1
-			  )
-			  ORDER BY u.firstname, u.lastname`
+	fmt.Println("groupId:", groupId)
+	fmt.Println("currentUserId:", currentUserId)
+	query := `SELECT DISTINCT u.id, u.firstname, u.lastname, u.nickname, u.avatar
+FROM users u
+JOIN followers f ON (
+    (f.follower_id = u.id AND f.following_id = $userid)
+    OR
+    (f.following_id = u.id AND f.follower_id = $userid)
+)
+LEFT JOIN group_members gm ON gm.user_id = u.id AND gm.group_id = $2
+WHERE f.is_accepted = 1
+  AND u.id != $userid
+  AND gm.user_id IS NULL
+ORDER BY u.firstname, u.lastname;
+`
 
-	rows, err := r.Repository.db.Query(query, groupId, currentUserId)
+	rows, err := r.Repository.db.Query(query, currentUserId, groupId)
 	if err != nil {
 		return nil, err
 	}
