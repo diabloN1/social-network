@@ -39,7 +39,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           ...data.groupConvs.map((group: ResChat) => ({
             id: `group_${group.groupId}`,
             name: group.fullName,
-            avatar: group.image || "/icons/placeholder.svg",
+            avatar: group.image,
             lastMessage: "",
             lastMessageTime: group.lastmessagedate || "",
             unreadCount: group.unreadcount || 0,
@@ -50,7 +50,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           ...data.privateConvs.map((priv: ResChat) => ({
             id: `user_${priv.userId}`,
             name: priv.fullName,
-            avatar: priv.image || "/icons/placeholder.svg",
+            avatar: priv.image,
             lastMessage: "",
             lastMessageTime: priv.lastmessagedate || "",
             unreadCount: priv.unreadcount || 0,
@@ -62,7 +62,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           ...data.newConvs.map((newConv: ResChat) => ({
             id: `user_${newConv.userId}`,
             name: newConv.fullName,
-            avatar: newConv.image || "/icons/placeholder.svg",
+            avatar: newConv.image,
             lastMessage: "New conversation",
             lastMessageTime: newConv.lastmessagedate || "",
             unreadCount: 0,
@@ -151,6 +151,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
 
     return matchesSearch;
   });
+
 
   if (loading) {
     return (

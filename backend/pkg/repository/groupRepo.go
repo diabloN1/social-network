@@ -636,3 +636,18 @@ func (r *GroupRepository) RejectGroupInvitation(userId, groupId int) error {
 	)
 	return err
 }
+
+// func (r *GroupRepository) HasAccessToGroupPost(userId, groupId int, path string) (bool, error) {
+// 	var isMember bool
+// 	query := `
+//             SELECT m.is_accepted
+//                 FROM group_members m 
+// 				INNER JOIN group_comments gc ON gc.post_id = $1 
+//                 WHERE m.group_id = $1 AND m.user_id = $2 AND gc.image = $3`
+// 	err := r.Repository.db.QueryRow(query, groupId, userId).Scan(&isMember)
+// 	if err == sql.ErrNoRows {
+// 		return false, nil
+// 	}
+
+// 	return isMember, err
+// }
