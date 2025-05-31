@@ -23,7 +23,7 @@ const getPosts = async (startId: number) => {
     });
 
     const data = await response.json();
-    console.log("getPosts response:", data);
+    // console.log("getPosts response:", data);
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");

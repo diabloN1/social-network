@@ -25,10 +25,10 @@ const removePostShare = async (postId: number, userId: number) => {
     });
 
     const data = await response.json();
-    console.log(
-      `removePostShare response for post ${postId}, user ${userId}:`,
-      data
-    );
+    // console.log(
+    //   `removePostShare response for post ${postId}, user ${userId}:`,
+    //   data
+    // );
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");

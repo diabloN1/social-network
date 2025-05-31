@@ -26,8 +26,8 @@ export default function PostsPage() {
       const data = await getPosts(0);
       if (data && data.data?.posts) {
         const { posts, userid } = data.data;
-        console.log("Fetched posts:", data);
-        console.log("Current user ID from API:", userid);
+        // console.log("Fetched posts:", data);
+        // console.log("Current user ID from API:", userid);
         setPosts(posts);
         setCurrentUserId(userid);
         setHasMore(posts.length === 10);
@@ -42,7 +42,7 @@ export default function PostsPage() {
     if (posts.length === 0) return;
 
     const lastId = posts[posts.length - 1].id;
-    console.log("posts", posts);
+    // console.log("posts", posts);
 
     try {
       setIsLoading(true);

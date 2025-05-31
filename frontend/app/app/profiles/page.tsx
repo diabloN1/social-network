@@ -33,7 +33,7 @@ export default function ProfilesPage() {
         getProfiles(),
         hasNewFollowNotification(),
       ]);
-      console.log("ddd", followNotifData);
+      // console.log("ddd", followNotifData);
 
       if (profileData.error || followNotifData.error) {
         alert(profileData.error || followNotifData.error);
@@ -56,7 +56,7 @@ export default function ProfilesPage() {
   }, []);
 
   // Filter users based on search term
-  console.log("Users", users);
+  // console.log("Users", users);
   const filteredUsers = users?.filter(
     (user) =>
       user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||

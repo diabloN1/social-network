@@ -21,7 +21,7 @@ const addEventOption = async (groupId: number, eventId: number, option: boolean)
     });
     const data = await response.json();
 
-    console.log(data);
+    // console.log(data);
 
     if (data.error == "Invalid session") {
       cookieStore.delete("token");
