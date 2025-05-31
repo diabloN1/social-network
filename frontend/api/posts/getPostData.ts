@@ -17,6 +17,7 @@ const getPostData = async (postId: number) => {
     });
 
     const data = await response.json();
+    // console.log(`getPostData response for post ${postId}:`, data);
 
     console.log(data);
     return data.data;

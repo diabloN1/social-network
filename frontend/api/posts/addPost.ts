@@ -1,4 +1,3 @@
-
 const addPost = async (formData: {
   image: string;
   caption: string;
