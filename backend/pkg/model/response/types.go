@@ -18,8 +18,17 @@ type GetPosts struct {
 	Userid int           `json:"userid"`
 }
 
-type GetPostData struct {
-	Userid int           `json:"userid,omitempty"`
-	Posts  []*model.Post `json:"posts,omitempty"`
-	Error  string        `json:"error,omitempty"`
+type GetPost struct {
+	Userid int         `json:"userid,omitempty"`
+	Post   *model.Post `json:"post,omitempty"`
+}
+
+type AddPost struct {
+	Post *model.Post `json:"post,omitempty"`
+}
+
+type ReactToPost struct {
+	Userid  int         `json:"userid"`
+	Post    *model.Post `json:"post,omitempty"`
+	Success bool        `json:"success"`
 }

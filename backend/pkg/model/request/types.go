@@ -10,7 +10,20 @@ type GetPosts struct {
 	Session string `json:"session"`
 }
 
-type GetPostData struct {
+type GetPost struct {
 	PostId  int    `json:"postId"`
 	Session string `json:"session"`
+}
+
+type AddPost struct {
+	Caption string `json:"caption"`
+	Privacy string `json:"privacy"`
+	Image   string `json:"image"`
+	Session string `json:"session"`
+}
+
+type ReactToPost struct {
+	Session  string `json:"session"`
+	PostId   int    `json:"postId"`
+	Reaction *bool  `json:"reaction"`
 }

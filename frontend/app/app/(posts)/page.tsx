@@ -76,9 +76,12 @@ export default function PostsPage() {
         return;
       }
 
-      if (data.posts && data.posts[0]) {
-        setPosts([data.posts[0], ...posts]);
+      if (data.post) {
+        setPosts([data.post, ...posts]);
+      } else {
+        throw "Could not get created post!"
       }
+
     } catch (err) {
       setPopup({ message: `${err}`, status: "failure" });
     }

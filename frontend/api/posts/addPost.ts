@@ -19,7 +19,10 @@ const addPost = async (formData: {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({
+        type: "add-post",
+        data: formData
+      }),
     });
     const data = await response.json();
 
@@ -28,7 +31,7 @@ const addPost = async (formData: {
     if (data.error == "Invalid session") {
       cookieStore.delete("token");
     }
-    return data;
+    return data.data;
   } catch (err) {
     console.error(err);
   }

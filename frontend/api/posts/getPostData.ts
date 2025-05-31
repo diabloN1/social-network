@@ -14,24 +14,24 @@ const getPostData = async (postId: number) => {
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
       body: JSON.stringify({
-        postId: postId,
-        session: token,
+        type: "get-post",
+        data: { postId: postId, session: token },
       }),
       cache: "no-store",
     });
 
     const data = await response.json();
-    console.log(`getPostData response for post ${postId}:`, data);
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");
-      return { error: "Invalid session", posts: [] };
+      return { error: "Invalid session", post: null };
     }
 
-    return data;
+    console.log(data)
+    return data.data;
   } catch (err) {
     console.error(`Error fetching post data for post ${postId}:`, err);
-    return { error: "Failed to fetch post data", posts: [] };
+    return { error: "Failed to fetch post data", post: null };
   }
 };
 

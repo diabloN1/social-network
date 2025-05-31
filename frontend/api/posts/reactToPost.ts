@@ -12,7 +12,10 @@ const reactToPost = async (postId: number, reaction: boolean | null) => {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ postId, reaction, session: token }),
+      body: JSON.stringify({
+        type: "react-to-post",
+        data: { postId, reaction, session: token },
+      }),
     });
     const data = await response.json();
 

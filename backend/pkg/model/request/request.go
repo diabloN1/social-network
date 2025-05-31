@@ -15,6 +15,9 @@ var requestTypes = map[string]any{
 	model.TYPE_REGISTER:  &Register{},
 	model.TYPE_LOGIN:     &Login{},
 	model.Type_GET_POSTS: &GetPosts{},
+	model.Type_GET_POST:  &GetPost{},
+	model.Type_ADD_POST:  &AddPost{},
+	model.Type_REACT_TO_POST: &ReactToPost{},
 }
 
 func (r Payload) Decode() (any, error) {
