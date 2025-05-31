@@ -32,3 +32,18 @@ type ReactToPost struct {
 	Post    *model.Post `json:"post,omitempty"`
 	Success bool        `json:"success"`
 }
+
+type GetPostShares struct {
+	AllUsers []*model.User `json:"all_users"`
+	Success  bool          `json:"success"`
+}
+
+type AddPostShare struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
+}
+
+type RemovePostShare struct {
+	Message string `json:"message"`
+	Success bool   `json:"success"`
+}

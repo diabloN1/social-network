@@ -14,9 +14,12 @@ const removePostShare = async (postId: number, userId: number) => {
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
       body: JSON.stringify({
-        postId: postId,
-        userId: userId,
-        session: token,
+        type: "remove-post-share",
+        data: {
+          postId: postId,
+          userId: userId,
+          session: token,
+        },
       }),
       cache: "no-store",
     });
@@ -32,7 +35,7 @@ const removePostShare = async (postId: number, userId: number) => {
       return { error: "Invalid session" };
     }
 
-    return data;
+    return data.data
   } catch (err) {
     console.error(
       `Error removing post share for post ${postId}, user ${userId}:`,

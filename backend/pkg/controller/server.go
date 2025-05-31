@@ -78,9 +78,9 @@ func Start() error {
 	s.AddRoute("/reactToPost", s.ReactToPost)
 
 	// Post Shares
-	s.router.HandleFunc("/getPostShares", s.getPostSharesHandler)
-	s.router.HandleFunc("/addPostShare", s.addPostShareHandler)
-	s.router.HandleFunc("/removePostShare", s.removePostShareHandler)
+	s.AddRoute("/getPostShares", s.GetPostShares)
+	s.AddRoute("/addPostShare", s.AddPostShare)
+	s.AddRoute("/removePostShare", s.RemovePostShare)
 
 	// Comments
 	s.router.HandleFunc("/addComment", s.addCommentHandler)
