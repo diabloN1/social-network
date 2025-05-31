@@ -31,46 +31,36 @@ func (s *Server) GetPosts(payload any) any {
 	}
 }
 
-func (s *Server) GetPostData(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "postData",
-		Error: "",
+func (s *Server) GetPostData(payload any) any {
+	data, ok := payload.(*request.GetPostData)
+	if !ok {
+		return response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(request)
+	res := s.ValidateSession(map[string]any{"session": data.Session})
 	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
+		return response.Error{Code: 401, Cause: "Unauthorized"}
 	}
 
-	var postId float64
-	postIdRaw, ok := request["postId"]
-	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'startId' must be a float64"
-		return response
-	}
-
-	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	post, err := s.repository.Post().GetPostById(res.Userid, data.PostId)
 	if err != nil {
-		response.Error = err.Error()
 		log.Println("Error in getting Post Data:", err)
+		return response.Error{Code: 400, Cause: "Error in getting post data"}
 	}
 
-	count, err := s.repository.Comment().GetCommentCountByPostId(int(postId))
+	count, err := s.repository.Comment().GetCommentCountByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting comment count:", err)
+		// Optional: still continue, don't block response on comment count
 	}
 	post.CommentCount = count
 
-	response.Posts = []*model.Post{post}
-
-	return response
+	return &response.GetPostData{
+		Userid: res.Userid,
+		Posts:  []*model.Post{post},
+	}
 }
+
 
 func (s *Server) AddPost(request map[string]any) *model.Response {
 	p := &model.Post{}

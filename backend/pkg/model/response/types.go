@@ -17,3 +17,9 @@ type GetPosts struct {
 	Posts  []*model.Post `json:"posts"`
 	Userid int           `json:"userid"`
 }
+
+type GetPostData struct {
+	Userid int           `json:"userid,omitempty"`
+	Posts  []*model.Post `json:"posts,omitempty"`
+	Error  string        `json:"error,omitempty"`
+}
