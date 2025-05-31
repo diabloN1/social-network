@@ -195,7 +195,7 @@ func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) 
 }
 
 func (r *PostRepository) HasAccessToPost(userId, postId int, path string) (bool, error) {
-	fmt.Println(userId, postId)
+
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id
 				FROM posts p

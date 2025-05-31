@@ -15,10 +15,10 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 		return response
 	}
 
-	var messageUnread int = 0
-	var groupRequests int = 0
-	var followRequests int = 0
-
+	messageUnread := 0
+	groupRequests := 0
+	followRequests := 0
+	invitations := 0
 	pmCount, err := s.repository.Message().CountUnreadPM(res.Userid)
 	if err != nil {
 		log.Println("Error getting unread PM count:", err)
@@ -57,12 +57,20 @@ func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
 		log.Println("Error getting event created count:", err)
 		eventCreatedCount = 0
 	}
-	groupRequests+=eventCreatedCount
-	
+	groupRequests += eventCreatedCount
+
+	invitations, err = s.repository.Group().GetGroupJoinInvitations(res.Userid)
+	if err != nil {
+		log.Println("Error getting event created count:", err)
+		invitations = 0
+	}
+	// fmt.Println("iiiiiiiiii",invitations)
+	groupRequests += invitations
+
 	response["notifications"] = map[string]int{
-	"messageUnread":     messageUnread,
-	"groupRequests":     groupRequests,
-	"followRequests":    followRequests,
+		"messageUnread":  messageUnread,
+		"groupRequests":  groupRequests,
+		"followRequests": followRequests,
 	}
 
 	response["totalCount"] = messageUnread + groupRequests + followRequests
@@ -155,7 +163,7 @@ func (s *Server) DeleteNewEventNotification(request map[string]any) map[string]a
 		return response
 	}
 	notification := map[string]any{
-		"type":       "notifications",
+		"type": "notifications",
 	}
 	s.sendNotificationToUser(int(res.Userid), notification)
 	response["message"] = "Notification deleted"

@@ -250,7 +250,7 @@ export default function GroupDetailPage() {
     if (!group) return;
     try {
       const data = await addEventOption(groupId, eventId, going);
-      console.log(data);
+      // console.log(data);
       fetchGroupData();
     } catch (error) {
       setPopup({ message: `${error}`, status: "failure" });

@@ -33,6 +33,22 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           setPopup({ message: data.error, status: "failure" });
           return;
         }
+        if (data.privateConvs) {
+          data.privateConvs.sort(
+            (
+              a: { lastmessagedate: string },
+              b: { lastmessagedate: string }
+            ) => {
+              const dateA = a.lastmessagedate
+                ? new Date(a.lastmessagedate)
+                : new Date(0);
+              const dateB = b.lastmessagedate
+                ? new Date(b.lastmessagedate)
+                : new Date(0);
+              return dateB.getTime() - dateA.getTime();
+            }
+          );  
+        }
 
         const transformedChats: Chat[] = [
           // Transform group conversations
@@ -71,7 +87,15 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             isOnline: false,
           })),
         ];
-
+        transformedChats.sort((a, b) => {
+          const dateA = a.lastMessageTime
+            ? new Date(a.lastMessageTime)
+            : new Date(0);
+          const dateB = b.lastMessageTime
+            ? new Date(b.lastMessageTime)
+            : new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        });
         setChats(transformedChats);
         setLoading(false);
       } catch (error) {

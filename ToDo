@@ -1,24 +1,17 @@
 ToDo :
- # Backend
- - Fix core middleware don't allow client to access /ws
 
  # Chat
- - On log-out Or auth page redirect clear socket.
-
+  - display 10 messages at a time with a debounce(throttle) of 1 second
  # Groups
- - Invite user
- - Accept invite
- - Accept request
- - Delete request/invite
- - devide group repository
- - middleware to aply to all group actions
- - middleware to aply to all post actions
- - on event option click change ui of buttons dynamicly without trigring fetchgroupdata() (at line 200 in single group page)
+
 
  # Single Profile Page
- - don't show user as a follower until the following accepts.
- - should implement birth date in profile only frontend.
- - Add to on clicks for profile acc and for posts cursor pointer.
+
+
+
+# Problems
+ - logout 
+
 
 
 
