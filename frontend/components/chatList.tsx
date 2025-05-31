@@ -87,7 +87,15 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
             isOnline: false,
           })),
         ];
-
+        transformedChats.sort((a, b) => {
+          const dateA = a.lastMessageTime
+            ? new Date(a.lastMessageTime)
+            : new Date(0);
+          const dateB = b.lastMessageTime
+            ? new Date(b.lastMessageTime)
+            : new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        });
         setChats(transformedChats);
         setLoading(false);
       } catch (error) {
