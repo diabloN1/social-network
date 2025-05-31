@@ -10,19 +10,19 @@ import (
 func (s *Server) GetPosts(payload any) any {
 	data, ok := payload.(*request.GetPosts)
 	if !ok {
-		return response.Error{400, "Invalid payload type"}
+		return response.Error{Code: 400, Cause: "Invalid payload type"}
 
 	}
 
 	res := s.ValidateSession(map[string]any{"session": data.Session})
 	if res.Error != "" {
-		return response.Error{401, "Unauthorized"}
+		return response.Error{Code: 401, Cause: "Unauthorized"}
 	}
 
 	posts, err := s.repository.Post().GetPosts(res.Userid, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
-		return response.Error{400, "Error in getting feed data"}
+		return response.Error{Code: 400, Cause: "Error in getting feed data"}
 	}
 
 	return &response.GetPosts{
@@ -60,6 +60,12 @@ func (s *Server) GetPostData(request map[string]any) *model.Response {
 		response.Error = err.Error()
 		log.Println("Error in getting Post Data:", err)
 	}
+
+	count, err := s.repository.Comment().GetCommentCountByPostId(int(postId))
+	if err != nil {
+		log.Println("Error getting comment count:", err)
+	}
+	post.CommentCount = count
 
 	response.Posts = []*model.Post{post}
 

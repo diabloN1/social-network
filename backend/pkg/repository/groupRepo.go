@@ -206,8 +206,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
 			return nil, err
 		}
-
-		group.Members = append(group.Members, inviter)
+		group.Inviter =  *inviter
 		groups = append(groups, group)
 	}
 
@@ -280,11 +279,10 @@ LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = g.id
 
 		var memberId int
 		var hasNewEvent bool
-	if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
-		return nil, err
-	}
-	group.HasNewEvent = hasNewEvent
-
+		if err := rows.Scan(&group.ID, &group.OwnerId, &group.Title, &group.Image, &memberId, &group.IsAccepted, &hasNewEvent); err != nil {
+			return nil, err
+		}
+		group.HasNewEvent = hasNewEvent
 
 		if group.OwnerId == userId {
 			group.IsOwner = true
@@ -315,7 +313,6 @@ func (r *GroupRepository) GetGroupData(groupId, userId int) (*model.Group, error
 			LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = $2
 			WHERE g.id = $2`
 
-	fmt.Println(groupId, userId)
 	err := r.Repository.db.QueryRow(query, userId, groupId).Scan(&group.OwnerId, &group.Title, &group.Description, &group.Image, &member.ID, &member.InviterId, &group.IsAccepted)
 	if err != nil {
 		return nil, err
@@ -409,6 +406,10 @@ func (r *GroupRepository) GetGroupPosts(groupId int, userId int) ([]*model.Post,
 		}
 
 		p.User = u
+		p.CommentCount, err = r.Repository.Group().GetGroupCommentCountByPostId(p.ID)
+		if err != nil {
+			return nil, err
+		}
 		posts = append(posts, p)
 		postIds = append(postIds, p.ID)
 	}
@@ -530,23 +531,23 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
 	var users []*model.User
 
-	query := `SELECT u.id, u.firstname, u.lastname, u.nickname, u.avatar
-			  FROM users u
-			  WHERE u.id IN (
-				  SELECT f.follower_id FROM followers f 
-				  WHERE f.following_id = $2 AND f.is_accepted = TRUE
-				  UNION
-				  SELECT f.following_id FROM followers f 
-				  WHERE f.follower_id = $2 AND f.is_accepted = TRUE
-			  )
-			  AND u.id NOT IN (
-				  SELECT gm.user_id 
-				  FROM group_members gm 
-				  WHERE gm.group_id = $1
-			  )
-			  ORDER BY u.firstname, u.lastname`
+	fmt.Println("groupId:", groupId)
+	fmt.Println("currentUserId:", currentUserId)
+	query := `SELECT DISTINCT u.id, u.firstname, u.lastname, u.nickname, u.avatar
+FROM users u
+JOIN followers f ON (
+    (f.follower_id = u.id AND f.following_id = $userid)
+    OR
+    (f.following_id = u.id AND f.follower_id = $userid)
+)
+LEFT JOIN group_members gm ON gm.user_id = u.id AND gm.group_id = $2
+WHERE f.is_accepted = 1
+  AND u.id != $userid
+  AND gm.user_id IS NULL
+ORDER BY u.firstname, u.lastname;
+`
 
-	rows, err := r.Repository.db.Query(query, groupId, currentUserId)
+	rows, err := r.Repository.db.Query(query, currentUserId, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -635,4 +636,41 @@ func (r *GroupRepository) RejectGroupInvitation(userId, groupId int) error {
 		userId, groupId,
 	)
 	return err
+}
+
+func (r *GroupRepository) HasAccessToGroupPost(userId, groupId int, path string) (bool, error) {
+	var isMember bool
+	query := `
+            SELECT is_accepted
+                FROM group_members 
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE 
+				AND (
+					SELECT id FROM group_posts WHERE group_id = $2 AND image = $3
+				) IS NOT NULL`
+	err := r.Repository.db.QueryRow(query, userId, groupId, path).Scan(&isMember)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return isMember, err
+}
+
+func (r *GroupRepository) HasAccessToGroupComment(userId, groupId, postId int, path string) (bool, error) {
+	var isMember bool
+	query := `
+            SELECT is_accepted
+                FROM group_members 
+                WHERE user_id = $1 AND group_id = $2 AND is_accepted = TRUE 
+				AND (
+					SELECT id FROM group_posts WHERE id = $3 AND group_id = $2
+				) IS NOT NULL 
+				AND (
+					SELECT id FROM group_comments WHERE post_id = $3 AND image = $4
+				) IS NOT NULL`
+	err := r.Repository.db.QueryRow(query, userId, groupId, postId, path).Scan(&isMember)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	return isMember, err
 }

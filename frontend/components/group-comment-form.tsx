@@ -84,7 +84,7 @@ export default function GroupCommentForm({
         formData.append("file", selectedImage);
 
         // Use your existing uploadFile function
-        filename = await uploadFile(formData, "group-posts");
+        filename = await uploadFile(formData, "group-post-comments");
       }
 
       // Add comment

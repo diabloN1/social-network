@@ -14,4 +14,5 @@ type Post struct {
 	Image        string         `json:"image"`
 	User         *User          `json:"user"`
 	Reactions    ReactionCounts `json:"reactions"`
+	CommentCount int            `json:"comment_count"`
 }

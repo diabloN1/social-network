@@ -10,13 +10,13 @@ import createGroup from "@/api/groups/createGroup";
 import getGroups from "@/api/groups/getGroups";
 import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
+import respondToGroupInvitation from "@/api/groups/respondToGroupInvitation";
 import Popup from "../popup";
 import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
 import Image from "next/image";
 import { GroupsData } from "@/types/group";
 
 // Types for API response
-
 
 export default function GroupsPage() {
   const router = useRouter();
@@ -34,10 +34,11 @@ export default function GroupsPage() {
       const data = await getGroups();
       if (data.error) {
         console.log(data.error);
-        
+
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
+      console.log("data", data);
 
       setGroupsData(data);
 
@@ -108,11 +109,25 @@ export default function GroupsPage() {
   };
 
   // Handle responding to invitations
-  const handleInvitationResponse = (invitationId: number, accept: boolean) => {
-    console.log(
-      `${accept ? "Accepting" : "Declining"} invitation:`,
-      invitationId
-    );
+  // Handle responding to invitations
+  const handleInvitationResponse = async (groupId: number, accept: boolean) => {
+    try {
+      const data = await respondToGroupInvitation(groupId, accept);
+      if (data.error) {
+        setPopup({ message: `${data.error}`, status: "failure" });
+        return;
+      }
+
+      setPopup({
+        message: `Invitation ${accept ? "accepted" : "declined"} successfully.`,
+        status: "success",
+      });
+
+      // Refresh groups data to update UI
+      fetchGroupsData();
+    } catch (error) {
+      setPopup({ message: `${error}`, status: "failure" });
+    }
   };
 
   // Handle responding to join requests (as group creator)
@@ -136,7 +151,7 @@ export default function GroupsPage() {
 
   // Navigate to group detail page
 
- const navigateToGroup = async (groupId: number) => {
+  const navigateToGroup = async (groupId: number) => {
     try {
       await deleteNewEventNotification(groupId);
     } catch (error) {
@@ -187,24 +202,25 @@ export default function GroupsPage() {
                 <div className="invitation-info">
                   <Image
                     src={
-                      invite.user.avatar
+                      invite.inviter.avatar
                         ? `http://localhost:8080/getProtectedImage?type=avatars&id=0&path=${encodeURIComponent(
-                            invite.user.avatar
+                            invite.inviter.avatar
                           )}`
                         : "/icons/placeholder.svg"
                     }
                     alt="user avatar"
+                    className="user-avatar"
                     width={40}
                     height={40}
                     unoptimized
                   />
                   <div className="invitation-details">
                     <span className="invitation-title">
-                      <strong>{`${invite.user.firstname} ${invite.user.lastname}`}</strong>{" "}
-                      invited you to join <strong>{invite.group.title}</strong>
+                      <strong>{`${invite.inviter.firstname} ${invite.inviter.lastname}`}</strong>{" "}
+                      invited you to join <strong>{invite.title}</strong>
                     </span>
                     <span className="invitation-description">
-                      {invite.group.description}
+                      {/* {invite.group.description} */}
                     </span>
                     <span className="invitation-date">
                       {new Date(invite.creation_date).toLocaleDateString()}
@@ -338,8 +354,8 @@ export default function GroupsPage() {
                 />
               </div>
               {group.new_event && (
-        <span className="event-notification-dot">New Event</span> 
-      )}
+                <span className="event-notification-dot">New Event</span>
+              )}
               <div
                 className="group-info"
                 onClick={() => navigateToGroup(group.id)}

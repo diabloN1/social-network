@@ -195,7 +195,40 @@ func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) 
 
 }
 
-func (r *PostRepository) HasAccessToPost(userId int, postId int) (bool, error) {
+func (r *PostRepository) HasAccessToPost(userId, postId int, path string) (bool, error) {
+	fmt.Println(userId, postId)
+	err := r.Repository.db.QueryRow(`SELECT 
+				p.id
+				FROM posts p
+
+				LEFT JOIN followers f ON p.user_id = f.following_id AND f.follower_id = $1 AND is_accepted = 1
+				LEFT JOIN post_shares ps ON p.id = ps.post_id AND ps.shared_with_user_id = $1
+				LEFT JOIN users u ON u.id = p.user_id
+
+				WHERE
+						p.id = $2
+						AND
+						p.image = $3
+					AND
+					(
+						p.user_id = $1
+						OR (p.privacy = 'public' AND u.is_private = FALSE)
+						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
+						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
+					);`, userId, postId, path).Scan(&userId)
+
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+
+	if err != nil {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (r *PostRepository) HasAccessToPostComment(userId, postId int, path string) (bool, error) {
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id
 				FROM posts p
@@ -206,13 +239,14 @@ func (r *PostRepository) HasAccessToPost(userId int, postId int) (bool, error) {
 
 				WHERE
 					p.id = $2
+					AND (SELECT id FROM comments WHERE image = $3 and post_id = $2) IS NOT NULL
 					AND
 					(
 						p.user_id = u.id
 						OR (p.privacy = 'public' AND u.is_private = FALSE)
 						OR (p.privacy = 'almost-private' AND f.id IS NOT NULL)
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
-					);`, userId, postId).Scan(&userId)
+					);`, userId, postId, path).Scan(&userId)
 
 	if err == sql.ErrNoRows {
 		return false, nil

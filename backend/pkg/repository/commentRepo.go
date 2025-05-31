@@ -59,3 +59,15 @@ func (r *CommentRepository) GetCommentsByPostId(Id int) ([]*model.Comment, error
 	}
 	return comments, nil
 }
+
+
+func (r *CommentRepository) GetCommentCountByPostId(postId int) (int, error) {
+	var count int
+	err := r.Repository.db.QueryRow(
+		`SELECT COUNT(*) FROM comments WHERE post_id = $1`, postId,
+	).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
