@@ -12,12 +12,15 @@ type Payload struct {
 }
 
 var requestTypes = map[string]any{
-	model.TYPE_REGISTER:  &Register{},
-	model.TYPE_LOGIN:     &Login{},
-	model.Type_GET_POSTS: &GetPosts{},
-	model.Type_GET_POST:  &GetPost{},
-	model.Type_ADD_POST:  &AddPost{},
-	model.Type_REACT_TO_POST: &ReactToPost{},
+	model.TYPE_REGISTER:          &Register{},
+	model.TYPE_LOGIN:             &Login{},
+	model.Type_GET_POSTS:         &GetPosts{},
+	model.Type_GET_POST:          &GetPost{},
+	model.Type_ADD_POST:          &AddPost{},
+	model.Type_REACT_TO_POST:     &ReactToPost{},
+	model.Type_GET_POST_SHARES:   &GetPostShares{},
+	model.Type_ADD_POST_SHARE:    &AddPostShare{},
+	model.Type_REMOVE_POST_SHARE: &RemovePostShare{},
 }
 
 func (r Payload) Decode() (any, error) {
@@ -25,6 +28,7 @@ func (r Payload) Decode() (any, error) {
 	if !exist {
 		return nil, fmt.Errorf("invalid request type %s", r.Type)
 	}
+
 	err := json.Unmarshal(r.Data, instance)
 	if err != nil {
 		return nil, err

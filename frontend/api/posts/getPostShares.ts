@@ -15,8 +15,11 @@ const getPostShares = async (postId: number) => {
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
       body: JSON.stringify({
-        postId: postId,
-        session: token,
+        type: "get-post-shares",
+        data: {
+          postId: postId,
+          session: token,
+        },
       }),
       cache: "no-store",
     });
@@ -32,17 +35,20 @@ const getPostShares = async (postId: number) => {
       };
     }
 
-    // Transform the response to separate current shares from available users
-    if (data.allusers) {
-      const currentShares = data.allusers.filter(
+    if (data.error) {
+      throw data.error
+    }
+
+    const allusers = data.data?.all_users;
+    if (allusers) {
+      const currentShares = allusers.filter(
         (user: User) => user.isaccepted === true
       );
-      const availableUsers = data.allusers.filter(
+      const availableUsers = allusers.filter(
         (user: User) => user.isaccepted === false
       );
 
       return {
-        ...data,
         data: {
           currentShares,
           availableUsers,

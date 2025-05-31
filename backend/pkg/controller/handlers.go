@@ -58,23 +58,23 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // }
 
 // POST SHARE Handlers
-func (s *Server) getPostSharesHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetPostShares(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) getPostSharesHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetPostShares(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) addPostShareHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddPostShare(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) addPostShareHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AddPostShare(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) removePostShareHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.RemovePostShare(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) removePostShareHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.RemovePostShare(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // PROFILE Handlers
 func (s *Server) GetProfilesHanlder(w http.ResponseWriter, r *http.Request) {
