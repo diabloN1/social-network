@@ -33,9 +33,9 @@ export default function SinglePostPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [popup, setPopup] = useState<{
-      message: string;
-      status: "success" | "failure";
-    } | null>(null);
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -409,12 +409,22 @@ export default function SinglePostPage() {
               </div>
 
               <div className="post-likes">
-                {reactions.likes} likes • {reactions.dislikes} dislikes
+                {reactions.likes} likes • {reactions.dislikes} dislikes • (
+                {post.comment_count ?? post.comments?.length ?? 0}) Comments
               </div>
 
               <CommentForm
                 postId={postId}
-                onCommentAdded={loadComments}
+                onCommentAdded={async () => {
+                  await loadComments();
+                  setPost((prev) => {
+                    if (!prev) return prev;
+                    return {
+                      ...prev,
+                      comment_count: (prev.comment_count || 0) + 1,
+                    };
+                  });
+                }}
                 disabled={isLoading}
               />
             </div>

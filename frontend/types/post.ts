@@ -11,11 +11,12 @@ export interface Post {
   creation_date?: string;
   reactions?: Reaction;
   comments?: Comment[];
+  comment_count?: number;
 }
 
 export interface Reaction {
-    likes: number;
-    dislikes: number;
-    userReaction: boolean | null;
-    isReacting?: boolean;
+  likes: number;
+  dislikes: number;
+  userReaction: boolean | null;
+  isReacting?: boolean;
 }

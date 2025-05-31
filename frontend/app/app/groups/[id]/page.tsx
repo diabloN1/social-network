@@ -44,12 +44,12 @@ export default function GroupDetailPage() {
   } | null>(null);
 
   // Reaction and comment states
-  const [postReactions, setPostReactions] = useState<{ [key: number]: Reaction }>(
-    {}
-  );
-  const [postComments, setPostComments] = useState<{ [key: number]: Comment[] }>(
-    {}
-  );
+  const [postReactions, setPostReactions] = useState<{
+    [key: number]: Reaction;
+  }>({});
+  const [postComments, setPostComments] = useState<{
+    [key: number]: Comment[];
+  }>({});
   const [expandedComments, setExpandedComments] = useState<{
     [key: number]: boolean;
   }>({});
@@ -84,7 +84,7 @@ export default function GroupDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [groupId])
+  }, [groupId]);
 
   useEffect(() => {
     fetchGroupData();
@@ -95,38 +95,36 @@ export default function GroupDetailPage() {
     const currentReaction = postReactions[postId];
     if (currentReaction?.isReacting) return;
 
-    setPostReactions((prev) => ({
-      ...prev,
-      [postId]: { ...prev[postId], isReacting: true },
-    }));
-
     const newReaction =
       currentReaction?.userReaction === reaction ? null : reaction;
-    // Optimistic UI update
+
+    // Optimistic UI update - fixed version
     setPostReactions((prev) => {
       const current = prev[postId];
       let newLikes = current.likes;
       let newDislikes = current.dislikes;
+      const currentReaction = current.userReaction;
 
-      if (current.userReaction === true && newReaction === null) {
-        newLikes--;
-      } else if (current.userReaction !== true && newReaction === true) {
-        newLikes++;
-        if (current.userReaction === false) {
-          newDislikes--;
-        }
-      } else if (current.userReaction === false && newReaction === null) {
-        newDislikes--;
-      } else if (current.userReaction !== false && newReaction === false) {
-        newDislikes++;
-        if (current.userReaction === true) {
+      if (newReaction === null) {
+        if (currentReaction === true) newLikes--;
+        if (currentReaction === false) newDislikes--;
+      } else {
+        if (newReaction === false && currentReaction === true) {
           newLikes--;
+          newDislikes++;
+        } else if (newReaction === true && currentReaction === false) {
+          newLikes++;
+          newDislikes--;
+        } else if (currentReaction === null) {
+          if (newReaction) newLikes++;
+          else newDislikes++;
         }
       }
 
       return {
         ...prev,
         [postId]: {
+          ...current,
           likes: newLikes,
           dislikes: newDislikes,
           userReaction: newReaction,
@@ -136,34 +134,22 @@ export default function GroupDetailPage() {
     });
 
     try {
-      const data = await reactToGroupPost(postId, newReaction);
-
-      if (data.error) {
-        console.error("Error reacting to group post:", data.error);
-        setPostReactions((prev) => ({
-          ...prev,
-          [postId]: { ...currentReaction, isReacting: false },
-        }));
-        return;
-      }
-
-      if (data.posts && data.posts.length > 0 && data.posts[0].reactions) {
-        const updatedReactions = data.posts[0].reactions;
-        setPostReactions((prev) => ({
-          ...prev,
-          [postId]: {
-            likes: updatedReactions.likes,
-            dislikes: updatedReactions.dislikes,
-            userReaction: updatedReactions.user_reaction,
-            isReacting: false,
-          },
-        }));
-      }
+      await reactToGroupPost(postId, newReaction);
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // Revert on error
       setPostReactions((prev) => ({
         ...prev,
         [postId]: { ...currentReaction, isReacting: false },
+      }));
+      setPopup({ message: `${error}`, status: "failure" });
+    } finally {
+      // Just remove loading state, counts are already correct
+      setPostReactions((prev) => ({
+        ...prev,
+        [postId]: {
+          ...prev[postId],
+          isReacting: false,
+        },
       }));
     }
   };
@@ -601,7 +587,7 @@ export default function GroupDetailPage() {
                       >
                         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
                       </svg>
-                      <span>Comments</span>
+                      <span> {post.comment_count} Comments</span>
                     </button>
                   </div>
                 </div>

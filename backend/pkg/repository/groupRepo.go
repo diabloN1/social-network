@@ -313,7 +313,6 @@ func (r *GroupRepository) GetGroupData(groupId, userId int) (*model.Group, error
 			LEFT JOIN group_members m ON m.user_id = $1 AND m.group_id = $2
 			WHERE g.id = $2`
 
-	fmt.Println(groupId, userId)
 	err := r.Repository.db.QueryRow(query, userId, groupId).Scan(&group.OwnerId, &group.Title, &group.Description, &group.Image, &member.ID, &member.InviterId, &group.IsAccepted)
 	if err != nil {
 		return nil, err
@@ -407,6 +406,10 @@ func (r *GroupRepository) GetGroupPosts(groupId int, userId int) ([]*model.Post,
 		}
 
 		p.User = u
+		p.CommentCount, err = r.Repository.Group().GetGroupCommentCountByPostId(p.ID)
+		if err != nil {
+			return nil, err
+		}
 		posts = append(posts, p)
 		postIds = append(postIds, p.ID)
 	}

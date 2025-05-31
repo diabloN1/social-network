@@ -107,3 +107,18 @@ func (r *GroupRepository) GetGroupPostById(userId, postId int) (*model.Post, err
 
 	return post, nil
 }
+
+
+func (r *GroupRepository) GetGroupCommentCountByPostId(postId int) (int, error) {
+	var count int
+	err := r.Repository.db.QueryRow(`
+		SELECT COUNT(*) 
+		FROM group_comments 
+		WHERE post_id = $1;
+	`, postId).Scan(&count)
+
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
