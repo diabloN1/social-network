@@ -77,7 +77,7 @@ func Start() error {
 
 	// Posts
 	s.AddRoute("/getPosts", s.GetPosts)
-	s.router.HandleFunc("/getPost", s.getPostHandler)
+	s.AddRoute("/getPost", s.GetPostData)
 	s.router.HandleFunc("/addPost", s.AddPostHandler)
 	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
 
