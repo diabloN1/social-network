@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"fmt"
+	
 	"log"
 	"net/http"
 )
@@ -254,7 +254,7 @@ func (s *Server) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 	fullPath, ok := r.Context().Value("fullPath").(string)
-	fmt.Println(fullPath)
+	
 	if !ok || fullPath == "" {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
