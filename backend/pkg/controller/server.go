@@ -26,9 +26,6 @@ type Server struct {
 	mu         sync.RWMutex
 }
 
-func Respond() {
-
-}
 func (s *Server) AddRoute(pattern string, handler func(any) any, middlewares ...http.HandlerFunc) {
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
@@ -43,7 +40,7 @@ func (s *Server) AddRoute(pattern string, handler func(any) any, middlewares ...
 			return
 		}
 		resp.Header().Set("Content-Type", "application/json")
-		status, body := response.Marchal(handler(reqData))
+		status, body := response.Marshal(handler(reqData))
 		resp.WriteHeader(status)
 		resp.Write(body)
 		// fmt.Println(string(body))
@@ -70,7 +67,6 @@ func Start() error {
 	s.AddRoute("/login", s.Login)
 
 	s.AddRoute("/register", s.Register)
-	// s.router.HandleFunc("/register", s.RegisterHandler)
 
 	s.router.HandleFunc("/session", s.SessionHandler)
 	s.router.HandleFunc("/logout", s.LogoutHandler)
@@ -78,8 +74,8 @@ func Start() error {
 	// Posts
 	s.AddRoute("/getPosts", s.GetPosts)
 	s.AddRoute("/getPost", s.GetPostData)
-	s.router.HandleFunc("/addPost", s.AddPostHandler)
-	s.router.HandleFunc("/reactToPost", s.reactToPostHandler)
+	s.AddRoute("/addPost", s.AddPost)
+	s.AddRoute("/reactToPost", s.ReactToPost)
 
 	// Post Shares
 	s.router.HandleFunc("/getPostShares", s.getPostSharesHandler)

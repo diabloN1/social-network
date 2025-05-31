@@ -62,26 +62,26 @@ export default function SinglePostPage() {
 
       // Fetch post data
       const data = await getPostData(postId);
-      if (data.error && data.error !== "") {
+      if (data.error) {
         throw Error(data.error);
       }
 
-      const foundData = data.posts[0];
+      const post = data.post;
 
-      if (!foundData || foundData.id === 0) {
+      if (!post || post.id === 0) {
         router.push("/404");
         return;
       }
 
-      setPost(foundData);
+      setPost(post);
       setCurrentUserId(data.userid);
 
       // Set reactions from post data
-      if (foundData.reactions) {
+      if (post.reactions) {
         setReactions({
-          likes: foundData.reactions.likes || 0,
-          dislikes: foundData.reactions.dislikes || 0,
-          userReaction: foundData.reactions.userReaction,
+          likes: post.reactions.likes || 0,
+          dislikes: post.reactions.dislikes || 0,
+          userReaction: post.reactions.userReaction,
         });
       }
 

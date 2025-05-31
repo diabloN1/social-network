@@ -12,6 +12,7 @@ type Payload struct {
 type Errored interface {
 	getCode() int
 }
+
 type Error struct {
 	Code  int    `json:"code"`
 	Cause string `json:"cause"`
@@ -19,7 +20,7 @@ type Error struct {
 
 func (e *Error) getCode() int { return e.Code }
 
-func Marchal(data any) (status int, result []byte) {
+func Marshal(data any) (status int, result []byte) {
 	r := Payload{}
 	status = 200
 	switch v := data.(type) {

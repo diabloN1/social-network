@@ -43,19 +43,19 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // POST Handlers
-func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) AddPostHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddPost(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AddPost(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) getPostHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) getPostHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetPostData(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetPostData(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // POST SHARE Handlers
 func (s *Server) getPostSharesHandler(w http.ResponseWriter, r *http.Request) {
@@ -197,12 +197,12 @@ func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 
-func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.ReactToPost(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.ReactToPost(request)
+// 	s.SendJson(w, response, err)
+// }
 
 func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
 

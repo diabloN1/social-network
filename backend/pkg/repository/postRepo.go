@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"real-time-forum/pkg/model"
 	"time"
@@ -127,9 +126,6 @@ func (r *PostRepository) GetProfilePosts(profileId, userId int) ([]*model.Post, 
 func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 	post := &model.Post{}
 	user := &model.User{}
-
-	// Should fix this query to get post data based on (comments, likes, and is allowed to see)
-
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id, p.privacy, p.user_id, p.caption, p.image, p.creation_date,
 				u.avatar,
@@ -151,8 +147,12 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 						OR (p.privacy = 'private' AND ps.id IS NOT NULL)
 					);`,
 		userId, postId).Scan(&post.ID, &post.Privacy, &post.UserId, &post.Caption, &post.Image, &post.CreationDate, &user.Avatar, &user.Firstname, &user.Lastname)
-	if err != nil && err != sql.ErrNoRows {
-		return nil, errors.New(err.Error())
+	if err == sql.ErrNoRows {
+		return nil, sql.ErrNoRows
+	}
+
+	if err != nil {
+		return nil, err
 	}
 
 	reactions, err := r.Repository.Reaction().GetReactionCounts(post.ID)
@@ -165,7 +165,6 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 		return nil, err
 	}
 
-	fmt.Println(userReaction)
 	reactions.UserReaction = userReaction
 
 	post.Reactions = reactions
@@ -177,14 +176,14 @@ func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) 
 	var posts []*model.Post
 	rows, err := r.Repository.db.Query("SELECT id, user_id, author, title, text, creation_date FROM posts WHERE user_id = ? ORDER BY creation_date ASC", u.ID)
 	if err != nil {
-		return nil, errors.New(err.Error())
+		return nil, err
 	}
 	defer rows.Close()
 	for rows.Next() {
 		post := &model.Post{}
 		err = rows.Scan(&post.ID, &post.UserId, &post.Title, &post.Text, &post.CreationDate)
 		if err != nil {
-			return nil, errors.New(err.Error())
+			return nil, err
 		}
 		posts = append(posts, post)
 	}
