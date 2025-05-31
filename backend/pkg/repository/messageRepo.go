@@ -131,12 +131,16 @@ func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, er
 	query := `SELECT 
 			g.id,
 			g.title,
-			g.image
+			g.image,
+			m.text,
+			m.creation_date
 			FROM groups g
 			JOIN group_members gm ON gm.group_id = g.id
-			WHERE gm.user_id = $1
-			GROUP BY g.id;
-			`
+			INNER JOIN messages m ON m.id = (
+			SELECT id FROM messages WHERE group_id = g.id
+			ORDER BY creation_date DESC, id DESC
+			)
+			WHERE gm.user_id = $1`
 	rows, err := r.Repository.db.Query(query, userId)
 
 	if err != nil {
@@ -145,7 +149,7 @@ func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, er
 	defer rows.Close()
 	for rows.Next() {
 		conv := &model.Conv{}
-		if err := rows.Scan(&conv.GroupId, &conv.FullName, &conv.Image); err != nil {
+		if err := rows.Scan(&conv.GroupId, &conv.FullName, &conv.Image, &conv.LastMessage, &conv.LastMessageDate); err != nil {
 			return nil, err
 		}
 
