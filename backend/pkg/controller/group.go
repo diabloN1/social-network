@@ -330,23 +330,23 @@ func (s *Server) AddGroupEvent(request map[string]any) map[string]any {
 
 	// Should pretect insertion fields
 	members, err := s.repository.Group().AddGroupEvent(e, int(groupId))
-if err != nil {
-	response["error"] = "Error adding event: " + err.Error()
-	return response
-}
+	if err != nil {
+		response["error"] = "Error adding event: " + err.Error()
+		return response
+	}
 
-// Send realtime notifications
-for _, member := range members {
-	if member.ID == e.User.ID {
-		continue
+	// Send realtime notifications
+	for _, member := range members {
+		if member.ID == e.User.ID {
+			continue
+		}
+		notification := map[string]any{
+			"type":      "notifications",
+			"message":   "A new group event has been created",
+			"timestamp": time.Now().Unix(),
+		}
+		s.sendNotificationToUser(member.ID, notification)
 	}
-	notification := map[string]any{
-		"type":      "notifications",
-		"message":   "A new group event has been created",
-		"timestamp": time.Now().Unix(),
-	}
-	s.sendNotificationToUser(member.ID, notification)
-}
 	return response
 }
 
@@ -715,11 +715,10 @@ func (s *Server) GetGroupInviteUsers(request map[string]any) *model.Response {
 		return response
 	}
 
-	
 	response.AllUsers = availableUsers
 	response.Success = true
-	data, _ := json.MarshalIndent(response.AllUsers, "", "  ")
-log.Println(string(data))
+	// 	data, _ := json.MarshalIndent(response.AllUsers, "", "  ")
+	// log.Println(string(data))
 
 	return response
 }
@@ -776,7 +775,7 @@ func (s *Server) InviteUserToGroup(request map[string]any) *model.Response {
 
 	// Send notification to the invited user
 	notification := map[string]any{
-		"type":      "groupInvitation",
+		"type":      "notifications",
 		"groupId":   int(groupId),
 		"inviterId": res.Userid,
 		"message":   "You have been invited to join a group",
@@ -839,7 +838,14 @@ func (s *Server) RespondToGroupInvitation(request map[string]any) *model.Respons
 		response.Error = err.Error()
 		return response
 	}
-
+	notification := map[string]any{
+		"type":      "notifications",
+		"groupId":   int(groupId),
+		"inviterId": res.Userid,
+		"message":   "You have been invited to join a group",
+		"timestamp": time.Now().Unix(),
+	}
+	s.sendNotificationToUser(int(res.Userid), notification)
 	response.Success = true
 
 	return response

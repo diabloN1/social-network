@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"fmt"
+	
 	"real-time-forum/pkg/model"
 	"time"
 )
@@ -165,7 +165,7 @@ func (r *PostRepository) GetPostById(userId, postId int) (*model.Post, error) {
 		return nil, err
 	}
 
-	fmt.Println(userReaction)
+	
 	reactions.UserReaction = userReaction
 
 	post.Reactions = reactions
@@ -196,7 +196,7 @@ func (r *PostRepository) GetPostsByUserId(u *model.User) ([]*model.Post, error) 
 }
 
 func (r *PostRepository) HasAccessToPost(userId, postId int, path string) (bool, error) {
-	fmt.Println(userId, postId)
+
 	err := r.Repository.db.QueryRow(`SELECT 
 				p.id
 				FROM posts p

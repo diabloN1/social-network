@@ -1,7 +1,7 @@
 package request
 
 import (
-	"fmt"
+
 	"real-time-forum/pkg/model/response"
 	"regexp"
 	"strings"
@@ -92,7 +92,7 @@ func (r *Register) ValidateBirth() string {
 	if newTime.After(now) {
 		return "birth date must be in the past"
 	}
-	fmt.Println(newTime.Year())
+	
 	return ""
 }
 
