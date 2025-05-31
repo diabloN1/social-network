@@ -1,6 +1,3 @@
-"use server";
-
-import { cookies } from "next/headers";
 
 const addPost = async (formData: {
   image: string;
@@ -9,8 +6,7 @@ const addPost = async (formData: {
   session?: string;
 }) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
+    const token = "";
 
     formData["session"] = token;
 
@@ -19,18 +15,14 @@ const addPost = async (formData: {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         type: "add-post",
-        data: formData
+        data: formData,
       }),
     });
     const data = await response.json();
 
-    // console.log(data);
-
-    if (data.error == "Invalid session") {
-      cookieStore.delete("token");
-    }
     return data.data;
   } catch (err) {
     console.error(err);

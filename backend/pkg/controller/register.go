@@ -5,8 +5,8 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Register(payload any) any {
-	data, ok := payload.(*request.Register)
+func (s *Server) Register(payload *RequestT) any {
+	data, ok := payload.data.(*request.Register)
 	if !ok {
 		return response.Error{Code: 400, Cause: "Invalid payload type"}
 	}

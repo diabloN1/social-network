@@ -7,19 +7,16 @@ type Login struct {
 
 type GetPosts struct {
 	StartId int    `json:"startId"`
-	Session string `json:"session"`
 }
 
 type GetPost struct {
 	PostId  int    `json:"postId"`
-	Session string `json:"session"`
 }
 
 type AddPost struct {
 	Caption string `json:"caption"`
 	Privacy string `json:"privacy"`
 	Image   string `json:"image"`
-	Session string `json:"session"`
 }
 
 type ReactToPost struct {

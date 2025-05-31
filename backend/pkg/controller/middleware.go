@@ -2,8 +2,10 @@ package controller
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path/filepath"
+	"real-time-forum/pkg/model/response"
 	"strconv"
 	"strings"
 )
@@ -13,8 +15,17 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 		// // Allow CORS for the specified origin
 		// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 		// w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		// w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Cache-Control, Authorization")
+		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
 
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(200)
+			w.Write([]byte{})
+			return
+		}
+		
 		next.ServeHTTP(w, r)
 	})
 }
@@ -118,56 +129,14 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
-// func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
-// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-// 		// Retrieve user_id from the context
-// 		userID, ok := r.Context().Value("user_id").(int)
-// 		if !ok || userID == 0 {
-// 			http.Error(w, "Unauthorized: Missing or invalid user information", http.StatusUnauthorized)
-// 			return
-// 		}
-
-// 		// Retrieve group_id from query parameters
-// 		groupIDStr := r.URL.Query().Get("group_id")
-// 		if groupIDStr == "" {
-// 			http.Error(w, "Bad Request: Missing group_id parameter", http.StatusBadRequest)
-// 			return
-// 		}
-
-// 		groupID, err := strconv.Atoi(groupIDStr)
-// 		if err != nil || groupID <= 0 {
-// 			http.Error(w, "Bad Request: Invalid group_id parameter", http.StatusBadRequest)
-// 			return
-// 		}
-
-// 		// Check if the user is a member of the group
-// 		isMember, err := s.repository.Group().IsMember(userID, groupID)
-// 		if err != nil {
-// 			http.Error(w, "Internal Server Error: Unable to verify membership", http.StatusInternalServerError)
-// 			return
-// 		}
-
-// 		if !isMember {
-// 			http.Error(w, "Forbidden: You are not a member of this group", http.StatusForbidden)
-// 			return
-// 		}
-
-// 		// Continue to the next handler if validation passes
-// 		next.ServeHTTP(w, r)
-// 	})
-// }
-
 func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Retrieve user_id from the context
 		userID, ok := r.Context().Value("user_id").(int)
 		if !ok || userID == 0 {
 			http.Error(w, "Unauthorized: Missing or invalid user information", http.StatusUnauthorized)
 			return
 		}
 
-		// Retrieve group_id from query parameters
 		groupIDStr := r.URL.Query().Get("group_id")
 		if groupIDStr == "" {
 			http.Error(w, "Bad Request: Missing group_id parameter", http.StatusBadRequest)
@@ -180,7 +149,6 @@ func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Check if the user is a member of the group
 		isMember, err := s.repository.Group().IsMember(userID, groupID)
 		if err != nil {
 			http.Error(w, "Internal Server Error: Unable to verify membership", http.StatusInternalServerError)
@@ -192,8 +160,32 @@ func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Continue to the next handler if validation passes
 		next.ServeHTTP(w, r)
 	})
 }
 
+func (s *Server) cookieMiddleware(next HandlerFunc, req *RequestT) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/login" || r.URL.Path == "/register" {
+			next.ServeHTTP(w, req)
+			return
+		}
+
+		cookie, err := r.Cookie("token")
+		if err != nil {
+			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			return
+		}
+
+		token := cookie.Value
+		uid, err := s.repository.Session().FindUserIDBySession(token)
+		if err != nil {
+			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			return
+		}
+
+		fmt.Println(1144)
+		req.context["user_id"] = uid
+		next.ServeHTTP(w, req)
+	})
+}

@@ -9,19 +9,16 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPosts(payload any) any {
-	data, ok := payload.(*request.GetPosts)
+func (s *Server) GetPosts(payload *RequestT) any {
+	data, ok := payload.data.(*request.GetPosts)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{Code: 401, Cause: "Unauthorized"}
-	}
+	user_id := payload.context["user_id"].(int)
 
-	posts, err := s.repository.Post().GetPosts(res.Userid, data.StartId)
+	posts, err := s.repository.Post().GetPosts(user_id, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
 		return &response.Error{Code: 400, Cause: "Error in getting feed data"}
@@ -29,22 +26,18 @@ func (s *Server) GetPosts(payload any) any {
 
 	return &response.GetPosts{
 		Posts:  posts,
-		Userid: res.Userid,
+		Userid: user_id,
 	}
 }
 
-func (s *Server) GetPostData(payload any) any {
-	data, ok := payload.(*request.GetPost)
+func (s *Server) GetPostData(payload *RequestT) any {
+	data, ok := payload.data.(*request.GetPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{Code: 401, Cause: res.Error}
-	}
-
-	post, err := s.repository.Post().GetPostById(res.Userid, data.PostId)
+	user_id, _ := payload.context["user_id"].(int)
+	post, err := s.repository.Post().GetPostById(user_id, data.PostId)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -61,14 +54,14 @@ func (s *Server) GetPostData(payload any) any {
 	fmt.Println("post", post)
 
 	return &response.GetPost{
-		Userid: res.Userid,
+		Userid: user_id,
 		Post:   post,
 	}
 }
 
-func (s *Server) AddPost(payload any) any {
+func (s *Server) AddPost(payload *RequestT) any {
 	fmt.Println(payload)
-	data, ok := payload.(*request.AddPost)
+	data, ok := payload.data.(*request.AddPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
@@ -81,28 +74,30 @@ func (s *Server) AddPost(payload any) any {
 		return &response.Error{Code: 400, Cause: "Invalid privacy setting"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Session == "" {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
+	user, err := s.repository.User().Find(payload.context["user_id"].(int))
+	if err != nil {
+		return &response.Error{Code: 500, Cause: "An error has aquired while finding user"}
 	}
 
 	post := &model.Post{
-		UserId:  res.Userid,
+		UserId:  user.ID,
 		Caption: data.Caption,
 		Privacy: data.Privacy,
 		Image:   data.Image,
 		User: &model.User{
-			Firstname: res.User.Firstname,
-			Lastname:  res.User.Lastname,
-			Avatar:    res.User.Avatar,
+			Firstname: user.Firstname,
+			Lastname:  user.Lastname,
+			Avatar:    user.Avatar,
 		},
 	}
 
 	if len(post.Caption) > 1000 {
 		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
 	}
-
-	err := s.repository.Post().Add(post)
+	if err != nil {
+		return &response.Error{Code: 500, Cause: "An error "}
+	}
+	err = s.repository.Post().Add(post)
 	if err != nil {
 		log.Println("Error adding post:", err)
 		return &response.Error{Code: 500, Cause: "Error adding post: " + err.Error()}

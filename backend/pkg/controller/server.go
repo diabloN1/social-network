@@ -26,25 +26,51 @@ type Server struct {
 	mu         sync.RWMutex
 }
 
-func (s *Server) AddRoute(pattern string, handler func(any) any, middlewares ...http.HandlerFunc) {
+func (s *Server) AddRoute(pattern string, handler func(*RequestT) any, middlewares ...http.HandlerFunc) {
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
 			http.Error(resp, "oops, something went wrong", http.StatusInternalServerError)
 			return
 		}
+
 		reqData, err := request.Unmarshal(body)
 		if err != nil {
 			fmt.Println(err)
 			http.Error(resp, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		resp.Header().Set("Content-Type", "application/json")
-		status, body := response.Marshal(handler(reqData))
-		resp.WriteHeader(status)
-		resp.Write(body)
-		// fmt.Println(string(body))
+
+		request := &RequestT{
+			data:    reqData,
+			context: make(map[string]any),
+		}
+		h := HandlerFunc(handler)
+		s.cookieMiddleware(h, request).ServeHTTP(resp, req)
 	})
+}
+
+type RequestT struct {
+	data    any
+	context map[string]any
+}
+
+type HandlerFunc func(*RequestT) any
+
+func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, request *RequestT) {
+	res := h(request)
+	status, body := response.Marshal(res)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
+}
+
+func (h HandlerFunc) ServeError(w http.ResponseWriter, err *response.Error) {
+	fmt.Println("Serving error:", err.Cause)
+	status, body := response.Marshal(err)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
 }
 
 type Client struct {
@@ -65,7 +91,6 @@ func Start() error {
 
 	// Login
 	s.AddRoute("/login", s.Login)
-
 	s.AddRoute("/register", s.Register)
 
 	s.router.HandleFunc("/session", s.SessionHandler)

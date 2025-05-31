@@ -1,11 +1,8 @@
-"use server";
 
-import { cookies } from "next/headers";
 
 const getPosts = async (startId: number) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
+    const token = "";
 
     const response = await fetch("http://localhost:8080/getPosts", {
       method: "POST",
@@ -15,19 +12,15 @@ const getPosts = async (startId: number) => {
       body: JSON.stringify({
         type: "get-posts",
         data: {
-        startId,
-        session: token,
-      }
+          startId,
+          session: token,
+        },
       }),
+      credentials: "include",
       cache: "no-store",
     });
 
     const data = await response.json();
-    // console.log("getPosts response:", data);
-
-    if (data.error === "Invalid session") {
-      cookieStore.delete("token");
-    }
 
     return data;
   } catch (err) {

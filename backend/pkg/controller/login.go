@@ -6,8 +6,8 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Login(payload any) any {
-	u, ok := payload.(*request.Login)
+func (s *Server) Login(payload *RequestT) any {
+	u, ok := payload.data.(*request.Login)
 	if !ok {
 		return &response.Error{
 			Code:  400,

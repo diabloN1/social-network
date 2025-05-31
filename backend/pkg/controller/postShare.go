@@ -6,8 +6,8 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPostShares(payload any) any {
-	data, ok := payload.(*request.GetPostShares)
+func (s *Server) GetPostShares(payload *RequestT) any {
+	data, ok := payload.data.(*request.GetPostShares)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
@@ -53,8 +53,8 @@ func (s *Server) GetPostShares(payload any) any {
 	}
 }
 
-func (s *Server) AddPostShare(payload any) any {
-	data, ok := payload.(*request.AddPostShare)
+func (s *Server) AddPostShare(payload *RequestT) any {
+	data, ok := payload.data.(*request.AddPostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
@@ -85,8 +85,8 @@ func (s *Server) AddPostShare(payload any) any {
 	}
 }
 
-func (s *Server) RemovePostShare(payload any) any {
-	data, ok := payload.(*request.RemovePostShare)
+func (s *Server) RemovePostShare(payload *RequestT) any {
+	data, ok := payload.data.(*request.RemovePostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}

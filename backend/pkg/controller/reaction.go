@@ -7,8 +7,8 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToPost(payload any) any {
-	data, ok := payload.(*request.ReactToPost)
+func (s *Server) ReactToPost(payload *RequestT) any {
+	data, ok := payload.data.(*request.ReactToPost)
 	if !ok {
 		return &response.Error{
 			Code: 400, Cause: "Invalid payload type",
