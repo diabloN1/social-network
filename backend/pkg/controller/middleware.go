@@ -98,41 +98,41 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        // Retrieve user_id from the context
-        userID, ok := r.Context().Value("user_id").(int)
-        if !ok || userID == 0 {
-            http.Error(w, "Unauthorized: Missing or invalid user information", http.StatusUnauthorized)
-            return
-        }
+// func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		// Retrieve user_id from the context
+// 		userID, ok := r.Context().Value("user_id").(int)
+// 		if !ok || userID == 0 {
+// 			http.Error(w, "Unauthorized: Missing or invalid user information", http.StatusUnauthorized)
+// 			return
+// 		}
 
-        // Retrieve group_id from query parameters
-        groupIDStr := r.URL.Query().Get("group_id")
-        if groupIDStr == "" {
-            http.Error(w, "Bad Request: Missing group_id parameter", http.StatusBadRequest)
-            return
-        }
+// 		// Retrieve group_id from query parameters
+// 		groupIDStr := r.URL.Query().Get("group_id")
+// 		if groupIDStr == "" {
+// 			http.Error(w, "Bad Request: Missing group_id parameter", http.StatusBadRequest)
+// 			return
+// 		}
 
-        groupID, err := strconv.Atoi(groupIDStr)
-        if err != nil || groupID <= 0 {
-            http.Error(w, "Bad Request: Invalid group_id parameter", http.StatusBadRequest)
-            return
-        }
+// 		groupID, err := strconv.Atoi(groupIDStr)
+// 		if err != nil || groupID <= 0 {
+// 			http.Error(w, "Bad Request: Invalid group_id parameter", http.StatusBadRequest)
+// 			return
+// 		}
 
-        // Check if the user is a member of the group
-        isMember, err := s.repository.Group().IsMember(userID, groupID)
-        if err != nil {
-            http.Error(w, "Internal Server Error: Unable to verify membership", http.StatusInternalServerError)
-            return
-        }
+// 		// Check if the user is a member of the group
+// 		isMember, err := s.repository.Group().IsMember(userID, groupID)
+// 		if err != nil {
+// 			http.Error(w, "Internal Server Error: Unable to verify membership", http.StatusInternalServerError)
+// 			return
+// 		}
 
-        if !isMember {
-            http.Error(w, "Forbidden: You are not a member of this group", http.StatusForbidden)
-            return
-        }
+// 		if !isMember {
+// 			http.Error(w, "Forbidden: You are not a member of this group", http.StatusForbidden)
+// 			return
+// 		}
 
-        // Continue to the next handler if validation passes
-        next.ServeHTTP(w, r)
-    })
-}
+// 		// Continue to the next handler if validation passes
+// 		next.ServeHTTP(w, r)
+// 	})
+// }
