@@ -61,6 +61,12 @@ func (s *Server) GetPostData(request map[string]any) *model.Response {
 		log.Println("Error in getting Post Data:", err)
 	}
 
+	count, err := s.repository.Comment().GetCommentCountByPostId(int(postId))
+	if err != nil {
+		log.Println("Error getting comment count:", err)
+	}
+	post.CommentCount = count
+
 	response.Posts = []*model.Post{post}
 
 	return response
