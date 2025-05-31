@@ -37,10 +37,6 @@ const addPostShare = async (postId: number, userId: number) => {
 
     return data.data;
   } catch (err) {
-    console.error(
-      `Error adding post share for post ${postId}, user ${userId}:`,
-      err
-    );
     return { error: "Failed to add post share" };
   }
 };
