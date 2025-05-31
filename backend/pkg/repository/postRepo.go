@@ -2,7 +2,6 @@ package repository
 
 import (
 	"database/sql"
-	"fmt"
 	"real-time-forum/pkg/model"
 	"time"
 )
