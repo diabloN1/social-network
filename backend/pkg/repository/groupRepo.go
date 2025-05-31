@@ -104,6 +104,19 @@ func (r *GroupRepository) CountNewEvents(userID int) (int, error) {
 	err := r.Repository.db.QueryRow(query, userID).Scan(&count)
 	return count, err
 }
+func (r *GroupRepository) GetGroupJoinInvitations(userID int) (int, error) {
+	var count int
+	err := r.Repository.db.QueryRow(
+		`SELECT COUNT(*) FROM group_members 
+		 WHERE user_id = $1 AND is_accepted = false`,
+		userID,
+	).Scan(&count)
+	if err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
 
 func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
 	_, err := r.Repository.db.Exec(
@@ -531,8 +544,7 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
 	var users []*model.User
 
-	fmt.Println("groupId:", groupId)
-	fmt.Println("currentUserId:", currentUserId)
+	
 	query := `SELECT DISTINCT u.id, u.firstname, u.lastname, u.nickname, u.avatar
 FROM users u
 JOIN followers f ON (
