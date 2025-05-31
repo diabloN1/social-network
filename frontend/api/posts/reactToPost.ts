@@ -16,7 +16,7 @@ const reactToPost = async (postId: number, reaction: boolean | null) => {
     });
     const data = await response.json();
 
-    console.log(data);
+    // console.log(data);
 
     if (data.error == "Invalid session") {
       cookieStore.delete("token");

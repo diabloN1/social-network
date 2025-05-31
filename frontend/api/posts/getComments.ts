@@ -7,7 +7,7 @@ const getComments = async (postId: number) => {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value || "";
 
-    console.log(`Getting comments for post ${postId}`);
+    // console.log(`Getting comments for post ${postId}`);
 
     const response = await fetch("http://localhost:8080/getComments", {
       method: "POST",
@@ -23,7 +23,7 @@ const getComments = async (postId: number) => {
     });
 
     const data = await response.json();
-    console.log(`Get comments response for post ${postId}:`, data);
+    // console.log(`Get comments response for post ${postId}:`, data);
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");

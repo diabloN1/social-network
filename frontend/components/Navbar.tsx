@@ -24,7 +24,7 @@ export default function Navbar() {
   const fetchAllNotificationCounts = async () => {
     const data = await fetchAllNotifications();
     if (data && !data.error) {
-      console.log("notification", data);
+      // console.log("notification", data);
 
       const notifications = data.notifications;
 

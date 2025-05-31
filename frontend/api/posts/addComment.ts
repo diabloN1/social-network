@@ -7,11 +7,11 @@ const addComment = async (postId: number, text: string, image?: string) => {
     const cookieStore = await cookies();
     const token = cookieStore.get("token")?.value || "";
 
-    console.log(
-      `Adding comment to post ${postId} with text: "${text}" and image: "${
-        image || "none"
-      }"`
-    );
+    // console.log(
+    //   `Adding comment to post ${postId} with text: "${text}" and image: "${
+    //     image || "none"
+    //   }"`
+    // );
 
     const response = await fetch("http://localhost:8080/addComment", {
       method: "POST",
@@ -29,7 +29,7 @@ const addComment = async (postId: number, text: string, image?: string) => {
     });
 
     const data = await response.json();
-    console.log(`Add comment response for post ${postId}:`, data);
+    // console.log(`Add comment response for post ${postId}:`, data);
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");

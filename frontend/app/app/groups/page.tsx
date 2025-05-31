@@ -33,12 +33,12 @@ export default function GroupsPage() {
     try {
       const data = await getGroups();
       if (data.error) {
-        console.log(data.error);
+        // console.log(data.error);
 
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
-      console.log("data", data);
+      // console.log("data", data);
 
       setGroupsData(data);
 
