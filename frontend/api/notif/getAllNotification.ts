@@ -19,7 +19,7 @@ const fetchAllNotifications = async () => {
 
     const data = await response.json();
 
-    console.log("allnotification  ",data);
+    // console.log("allnotification  ",data);
 
     if (data.error == "Invalid session") {
       cookieStore.delete("token");

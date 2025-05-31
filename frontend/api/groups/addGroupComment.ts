@@ -7,7 +7,7 @@ const addGroupComment = async (postId: number, text: string, image?: string) => 
     const cookieStore = await cookies()
     const token = cookieStore.get("token")?.value || ""
 
-    console.log(`Adding comment to group post ${postId} with text: "${text}" and image: "${image || "none"}"`)
+    // console.log(`Adding comment to group post ${postId} with text: "${text}" and image: "${image || "none"}"`)
 
     const response = await fetch("http://localhost:8080/addGroupComment", {
       method: "POST",
@@ -25,7 +25,7 @@ const addGroupComment = async (postId: number, text: string, image?: string) => 
     })
 
     const data = await response.json()
-    console.log(`Add group comment response for post ${postId}:`, data)
+    // console.log(`Add group comment response for post ${postId}:`, data)
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token")

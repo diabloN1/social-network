@@ -22,10 +22,10 @@ const addPostShare = async (postId: number, userId: number) => {
     });
 
     const data = await response.json();
-    console.log(
-      `addPostShare response for post ${postId}, user ${userId}:`,
-      data
-    );
+    // console.log(
+    //   `addPostShare response for post ${postId}, user ${userId}:`,
+    //   data
+    // );
 
     if (data.error === "Invalid session") {
       cookieStore.delete("token");

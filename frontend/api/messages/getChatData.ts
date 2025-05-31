@@ -23,7 +23,7 @@ const getChatData = async () => {
         cookieStore.delete('token');
     }
     
-    console.log(data)
+    // console.log(data)
     return data;
   } catch (err) {
     console.error(err);
