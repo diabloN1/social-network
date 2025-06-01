@@ -1,36 +1,28 @@
-
-
-'use server'
-
-import { cookies } from 'next/headers'
-
 const setPravicy = async (state: boolean) => {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
-
     const response = await fetch("http://localhost:8080/setPrivacy", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
-        state: state,
-        session: token
+        type: "set-privacy",
+        data: {
+          state,
+        },
       }),
     });
-    
-    const data = await response.json();
 
-    if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+    const data = await response.json();
+    if (data.error) {
+      throw new Error(data.error);
     }
-    
-    // console.log(data)
-    return data;
+
+    return data.data;
   } catch (err) {
     console.error(err);
   }
 };
 
-export default setPravicy
+export default setPravicy;

@@ -39,10 +39,10 @@ export default function ProfilesPage() {
         alert(profileData.error || followNotifData.error);
         return;
       }
-
-      setCurrentUser(profileData.currentuser);
-      setUsers(profileData.allusers);
-      setFollowRequests(profileData.followrequests);
+      
+      setCurrentUser(profileData.currentUser);
+      setUsers(profileData.allUsers);
+      setFollowRequests(profileData.followRequests);
       setHasNewFollow(followNotifData.hasNewFollow);
       setNewFollowers(followNotifData.newFollowers || []);
       return profileData;

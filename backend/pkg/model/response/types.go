@@ -47,3 +47,17 @@ type RemovePostShare struct {
 	Message string `json:"message"`
 	Success bool   `json:"success"`
 }
+
+type GetProfile struct {
+	User *model.User `json:"user"`
+}
+
+type GetProfiles struct {
+	FollowRequests []*model.User `json:"followRequests"`
+	AllUsers       []*model.User   `json:"allUsers"`
+	CurrentUser    *model.User     `json:"currentUser"`
+}
+
+type SetProfilePrivacy struct {
+	Success bool `json:"success"`
+}

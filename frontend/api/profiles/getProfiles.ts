@@ -1,33 +1,27 @@
-'use server'
-
-import { cookies } from 'next/headers'
-
 const getProfiles = async () => {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
-
     const response = await fetch("http://localhost:8080/getProfiles", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        session: token
+        type: "get-profiles",
+        data: null
       }),
+      credentials: "include",
     });
-    
+
     const data = await response.json();
 
-    if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+    console.log("getProfiles response:", data);
+    if (data.error) {
+      throw new Error(data.error);
     }
-    
-    // console.log(data)
-    return data;
+    return data.data;
   } catch (err) {
     console.error(err);
   }
 };
 
-export default getProfiles
+export default getProfiles;

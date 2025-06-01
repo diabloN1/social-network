@@ -47,3 +47,11 @@ type AddComment struct {
 type GetComments struct {
 	PostId int `json:"postId"`
 }
+
+type GetProfile struct {
+	ProfileId int `json:"profileId"`
+}
+
+type SetProfilePrivacy struct {
+	State bool `json:"state"`
+}

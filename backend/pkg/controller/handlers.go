@@ -77,26 +77,26 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // }
 
 // PROFILE Handlers
-func (s *Server) GetProfilesHanlder(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) GetProfilesHanlder(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetProfiles(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetProfiles(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) getProfileHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetProfile(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetProfile(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) SetPrivacyHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.setProfilePrivacy(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.setProfilePrivacy(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // notification
 func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Request) {

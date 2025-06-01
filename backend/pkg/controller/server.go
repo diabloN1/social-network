@@ -111,9 +111,9 @@ func Start() error {
 	s.AddRoute("/getComments", s.GetComments)
 
 	// Profiles
-	s.router.HandleFunc("/getProfiles", s.GetProfilesHanlder)
-	s.router.HandleFunc("/getProfile", s.getProfileHandler)
-	s.router.HandleFunc("/setPrivacy", s.SetPrivacyHandler)
+	s.AddRoute("/getProfiles", s.GetProfiles)
+	s.AddRoute("/getProfile", s.GetProfile)
+	s.AddRoute("/setPrivacy", s.SetProfilePrivacy)
 
 	// Follows
 	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
