@@ -105,12 +105,12 @@ func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Reque
 }
 
 // Follow Handlers
-func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.RequestFollow(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.RequestFollow(request)
+// 	s.SendJson(w, response, err)
+// }
 
 func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
@@ -124,19 +124,19 @@ func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
 	s.SendJson(w, response, err)
 }
 
-func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AcceptFollow(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AcceptFollow(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) deleteFollowHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) deleteFollowHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.DeleteFollow(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.DeleteFollow(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // Groups
 // func (s *Server) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {

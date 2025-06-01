@@ -98,3 +98,18 @@ type RespondToJoinRequest struct {
 type GetUnreadMessagesCount struct {
 	Count int `json:"count"`
 }
+
+type RequestFollow struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type AcceptFollow struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type DeleteFollow struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}

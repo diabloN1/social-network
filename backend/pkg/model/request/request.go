@@ -43,6 +43,9 @@ var requestTypes = map[string]any{
 	"get-group-comments":           &GetGroupComments{},
 	"react-to-group-post":          &ReactToGroupPost{},
 	"get-group-post":               &GetGroupPost{},
+	"request-follow":               &RequestFollow{},
+	"accept-follow":                &AcceptFollow{},
+	"delete-follow":                &DeleteFollow{},
 }
 
 func (r Payload) Decode() (any, error) {

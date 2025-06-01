@@ -116,9 +116,9 @@ func Start() error {
 	s.AddRoute("/setPrivacy", s.SetProfilePrivacy)
 
 	// Follows
-	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
-	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
-	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
+	s.AddRoute("/requestFollow", s.RequestFollow)
+	s.AddRoute("/acceptFollow", s.AcceptFollow)
+	s.AddRoute("/deleteFollow", s.DeleteFollow)
 
 	// Groups
 	s.AddRoute("/createGroup", s.CreateGroup)
