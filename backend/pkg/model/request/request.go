@@ -39,6 +39,10 @@ var requestTypes = map[string]any{
 	"respond-to-join-request":      &RespondToJoinRequest{},
 	"get-join-request-count":       nil,
 	"get-unread-messages-count":    nil,
+	"add-group-comment":            &AddGroupComment{},
+	"get-group-comments":           &GetGroupComments{},
+	"react-to-group-post":          &ReactToGroupPost{},
+	"get-group-post":               &GetGroupPost{},
 }
 
 func (r Payload) Decode() (any, error) {

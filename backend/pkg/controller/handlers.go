@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -283,50 +282,38 @@ func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 // 	s.SendJson(w, response, err)
 // }
 
-func (s *Server) reactToGroupPostHandler(w http.ResponseWriter, r *http.Request) {
-	var request map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
+// func (s *Server) reactToGroupPostHandler(w http.ResponseWriter, r *http.Request) {
+// 	var request map[string]any
+// 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+// 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+// 		return
+// 	}
 
-	response := s.ReactToGroupPost(request)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
+// 	response := s.ReactToGroupPost(request)
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(response)
+// }
 
-func (s *Server) addGroupCommentHandler(w http.ResponseWriter, r *http.Request) {
-	var request map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
+// func (s *Server) addGroupCommentHandler(w http.ResponseWriter, r *http.Request) {
+// 	var request map[string]any
+// 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+// 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+// 		return
+// 	}
 
-	response := s.AddGroupComment(request)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
+// 	response := s.AddGroupComment(request)
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(response)
+// }
 
-func (s *Server) getGroupCommentsHandler(w http.ResponseWriter, r *http.Request) {
-	var request map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
+// func (s *Server) getGroupCommentsHandler(w http.ResponseWriter, r *http.Request) {
+// 	var request map[string]any
+// 	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+// 		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+// 		return
+// 	}
 
-	response := s.GetGroupComments(request)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
-
-func (s *Server) getGroupPostHandler(w http.ResponseWriter, r *http.Request) {
-	var request map[string]any
-	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
-		http.Error(w, "Invalid JSON", http.StatusBadRequest)
-		return
-	}
-
-	response := s.GetGroupPost(request)
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(response)
-}
+// 	response := s.GetGroupComments(request)
+// 	w.Header().Set("Content-Type", "application/json")
+// 	json.NewEncoder(w).Encode(response)
+// }

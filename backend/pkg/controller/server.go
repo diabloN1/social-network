@@ -124,12 +124,11 @@ func Start() error {
 	s.AddRoute("/createGroup", s.CreateGroup)
 	s.AddRoute("/getGroups", s.GetGroups)
 	s.AddRoute("/getGroup", s.GetGroupData)
-	
+
 	// Group post reactions and comments
-	s.router.HandleFunc("/reactToGroupPost", s.reactToGroupPostHandler)
-	s.router.HandleFunc("/addGroupComment", s.addGroupCommentHandler)
-	s.router.HandleFunc("/getGroupComments", s.getGroupCommentsHandler)
-	s.router.HandleFunc("/getGroupPost", s.getGroupPostHandler)
+	s.AddRoute("/reactToGroupPost", s.ReactToGroupPost)
+	s.AddRoute("/addGroupComment", s.AddGroupComment)
+	s.AddRoute("/getGroupComments", s.GetGroupComments)
 
 	s.AddRoute("/addGroupPost", s.AddGroupPost)
 	s.AddRoute("/addGroupEvent", s.AddGroupEvent)
