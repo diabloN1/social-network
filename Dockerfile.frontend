@@ -1,0 +1,27 @@
+# Use a Node.js image for building the frontend
+FROM node:20 as builder
+
+# Set the working directory
+WORKDIR /app
+
+# Copy package.json and package-lock.json and install dependencies
+COPY package*.json ./
+RUN npm install
+
+# Copy the rest of the application code
+COPY . .
+
+# Build the frontend
+RUN npm run build
+
+# Serve the frontend with a lightweight server
+FROM nginx:alpine
+
+# Copy build artifacts to Nginx's HTML directory
+COPY --from=builder /app/build /usr/share/nginx/html
+
+# Expose port 80 for the frontend
+EXPOSE 80
+
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
