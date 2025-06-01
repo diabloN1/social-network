@@ -10,4 +10,6 @@ const (
 	Type_GET_POST_SHARES   = "get-post-shares"
 	Type_ADD_POST_SHARE    = "add-post-share"
 	Type_REMOVE_POST_SHARE = "remove-post-share"
+	Type_ADD_COMMENT       = "add-comment"
+	Type_GET_COMMENTS      = "get-comments"
 )

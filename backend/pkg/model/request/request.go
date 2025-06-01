@@ -21,6 +21,8 @@ var requestTypes = map[string]any{
 	model.Type_GET_POST_SHARES:   &GetPostShares{},
 	model.Type_ADD_POST_SHARE:    &AddPostShare{},
 	model.Type_REMOVE_POST_SHARE: &RemovePostShare{},
+	model.Type_ADD_COMMENT:       &AddComment{},
+	model.Type_GET_COMMENTS:      &GetComments{},
 }
 
 func (r Payload) Decode() (any, error) {

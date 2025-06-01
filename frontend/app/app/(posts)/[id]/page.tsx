@@ -41,15 +41,13 @@ export default function SinglePostPage() {
     try {
       const commentsData = await getComments(postId);
       if (commentsData.error) {
-        throw new Error(commentsData.error);
+        console.error("Error loading comments:", commentsData.error);
       }
 
       if (
-        commentsData.posts &&
-        commentsData.posts[0] &&
-        commentsData.posts[0].comments
+        commentsData.comments
       ) {
-        setComments(commentsData.posts[0].comments);
+        setComments(commentsData.comments);
       }
     } catch (error) {
       console.error("Error loading comments:", error);

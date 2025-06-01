@@ -6,11 +6,11 @@ type Login struct {
 }
 
 type GetPosts struct {
-	StartId int    `json:"startId"`
+	StartId int `json:"startId"`
 }
 
 type GetPost struct {
-	PostId  int    `json:"postId"`
+	PostId int `json:"postId"`
 }
 
 type AddPost struct {
@@ -20,21 +20,30 @@ type AddPost struct {
 }
 
 type ReactToPost struct {
-	PostId   int    `json:"postId"`
-	Reaction *bool  `json:"reaction"`
+	PostId   int   `json:"postId"`
+	Reaction *bool `json:"reaction"`
 }
 
-
 type GetPostShares struct {
-	PostId  int    `json:"postId"`
+	PostId int `json:"postId"`
 }
 
 type AddPostShare struct {
-	PostId  int    `json:"postId"`
-	UserId  int    `json:"userId"`
+	PostId int `json:"postId"`
+	UserId int `json:"userId"`
 }
 
 type RemovePostShare struct {
-	PostId  int    `json:"postId"`
-	UserId  int    `json:"userId"`
+	PostId int `json:"postId"`
+	UserId int `json:"userId"`
+}
+
+type AddComment struct {
+	PostId int    `json:"postId"`
+	Text   string `json:"text"`
+	Image  string `json:"image"`
+}
+
+type GetComments struct {
+	PostId int `json:"postId"`
 }

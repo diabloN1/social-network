@@ -77,12 +77,10 @@ export default function CommentForm({
     try {
       let filename = "";
 
-      // Upload image if selected using your existing uploadFile function
       if (selectedImage) {
         const formData = new FormData();
         formData.append("file", selectedImage);
 
-        // Use your existing uploadFile function
         filename = await uploadFile(formData, "post-comments");
       }
 
@@ -94,6 +92,7 @@ export default function CommentForm({
           message: `Failed to add comment: ${result.error}`,
           status: "failure",
         });
+        console.error("Error adding comment:", result.error);
         return;
       }
 

@@ -204,19 +204,19 @@ func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 // 	s.SendJson(w, response, err)
 // }
 
-func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) addCommentHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddComment(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AddComment(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) getCommentsHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetComments(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetComments(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // Group requests and invites
 func (s *Server) RequestJoinGroupHandler(w http.ResponseWriter, r *http.Request) {

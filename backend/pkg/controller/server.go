@@ -27,17 +27,17 @@ type Server struct {
 }
 
 func (s *Server) AddRoute(pattern string, handler func(*RequestT) any, middlewares ...http.HandlerFunc) {
+	h := HandlerFunc(handler)
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			http.Error(resp, "oops, something went wrong", http.StatusInternalServerError)
+			h.ServeError(resp, &response.Error{Cause: "oops, something went wrong", Code: 500})
 			return
 		}
 
 		reqData, err := request.Unmarshal(body)
 		if err != nil {
-			fmt.Println(err)
-			http.Error(resp, err.Error(), http.StatusInternalServerError)
+			h.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
 			return
 		}
 
@@ -45,7 +45,6 @@ func (s *Server) AddRoute(pattern string, handler func(*RequestT) any, middlewar
 			data:    reqData,
 			context: make(map[string]any),
 		}
-		h := HandlerFunc(handler)
 		s.cookieMiddleware(h, request).ServeHTTP(resp, req)
 	})
 }
@@ -108,8 +107,8 @@ func Start() error {
 	s.AddRoute("/removePostShare", s.RemovePostShare)
 
 	// Comments
-	s.router.HandleFunc("/addComment", s.addCommentHandler)
-	s.router.HandleFunc("/getComments", s.getCommentsHandler)
+	s.AddRoute("/addComment", s.AddComment)
+	s.AddRoute("/getComments", s.GetComments)
 
 	// Profiles
 	s.router.HandleFunc("/getProfiles", s.GetProfilesHanlder)
