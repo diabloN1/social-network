@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar";
 import getToken from "@/api/auth/getToken";
 import { redirect } from "next/navigation";
+import { ErrorProvider } from "@/context/ErrorContext";
 
 export default async function AppLayout({
   children,
@@ -14,8 +15,10 @@ export default async function AppLayout({
 
   return (
     <>
-      <Navbar />
-      {children}
+      <ErrorProvider>
+        <Navbar />
+        {children}
+      </ErrorProvider>
     </>
   );
 }

@@ -5,11 +5,13 @@ import CreatePostModal from "@/components/create-post-modal";
 import Post from "@/components/post";
 import "./posts.css";
 import addPost from "@/api/posts/addPost";
-import getPosts from "@/api/posts/getPosts";
+// import getPosts from "@/api/posts/getPosts";
 import Popup from "../popup";
 import { Post as PostType, Reaction } from "@/types/post";
+import { useGlobalAPIHelper } from "@/helpers/ApiHelper";
 
 export default function PostsPage() {
+  const { apiCall } = useGlobalAPIHelper();
   const [posts, setPosts] = useState<PostType[]>([]);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -19,48 +21,54 @@ export default function PostsPage() {
     status: "success" | "failure";
   } | null>(null);
   const [hasMore, setHasMore] = useState(true);
-
   const fetchPosts = async () => {
-    try {
-      setIsLoading(true);
-      const data = await getPosts(0);
-      if (data && data.data?.posts) {
-        const { posts, userid } = data.data;
-        // console.log("Fetched posts:", data);
-        // console.log("Current user ID from API:", userid);
-        setPosts(posts);
-        setCurrentUserId(userid);
-        setHasMore(posts.length === 10);
-      }
-    } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
-    } finally {
-      setIsLoading(false);
+    setIsLoading(true);
+    const data = await apiCall(
+      {
+        type: "get-posts",
+        data: { startId: 0 },
+      },
+      "POST",
+      "getPosts"
+    );
+
+    if (data?.posts) {
+      const { posts, userid } = data.data;
+      setPosts(posts);
+      setCurrentUserId(userid);
+      setHasMore(posts.length === 10);
     }
+
+    setIsLoading(false);
   };
+
   const fetchMorePosts = async () => {
     if (posts.length === 0) return;
 
     const lastId = posts[posts.length - 1].id;
-    // console.log("posts", posts);
+    setIsLoading(true);
 
-    try {
-      setIsLoading(true);
-      const data = await getPosts(lastId);
-      if (data?.data?.posts?.length) {
-        setPosts((prev) => [...prev, ...data.data.posts]);
-        setHasMore(data.data.posts.length === 10);
-      }
-    } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
-    } finally {
-      setIsLoading(false);
+    const data = await apiCall(
+      {
+        type: "get-posts",
+        data: { startId: lastId },
+      },
+      "POST",
+      "getPosts"
+    );
+
+    if (data?.posts?.length) {
+      setPosts((prev) => [...prev, ...data.data.posts]);
+      setHasMore(data.data.posts.length === 10);
     }
+
+    setIsLoading(false);
   };
 
   useEffect(() => {
     fetchPosts();
   }, []);
+
 
   const handleCreatePost = async (newPost: {
     image: string;
@@ -79,9 +87,8 @@ export default function PostsPage() {
       if (data.post) {
         setPosts([data.post, ...posts]);
       } else {
-        throw "Could not get created post!"
+        throw "Could not get created post!";
       }
-
     } catch (err) {
       setPopup({ message: `${err}`, status: "failure" });
     }
