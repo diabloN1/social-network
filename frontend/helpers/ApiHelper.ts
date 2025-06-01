@@ -10,6 +10,7 @@ export const useGlobalAPIHelper = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(requestData),
       });
 

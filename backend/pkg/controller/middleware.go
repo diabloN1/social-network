@@ -2,7 +2,6 @@ package controller
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"real-time-forum/pkg/model/response"
@@ -25,7 +24,7 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 			w.Write([]byte{})
 			return
 		}
-		
+
 		next.ServeHTTP(w, r)
 	})
 }
@@ -173,7 +172,7 @@ func (s *Server) cookieMiddleware(next HandlerFunc, req *RequestT) http.Handler 
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session in "+ r.URL.Path, Code: http.StatusUnauthorized})
 			return
 		}
 
@@ -184,7 +183,6 @@ func (s *Server) cookieMiddleware(next HandlerFunc, req *RequestT) http.Handler 
 			return
 		}
 
-		fmt.Println(1144)
 		req.context["user_id"] = uid
 		next.ServeHTTP(w, req)
 	})

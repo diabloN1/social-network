@@ -20,7 +20,6 @@ type AddPost struct {
 }
 
 type ReactToPost struct {
-	Session  string `json:"session"`
 	PostId   int    `json:"postId"`
 	Reaction *bool  `json:"reaction"`
 }
@@ -28,17 +27,14 @@ type ReactToPost struct {
 
 type GetPostShares struct {
 	PostId  int    `json:"postId"`
-	Session string `json:"session"`
 }
 
 type AddPostShare struct {
 	PostId  int    `json:"postId"`
 	UserId  int    `json:"userId"`
-	Session string `json:"session"`
 }
 
 type RemovePostShare struct {
 	PostId  int    `json:"postId"`
 	UserId  int    `json:"userId"`
-	Session string `json:"session"`
 }

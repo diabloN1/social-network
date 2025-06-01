@@ -71,7 +71,7 @@ func (s *Server) AddPost(payload *RequestT) any {
 	}
 
 	if data.Privacy != "public" && data.Privacy != "almost-private" && data.Privacy != "private" {
-		return &response.Error{Code: 400, Cause: "Invalid privacy setting"}
+		return &response.Error{Code: 400, Cause: "Invalid privacy type"}
 	}
 
 	user, err := s.repository.User().Find(payload.context["user_id"].(int))
@@ -94,9 +94,7 @@ func (s *Server) AddPost(payload *RequestT) any {
 	if len(post.Caption) > 1000 {
 		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
 	}
-	if err != nil {
-		return &response.Error{Code: 500, Cause: "An error "}
-	}
+	
 	err = s.repository.Post().Add(post)
 	if err != nil {
 		log.Println("Error adding post:", err)

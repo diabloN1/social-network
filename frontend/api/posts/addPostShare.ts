@@ -1,11 +1,6 @@
-"use server";
-
-import { cookies } from "next/headers";
 
 const addPostShare = async (postId: number, userId: number) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
 
     const response = await fetch("http://localhost:8080/addPostShare", {
       method: "POST",
@@ -13,27 +8,19 @@ const addPostShare = async (postId: number, userId: number) => {
         "Content-Type": "application/json",
         "Cache-Control": "no-cache, no-store, must-revalidate",
       },
+      credentials: "include",
+
       body: JSON.stringify({
         type: "add-post-share",
         data: {
           postId: postId,
           userId: userId,
-          session: token,
         },
       }),
       cache: "no-store",
     });
 
     const data = await response.json();
-    // console.log(
-    //   `addPostShare response for post ${postId}, user ${userId}:`,
-    //   data
-    // );
-
-    if (data.error === "Invalid session") {
-      cookieStore.delete("token");
-      return { error: "Invalid session" };
-    }
 
     return data.data;
   } catch (err) {

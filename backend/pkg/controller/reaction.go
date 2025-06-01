@@ -15,14 +15,9 @@ func (s *Server) ReactToPost(payload *RequestT) any {
 		}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{
-			Code: 400, Cause: "Invalid session",
-		}
-	}
+	user_id := payload.context["user_id"].(int)
 
-	err := s.repository.Reaction().UpsertReaction(res.Userid, data.PostId, data.Reaction)
+	err := s.repository.Reaction().UpsertReaction(user_id, data.PostId, data.Reaction)
 	if err != nil {
 		log.Println("Error saving reaction:", err)
 		return &response.Error{
@@ -38,7 +33,7 @@ func (s *Server) ReactToPost(payload *RequestT) any {
 		}
 	}
 
-	userReaction, err := s.repository.Reaction().GetUserReaction(res.Userid, data.PostId)
+	userReaction, err := s.repository.Reaction().GetUserReaction(user_id, data.PostId)
 	if err != nil {
 		log.Println("Error getting user reaction:", err)
 		return &response.Error{
@@ -48,7 +43,7 @@ func (s *Server) ReactToPost(payload *RequestT) any {
 	counts.UserReaction = userReaction
 
 	return &response.ReactToPost{
-		Userid: res.Userid,
+		Userid: user_id,
 		Post: &model.Post{
 			ID:        data.PostId,
 			Reactions: counts,

@@ -1,41 +1,25 @@
-"use server";
-
 import { User } from "@/types/user";
-import { cookies } from "next/headers";
 
 const getPostShares = async (postId: number) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
-
     const response = await fetch("http://localhost:8080/getPostShares", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Cache-Control": "no-cache, no-store, must-revalidate",
       },
       body: JSON.stringify({
         type: "get-post-shares",
         data: {
           postId: postId,
-          session: token,
         },
       }),
-      cache: "no-store",
+      credentials: "include",
     });
 
     const data = await response.json();
 
-    if (data.error === "Invalid session") {
-      cookieStore.delete("token");
-      return {
-        error: "Invalid session",
-        data: { currentShares: [], availableUsers: [] },
-      };
-    }
-
     if (data.error) {
-      throw data.error
+      throw data.error;
     }
 
     const allusers = data.data?.all_users;

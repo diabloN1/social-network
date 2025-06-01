@@ -12,12 +12,9 @@ func (s *Server) GetPostShares(payload *RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	user_id := payload.context["user_id"].(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, res.Userid)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -32,7 +29,7 @@ func (s *Server) GetPostShares(payload *RequestT) any {
 		return &response.Error{Code: 500, Cause: "Error retrieving post shares"}
 	}
 
-	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(data.PostId, res.Userid)
+	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(data.PostId, user_id)
 	if err != nil {
 		log.Println("Error getting available users:", err)
 		return &response.Error{Code: 500, Cause: "Error retrieving available users"}
@@ -59,12 +56,9 @@ func (s *Server) AddPostShare(payload *RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	user_id := payload.context["user_id"].(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, res.Userid)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -91,12 +85,9 @@ func (s *Server) RemovePostShare(payload *RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	user_id := payload.context["user_id"].(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, res.Userid)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}

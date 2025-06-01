@@ -2,8 +2,6 @@
 
 const getPosts = async (startId: number) => {
   try {
-    const token = "";
-
     const response = await fetch("http://localhost:8080/getPosts", {
       method: "POST",
       headers: {
@@ -13,7 +11,6 @@ const getPosts = async (startId: number) => {
         type: "get-posts",
         data: {
           startId,
-          session: token,
         },
       }),
       credentials: "include",

@@ -33,7 +33,7 @@ export default function PostsPage() {
     );
 
     if (data?.posts) {
-      const { posts, userid } = data.data;
+      const { posts, userid } = data;
       setPosts(posts);
       setCurrentUserId(userid);
       setHasMore(posts.length === 10);
