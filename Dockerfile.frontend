@@ -1,5 +1,5 @@
 # Use a Node.js image for building the frontend
-FROM node:20 as builder
+FROM node:20-alpine as builder
 
 # Set the working directory
 WORKDIR /app
@@ -11,17 +11,25 @@ RUN npm install
 # Copy the rest of the application code
 COPY . .
 
-# Build the frontend
+# Build the Next.js application
 RUN npm run build
 
-# Serve the frontend with a lightweight server
-FROM nginx:alpine
+# Use Node.js for serving the frontend
+FROM node:20-alpine
 
-# Copy build artifacts to Nginx's HTML directory
-COPY --from=builder /app/build /usr/share/nginx/html
+# Set the working directory in the runtime container
+WORKDIR /app
 
-# Expose port 80 for the frontend
-EXPOSE 80
+# Copy only the necessary files from the builder
+COPY --from=builder /app/package*.json ./
+COPY --from=builder /app/.next ./.next
+COPY --from=builder /app/public ./public
 
-# Start Nginx
-CMD ["nginx", "-g", "daemon off;"]
+# Install only production dependencies
+RUN npm install --production
+
+# Expose port 3000 for the Next.js application
+EXPOSE 3000
+
+# Start the Next.js application
+CMD ["npm", "start"]
