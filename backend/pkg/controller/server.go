@@ -137,10 +137,10 @@ func Start() error {
 	s.AddRoute("/requestJoinGroup", s.RequestJoinGroup)
 	s.AddRoute("/respondToJoinRequest", s.RespondToJoinRequest)
 
-	// // Group Invitation Routes
-	// s.router.HandleFunc("/getGroupInviteUsers", s.getGroupInviteUsersHandler)
-	// s.router.HandleFunc("/inviteUserToGroup", s.inviteUserToGroupHandler)
-	// s.router.HandleFunc("/respondToGroupInvitation", s.respondToGroupInvitationHandler)
+	// Group Invitation Routes
+	s.AddRoute("/getGroupInviteUsers", s.GetGroupInviteUsers)
+	s.AddRoute("/inviteUserToGroup", s.InviteUserToGroup)
+	s.AddRoute("/respondToGroupInvitation", s.RespondToGroupInvitation)
 
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)

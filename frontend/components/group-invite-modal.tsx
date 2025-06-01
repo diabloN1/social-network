@@ -43,7 +43,7 @@ export default function GroupInviteModal({
         return;
       }
 
-      setAvailableUsers(data.allusers || []);
+      setAvailableUsers(data.users || []);
     } catch (error) {
       console.error("Error loading available users:", error);
       setAvailableUsers([]);
