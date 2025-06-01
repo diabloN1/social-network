@@ -55,3 +55,59 @@ type GetProfile struct {
 type SetProfilePrivacy struct {
 	State bool `json:"state"`
 }
+
+type CreateGroup struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Image       string `json:"image"`
+}
+
+type GetGroupData struct {
+	GroupId int `json:"groupId"`
+}
+
+type AddGroupPost struct {
+	GroupId int    `json:"groupId"`
+	Caption string `json:"caption"`
+	Image   string `json:"image"`
+}
+
+type AddGroupEvent struct {
+	GroupId     int    `json:"groupId"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Option1     string `json:"option1"`
+	Option2     string `json:"option2"`
+	Date        string `json:"date"`
+	Place       string `json:"place"`
+}
+
+type GetGroupInviteUsers struct {
+	GroupId int `json:"groupId"`
+}
+
+type InviteUserToGroup struct {
+	GroupId int `json:"groupId"`
+	UserId  int `json:"userId"`
+}
+
+type RespondToGroupInvitation struct {
+	GroupId int  `json:"groupId"`
+	Accept  bool `json:"accept"`
+}
+
+type AddEventOption struct {
+	GroupId int  `json:"groupId"`
+	EventId int  `json:"eventId"`
+	Option  bool `json:"option"`
+}
+
+type RequestJoinGroup struct {
+	GroupId int `json:"groupId"`
+}
+
+type RespondToJoinRequest struct {
+	GroupId    int  `json:"groupId"`
+	UserId     int  `json:"userId"`
+	IsAccepted bool `json:"isAccepted"`
+}

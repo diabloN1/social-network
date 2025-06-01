@@ -42,7 +42,7 @@ export default function GroupsPage() {
 
       setGroupsData(data);
 
-      // Extract group IDs from join_requests to track pending requests
+      // Extract group IDs from joinRequests to track pending requests
     } catch (error) {
       setPopup({ message: `${error}`, status: "failure" });
     }
@@ -193,11 +193,11 @@ export default function GroupsPage() {
       </section>
 
       {/* Group Invitations Section */}
-      {groupsData?.group_invites && groupsData.group_invites.length > 0 && (
+      {groupsData?.groupInvites && groupsData.groupInvites.length > 0 && (
         <section className="invitations-section">
           <h2>Group Invitations</h2>
           <div className="invitations-list">
-            {groupsData.group_invites.map((invite) => (
+            {groupsData.groupInvites.map((invite) => (
               <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
                   <Image
@@ -248,11 +248,11 @@ export default function GroupsPage() {
       )}
 
       {/* Join Requests Section (for group owners) */}
-      {groupsData?.join_requests && groupsData.join_requests.length > 0 && (
+      {groupsData?.joinRequests && groupsData.joinRequests.length > 0 && (
         <section className="requests-section">
           <h2>Join Requests</h2>
           <div className="requests-list">
-            {groupsData.join_requests.map((request) => (
+            {groupsData.joinRequests.map((request) => (
               <div key={request.id} className="request-card">
                 <div className="request-info">
                   <Image

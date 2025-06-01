@@ -1,37 +1,28 @@
-'use server'
-
-import { cookies } from 'next/headers'
 
 const createGroup = async (formData: {
-    title: string;
-    description: string;
-    image: string;
-    session?: string;
-  }) => {
+  title: string;
+  description: string;
+  image: string;
+}) => {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
-
-    formData['session'] = token
 
     const response = await fetch("http://localhost:8080/createGroup", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(formData),
+      body: JSON.stringify({ type: "create-group", data: formData }),
+      credentials: "include",
     });
     const data = await response.json();
-
-    // console.log(data);
-
-    if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+    console.log("createGroup response:", data);
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return data;
+    return data.data;
   } catch (err) {
     console.error(err);
   }
 };
 
-export default createGroup
+export default createGroup;

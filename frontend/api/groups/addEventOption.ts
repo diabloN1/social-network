@@ -1,32 +1,24 @@
-"use server";
-
-import { cookies } from "next/headers";
-
 const addEventOption = async (groupId: number, eventId: number, option: boolean) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
-
     const response = await fetch("http://localhost:8080/addEventOption", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
+      body: JSON.stringify({type: "add-event-option", data:{
         groupId,
         eventId,
         option,
-        session: token
-      }),
+      }}),
+      credentials: "include",
     });
     const data = await response.json();
+    console.log("addEventOption response:", data);
 
-    // console.log(data);
-
-    if (data.error == "Invalid session") {
-      cookieStore.delete("token");
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return data;
+    return data.data;
   } catch (err) {
     console.error(err);
   }

@@ -26,6 +26,19 @@ var requestTypes = map[string]any{
 	model.Type_GET_PROFILE:         &GetProfile{},
 	model.Type_GET_PROFILES:        nil,
 	model.Type_SET_PROFILE_PRIVACY: &SetProfilePrivacy{},
+	"create-group":                 &CreateGroup{},  //
+	"get-groups":                   nil,             //
+	"get-group-data":               &GetGroupData{}, //
+	"add-group-post":               &AddGroupPost{},
+	"add-group-event":              &AddGroupEvent{},
+	"invite-user-to-group":         &InviteUserToGroup{},
+	"respond-to-group-invitation":  &RespondToGroupInvitation{},
+	"get-group-invite-users":       &GetGroupInviteUsers{},
+	"add-event-option":             &AddEventOption{},
+	"request-join-group":           &RequestJoinGroup{},
+	"respond-to-join-request":      &RespondToJoinRequest{},
+	"get-join-request-count":       nil,
+	"get-unread-messages-count":    nil,
 }
 
 func (r Payload) Decode() (any, error) {

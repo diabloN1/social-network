@@ -1,7 +1,7 @@
 package controller
 
 import (
-	
+	"encoding/json"
 	"log"
 	"net/http"
 )
@@ -140,62 +140,63 @@ func (s *Server) deleteFollowHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Groups
-func (s *Server) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) CreateGroupHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.CreateGroup(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.CreateGroup(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) GetGroupsHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) GetGroupsHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetGroups(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetGroups(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) GetGroupHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetGroupData(request)
-	s.SendJson(w, response, err)
-}
-func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetJoinRequestCount(request)
-	s.SendJson(w, response, err)
-}
-func (s *Server) GetUnreadMessagesCount(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetUnreadMessagesCountResponse(request)
-	s.SendJson(w, response, err)
-}
+//		request, err := s.ReadRequest(r.Body)
+//		response := s.GetGroupData(request)
+//		s.SendJson(w, response, err)
+//	}
+//
+//	func (s *Server) GetCountRequest(w http.ResponseWriter, r *http.Request) {
+//		request, err := s.ReadRequest(r.Body)
+//		response := s.GetJoinRequestCount(request)
+//		s.SendJson(w, response, err)
+//	}
+// func (s *Server) GetUnreadMessagesCount(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetUnreadMessagesCountResponse(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) AddGroupPostHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) AddGroupPostHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddGroupPost(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AddGroupPost(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) AddGroupEventHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) AddGroupEventHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddGroupEvent(request)
-	s.SendJson(w, response, err)
-}
+//		request, err := s.ReadRequest(r.Body)
+//		response := s.AddGroupEvent(request)
+//		s.SendJson(w, response, err)
+//	}
 func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
 	request, err := s.ReadRequest(r.Body)
 	response := s.DeleteNewEventNotification(request)
 	s.SendJson(w, response, err)
 }
 
-func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.AddEventOption(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.AddEventOption(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // func (s *Server) reactToPostHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -219,19 +220,19 @@ func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 // }
 
 // Group requests and invites
-func (s *Server) RequestJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) RequestJoinGroupHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.RequestJoinGroup(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.RequestJoinGroup(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) RespondToJoinRequestHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) RespondToJoinRequestHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.RespondToJoinRequest(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.RespondToJoinRequest(request)
+// 	s.SendJson(w, response, err)
+// }
 
 func (s *Server) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -254,7 +255,7 @@ func (s *Server) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 	fullPath, ok := r.Context().Value("fullPath").(string)
-	
+
 	if !ok || fullPath == "" {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
@@ -264,20 +265,68 @@ func (s *Server) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Group Invitation Handlers
-func (s *Server) getGroupInviteUsersHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetGroupInviteUsers(request)
-	s.SendJson(w, response, err)
+// func (s *Server) getGroupInviteUsersHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetGroupInviteUsers(request)
+// 	s.SendJson(w, response, err)
+// }
+
+// func (s *Server) inviteUserToGroupHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.InviteUserToGroup(request)
+// 	s.SendJson(w, response, err)
+// }
+
+// func (s *Server) respondToGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.RespondToGroupInvitation(request)
+// 	s.SendJson(w, response, err)
+// }
+
+func (s *Server) reactToGroupPostHandler(w http.ResponseWriter, r *http.Request) {
+	var request map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	response := s.ReactToGroupPost(request)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
-func (s *Server) inviteUserToGroupHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.InviteUserToGroup(request)
-	s.SendJson(w, response, err)
+func (s *Server) addGroupCommentHandler(w http.ResponseWriter, r *http.Request) {
+	var request map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	response := s.AddGroupComment(request)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }
 
-func (s *Server) respondToGroupInvitationHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.RespondToGroupInvitation(request)
-	s.SendJson(w, response, err)
+func (s *Server) getGroupCommentsHandler(w http.ResponseWriter, r *http.Request) {
+	var request map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	response := s.GetGroupComments(request)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
+}
+
+func (s *Server) getGroupPostHandler(w http.ResponseWriter, r *http.Request) {
+	var request map[string]any
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		http.Error(w, "Invalid JSON", http.StatusBadRequest)
+		return
+	}
+
+	response := s.GetGroupPost(request)
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(response)
 }

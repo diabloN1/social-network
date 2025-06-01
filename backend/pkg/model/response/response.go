@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"real-time-forum/pkg/model"
 )
 
 type Payload struct {
@@ -36,4 +37,64 @@ func Marshal(data any) (status int, result []byte) {
 		return 500, []byte("Error When Marshal Response")
 	}
 	return status, result
+}
+
+type CreateGroup struct {
+	Success bool         `json:"success"`
+	Group   *model.Group `json:"group,omitempty"`
+}
+
+type GetGroups struct {
+	GroupInvites []*model.Group `json:"groupInvites"`
+	JoinRequests []*model.Group `json:"joinRequests"`
+	All          []*model.Group `json:"all"`
+}
+
+type GetGroupData struct {
+	Group *model.Group `json:"group"`
+}
+
+type AddGroupPost struct {
+	Post *model.Post `json:"post"`
+}
+
+type AddGroupEvent struct {
+	Success bool              `json:"success"`
+	Event   *model.GroupEvent `json:"event,omitempty"`
+}
+
+type GetGroupInviteUsers struct {
+	Users []*model.User `json:"users"`
+}
+
+type InviteUserToGroup struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type RespondToGroupInvitation struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type AddEventOption struct {
+	Option *model.EventOption `json:"option"`
+}
+
+type RequestJoinGroup struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type GetJoinRequestCount struct {
+	Count int `json:"count"`
+}
+
+type RespondToJoinRequest struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+type GetUnreadMessagesCount struct {
+	Count int `json:"count"`
 }

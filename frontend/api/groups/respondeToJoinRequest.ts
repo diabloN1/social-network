@@ -1,36 +1,31 @@
-"use server";
-
-import { cookies } from "next/headers";
-
 const respondToJoinRequest = async (
   userId: number,
   groupId: number,
   accept: boolean
 ) => {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value || "";
-
     const response = await fetch("http://localhost:8080/respondToJoinRequest", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        userId,
-        groupId,
-        isAccepted: accept,
-        session: token,
+        type: "respond-to-join-request",
+        data: {
+          userId,
+          groupId,
+          isAccepted: accept,
+        },
       }),
+      credentials: "include",
     });
     const data = await response.json();
 
-    // console.log(data);
-
-    if (data.error == "Invalid session") {
-      cookieStore.delete("token");
+    console.log("respondToJoinRequest response:", data);
+    if (data.error) {
+      throw new Error(data.error);
     }
-    return data;
+    return data.data;
   } catch (err) {
     console.error(err);
   }

@@ -121,25 +121,26 @@ func Start() error {
 	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
 
 	// Groups
-	s.router.HandleFunc("/createGroup", s.CreateGroupHandler)
-	s.router.HandleFunc("/getGroups", s.GetGroupsHandler)
-	s.router.HandleFunc("/getGroup", s.GetGroupHandler)
+	s.AddRoute("/createGroup", s.CreateGroup)
+	s.AddRoute("/getGroups", s.GetGroups)
+	s.AddRoute("/getGroup", s.GetGroupData)
+	
 	// Group post reactions and comments
 	s.router.HandleFunc("/reactToGroupPost", s.reactToGroupPostHandler)
 	s.router.HandleFunc("/addGroupComment", s.addGroupCommentHandler)
 	s.router.HandleFunc("/getGroupComments", s.getGroupCommentsHandler)
 	s.router.HandleFunc("/getGroupPost", s.getGroupPostHandler)
 
-	s.router.HandleFunc("/addGroupPost", s.AddGroupPostHandler)
-	s.router.HandleFunc("/addGroupEvent", s.AddGroupEventHandler)
-	s.router.HandleFunc("/addEventOption", s.AddEventOptionHandler)
-	s.router.HandleFunc("/requestJoinGroup", s.RequestJoinGroupHandler)
-	s.router.HandleFunc("/respondToJoinRequest", s.RespondToJoinRequestHandler)
+	s.AddRoute("/addGroupPost", s.AddGroupPost)
+	s.AddRoute("/addGroupEvent", s.AddGroupEvent)
+	s.AddRoute("/addEventOption", s.AddEventOption)
+	s.AddRoute("/requestJoinGroup", s.RequestJoinGroup)
+	s.AddRoute("/respondToJoinRequest", s.RespondToJoinRequest)
 
-	// Group Invitation Routes
-	s.router.HandleFunc("/getGroupInviteUsers", s.getGroupInviteUsersHandler)
-	s.router.HandleFunc("/inviteUserToGroup", s.inviteUserToGroupHandler)
-	s.router.HandleFunc("/respondToGroupInvitation", s.respondToGroupInvitationHandler)
+	// // Group Invitation Routes
+	// s.router.HandleFunc("/getGroupInviteUsers", s.getGroupInviteUsersHandler)
+	// s.router.HandleFunc("/inviteUserToGroup", s.inviteUserToGroupHandler)
+	// s.router.HandleFunc("/respondToGroupInvitation", s.respondToGroupInvitationHandler)
 
 	// Chat
 	s.router.HandleFunc("/getChatData", s.GetChatHandler)
