@@ -22,11 +22,20 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
+        
+        // check if error
+        // ...
+
+        if (data.error) {
+          console.error("WebSocket error:", data.error);
+          return;
+        }
+        
         console.log("socket ", data);
-        const type = data.type;
+        const type = data.data?.type;
 
         if (type && listeners[type]) {
-          listeners[type].forEach((callback) => callback(data));
+          listeners[type].forEach((callback) => callback(data.data));
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);

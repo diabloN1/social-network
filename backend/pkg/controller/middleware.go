@@ -146,7 +146,7 @@ func (s *Server) isMemberMiddleware(next http.Handler, req *request.RequestT) ht
 		}
 
 		groupField := v.FieldByName("GroupId")
-		if !groupField.IsValid() || groupField.Kind() != reflect.Int {
+		if !groupField.IsValid() {
 			s.ServeError(w, &response.Error{Cause: "Bad Request: GroupId field missing or invalid", Code: http.StatusBadRequest})
 			return
 		}

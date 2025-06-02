@@ -212,20 +212,28 @@ export default function GroupDetailPage() {
   };
 
   // Post creation
-  const handleCreatePost = async (postData: {
-    GroupId?: number;
-    Image: string;
-    Caption: string;
+  const handleCreatePost = async (post: {
+    image: string;
+    caption: string;
+    privacy?: string;
+    groupId?: number;
   }) => {
     try {
-      // const data = await addGroupPost(postData);
       const data = await apiCall(
-        { type: "add-group-post", data: { ...postData } },
+        {
+          type: "add-group-post",
+          data: {
+            GroupId: post.groupId ?? groupId,
+            Image: post.image,
+            Caption: post.caption,
+            Privacy: post.privacy,
+          },
+        },
         "POST",
         "addGroupPost"
       );
       if (data.error) {
-        setPopup({ message: `${error}`, status: "failure" });
+        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
 
@@ -238,17 +246,28 @@ export default function GroupDetailPage() {
 
   // Event creation
   const handleCreateEvent = async (event: {
-    Title: string;
-    Description: string;
-    Option1: string;
-    Option2: string;
-    Date: string;
-    Place: string;
+    title: string;
+    description: string;
+    option1: string;
+    option2: string;
+    date: string;
+    place: string;
   }) => {
     try {
       console.log(event);
       const data = await apiCall(
-        { type: "add-group-event", data: { GroupId: groupId, ...event } },
+        {
+          type: "add-group-event",
+          data: {
+            GroupId: groupId,
+            Title: event.title,
+            Description: event.description,
+            Option1: event.option1,
+            Option2: event.option2,
+            Date: event.date,
+            Place: event.place,
+          },
+        },
         "POST",
         "addGroupEvent"
       );
