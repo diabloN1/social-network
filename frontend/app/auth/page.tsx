@@ -2,14 +2,14 @@
 
 import type React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 import { useState } from "react";
 import "./auth-form.css";
 import postAuth from "@/api/auth/postAuth";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/api/auth/uploadFile";
-import Popup from "@/app/app/popup";
+// import Popup from "@/app/app/popup";
 import Image from "next/image";
 
 export default function AuthForm() {
@@ -39,10 +39,10 @@ export default function AuthForm() {
     birth: "",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
   const router = useRouter();
 
@@ -168,17 +168,18 @@ export default function AuthForm() {
             });
             return;
           } else {
-            setPopup({
-              message: `Failed to Register.\n${data.error.cause}`,
-              status: "failure",
-            });
+            // setPopup({
+            //   message: `Failed to Register.\n${data.error.cause}`,
+            //   status: "failure",
+            // });
+            return;
           }
         } else {
           router.push("/app");
         }
-
       } catch (err) {
-        setPopup({ message: "Failed to Register." + err, status: "failure" });
+        // setPopup({ message: "Failed to Register." + err, status: "failure" });
+        console.log(err);
       }
     }
   };
@@ -341,7 +342,11 @@ export default function AuthForm() {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <FontAwesomeIcon icon={faEyeSlash} /> :<FontAwesomeIcon icon={faEye} />}
+                {showPassword ? (
+                  <FontAwesomeIcon icon={faEyeSlash} />
+                ) : (
+                  <FontAwesomeIcon icon={faEye} />
+                )}
               </button>
             </div>
             {errors.password && (
@@ -385,13 +390,13 @@ export default function AuthForm() {
           </p>
         </div>
       </div>
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }

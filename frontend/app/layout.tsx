@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { ErrorProvider } from "@/context/ErrorContext";
+import ErrorPopup from "@/components/ErrorPopup";
 
 export const metadata: Metadata = {
   title: "Social Network",
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <ErrorProvider>{children}</ErrorProvider>
+        <ErrorProvider>
+          {children}
+          <ErrorPopup />
+        </ErrorProvider>
       </body>
     </html>
   );

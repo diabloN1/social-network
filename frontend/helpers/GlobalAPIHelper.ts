@@ -1,9 +1,23 @@
 "use client";
 
 import { useError } from "@/context/ErrorContext";
+import { useRouter } from "next/navigation";
 
 export const useGlobalAPIHelper = () => {
   const { showError } = useError();
+  const router = useRouter();
+
+  const handleAPIError = (message: string, code: number = 500) => {
+    showError(message, code);
+
+    if (message.toLowerCase().startsWith("unauthorized: invalid session")) {
+      setTimeout(() => {
+        router.push("/auth");
+      }, 1000); // Delay allows popup to show
+    }
+
+    return { error: true, message };
+  };
 
   const apiCall = async (
     requestData: any,
@@ -22,31 +36,23 @@ export const useGlobalAPIHelper = () => {
 
       const data = await response.json();
 
-      // Check HTTP status not OK (4xx, 5xx)
       if (!response.ok) {
-        const errorMessage =
+        const message =
           data?.error?.cause || data?.message || "Unknown error from server";
-        const errorCode = data?.error?.code || response.status;
-
-        showError(errorMessage, errorCode);
-        return { error: true, message: errorMessage };
+        const code = data?.error?.code || response.status;
+        return handleAPIError(message, code);
       }
 
-      // Check if API returned error in JSON body
       if (data.error) {
-        const errorMessage = data.error.cause || "Unknown error";
-        const errorCode = data.error.code || 500;
-
-        showError(errorMessage, errorCode);
-        return { error: true, message: errorMessage };
+        const message = data.error.cause || "Unknown error";
+        const code = data.error.code || 500;
+        return handleAPIError(message, code);
       }
 
-      // If all good, return data field or whole response
       return data.data ?? data;
     } catch (err: any) {
       console.error("API call failed:", err);
-      showError(err.message || "Unexpected error", 500);
-      return { error: true, message: err.message || "Unexpected error" };
+      return handleAPIError(err.message || "Unexpected error", 500);
     }
   };
 

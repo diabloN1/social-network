@@ -9,7 +9,6 @@ import {
   onMessageType,
   closeWebSocket,
 } from "@/helpers/webSocket";
-import logout from "@/api/auth/logout";
 import clearSessionCookie from "@/api/auth/clearSessionCookie";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
@@ -30,8 +29,6 @@ export default function Navbar() {
       "getAllNotifications"
     );
     if (data && !data.error) {
-      // console.log("notification", data);
-
       const notifications = data.notifications;
 
       setChatUnreadCount(notifications.messageUnread || 0);
@@ -49,7 +46,7 @@ export default function Navbar() {
     try {
       closeWebSocket();
 
-      await logout();
+      await apiCall({ type: "logout" }, "POST", "logout");
 
       await clearSessionCookie();
 

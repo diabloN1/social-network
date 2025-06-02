@@ -22,7 +22,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-        
+
         // check if error
         // ...
 
@@ -30,7 +30,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
           console.error("WebSocket error:", data.error);
           return;
         }
-        
+
         console.log("socket ", data);
         const type = data.data?.type;
 

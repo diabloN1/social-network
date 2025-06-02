@@ -14,7 +14,7 @@ import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
-import Popup from "../../popup";
+// import Popup from "../../popup";
 import { Post } from "@/types/post";
 import { Comment as CommentType } from "@/types/comment";
 
@@ -36,10 +36,10 @@ export default function SinglePostPage() {
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -71,10 +71,6 @@ export default function SinglePostPage() {
         "getPost"
       );
 
-      if (data.error) {
-        throw Error(data.error);
-      }
-
       const post = data.post;
 
       if (!post || post.id === 0) {
@@ -99,7 +95,8 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
@@ -145,13 +142,15 @@ export default function SinglePostPage() {
 
     try {
       const data = await apiCall(
-        { type: "react-to-post", data: { reaction: newReaction } },
+        {
+          type: "react-to-post",
+          data: { PostId: postId, Reaction: newReaction },
+        },
         "POST",
         "reactToPost"
       );
 
       if (data.error) {
-        console.error("Error reacting to post:", data.error);
         if (post?.reactions) {
           setReactions({
             likes: post.reactions.likes || 0,
@@ -452,13 +451,13 @@ export default function SinglePostPage() {
           onClose={() => setIsShareModalOpen(false)}
         />
       )}
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </>
   );
 }
