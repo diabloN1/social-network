@@ -4,10 +4,10 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import reactToPost from "@/api/posts/reactToPost";
+// import reactToPost from "@/api/posts/pass-reactToPost";
 import PostShareModal from "./post-share-modal";
 import { Post as PostType, Reaction } from "@/types/post";
-
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 interface PostProps {
   post: PostType;
@@ -29,6 +29,7 @@ const Post: React.FC<PostProps> = ({
   const [isReacting, setIsReacting] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const router = useRouter();
+  const { apiCall } = useGlobalAPIHelper();
 
   // Update local state when post prop changes
   useEffect(() => {
@@ -84,7 +85,14 @@ const Post: React.FC<PostProps> = ({
     });
 
     try {
-      const data = await reactToPost(post.id, newReaction);
+      const data = await apiCall(
+        {
+          type: "react-to-post",
+          data: { postId: post.id, reaction: newReaction },
+        },
+        "POST",
+        "reactToPost"
+      );
 
       if (data.error) {
         console.error("Error reacting to post:", data.error);
@@ -153,13 +161,13 @@ const Post: React.FC<PostProps> = ({
   const showShareButton =
     post.privacy === "private" && post.user_id === currentUserId;
 
-  // Debug logging
-  console.log(`Post ${post.id} share button check:`, {
-    privacy: post.privacy,
-    postUserId: post.user_id,
-    currentUserId: currentUserId,
-    showShareButton: showShareButton,
-  });
+  // // Debug logging
+  // console.log(`Post ${post.id} share button check:`, {
+  //   privacy: post.privacy,
+  //   postUserId: post.user_id,
+  //   currentUserId: currentUserId,
+  //   showShareButton: showShareButton,
+  // });
 
   return (
     <>

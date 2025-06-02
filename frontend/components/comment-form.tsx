@@ -3,9 +3,10 @@
 import type React from "react";
 import { useState, useRef } from "react";
 import Image from "next/image";
-import addComment from "@/api/posts/addComment";
+// import addComment from "@/api/posts/addComment";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 interface CommentFormProps {
   postId: number;
@@ -23,6 +24,7 @@ export default function CommentForm({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { apiCall } = useGlobalAPIHelper();
   const [popup, setPopup] = useState<{
     message: string;
     status: "success" | "failure";
@@ -85,16 +87,31 @@ export default function CommentForm({
       }
 
       // Add comment
-      const result = await addComment(postId, newComment.trim(), filename);
+      const result = await apiCall(
+        {
+          type: "add-comment",
+          data: {
+            postId,
+            text: newComment.trim(),
+            image: filename || "",
+          },
+        },
+        "POST",
+        "addComment"
+      );
 
-      if (result.error) {
-        setPopup({
-          message: `Failed to add comment: ${result.error}`,
-          status: "failure",
-        });
-        console.error("Error adding comment:", result.error);
-        return;
-      }
+      // if (result.error) {
+      //   return;
+      // }
+
+      // if (result.error) {
+      //   setPopup({
+      //     message: `Failed to add comment: ${result.error}`,
+      //     status: "failure",
+      //   });
+      //   console.error("Error adding comment:", result.error);
+      //   return;
+      // }
 
       // Reset form
       setNewComment("");

@@ -2,25 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import getPostShares from "@/api/posts/getPostShares";
-import addPostShare from "@/api/posts/addPostShare";
-import removePostShare from "@/api/posts/removePostShare";
 import "./post-share-modal.css";
 import Popup from "@/app/app/popup";
-
-interface User {
-  id: number;
-  firstname: string;
-  lastname: string;
-  nickname: string;
-  avatar: string;
-}
-
-interface PostShareModalProps {
-  postId: number;
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+import { User } from "@/types/user";
+import { PostShareModalProps } from "@/types/post";
 
 export default function PostShareModal({
   postId,
@@ -36,18 +22,20 @@ export default function PostShareModal({
     status: "success" | "failure";
   } | null>(null);
 
+  const { apiCall } = useGlobalAPIHelper();
+
   const loadPostShares = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getPostShares(postId);
+      const res = await apiCall(
+        { type: "get-post-shares", data: { postId } },
+        "POST",
+        "getPostShares"
+      );
+      const allUsers = res.all_users || [];
 
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
-
-      setCurrentShares(data.data?.currentShares || []);
-      setAvailableUsers(data.data?.availableUsers || []);
+      setCurrentShares(allUsers.filter((user: User) => user.isaccepted));
+      setAvailableUsers(allUsers.filter((user: User) => !user.isaccepted));
     } catch (error) {
       console.error("Error loading post shares:", error);
       setPopup({ message: "Failed to load post shares", status: "failure" });
@@ -64,14 +52,20 @@ export default function PostShareModal({
 
   const handleAddUser = async (userId: number) => {
     try {
-      const data = await addPostShare(postId, userId);
+      const res = await apiCall(
+        { type: "add-post-share", data: { postId, userId } },
+        "POST",
+        "addPostShare"
+      );
 
-      if (data.error) {
-        alert(data.error);
+      if (!res?.success) {
+        setPopup({
+          message: res?.Message || "Failed to add user",
+          status: "failure",
+        });
         return;
       }
 
-      // Refresh the data
       await loadPostShares();
     } catch (error) {
       console.error("Error adding user:", error);
@@ -81,14 +75,20 @@ export default function PostShareModal({
 
   const handleRemoveUser = async (userId: number) => {
     try {
-      const data = await removePostShare(postId, userId);
+      const res = await apiCall(
+        { type: "remove-post-share", data: { postId, userId } },
+        "POST",
+        "removePostShare"
+      );
 
-      if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
+      if (!res?.success) {
+        setPopup({
+          message: res?.Message || "Failed to remove user",
+          status: "failure",
+        });
         return;
       }
 
-      // Refresh the data
       await loadPostShares();
     } catch (error) {
       console.error("Error removing user:", error);
@@ -225,6 +225,7 @@ export default function PostShareModal({
           )}
         </div>
       </div>
+
       {popup && (
         <Popup
           message={popup.message}

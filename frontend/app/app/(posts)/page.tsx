@@ -4,11 +4,9 @@ import { useEffect, useState } from "react";
 import CreatePostModal from "@/components/create-post-modal";
 import Post from "@/components/post";
 import "./posts.css";
-import addPost from "@/api/posts/addPost";
-// import getPosts from "@/api/posts/getPosts";
 import Popup from "../popup";
 import { Post as PostType, Reaction } from "@/types/post";
-import { useGlobalAPIHelper } from "@/helpers/ApiHelper";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function PostsPage() {
   const { apiCall } = useGlobalAPIHelper();
@@ -58,8 +56,8 @@ export default function PostsPage() {
     );
 
     if (data?.posts?.length) {
-      setPosts((prev) => [...prev, ...data.data.posts]);
-      setHasMore(data.data.posts.length === 10);
+      setPosts((prev) => [...prev, ...data.posts]);
+      setHasMore(data.posts.length === 10);
     }
 
     setIsLoading(false);
@@ -69,7 +67,6 @@ export default function PostsPage() {
     fetchPosts();
   }, []);
 
-
   const handleCreatePost = async (newPost: {
     image: string;
     caption: string;
@@ -77,20 +74,22 @@ export default function PostsPage() {
     groupId?: number;
   }) => {
     try {
-      const data = await addPost(newPost);
+      const data = await apiCall(
+        {
+          type: "add-post",
+          data: newPost,
+        },
+        "POST",
+        "addPost"
+      );
 
-      if (data.error && data.error !== "Invalid session") {
-        setPopup({ message: data.error, status: "failure" });
-        return;
-      }
-
-      if (data.post) {
+      if (data?.post) {
         setPosts([data.post, ...posts]);
       } else {
-        throw "Could not get created post!";
+        setPopup({ message: "Post creation failed.", status: "failure" });
       }
     } catch (err) {
-      setPopup({ message: `${err}`, status: "failure" });
+      setPopup({ message: `Unexpected error: ${err}`, status: "failure" });
     }
 
     setIsModalOpen(false);

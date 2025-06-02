@@ -1,35 +1,63 @@
-import { redirect } from "next/navigation";
+"use client";
 
-const GlobalAPIHelper = async (
-  requestData: any,
-  method: string,
-  url: string
-) => {
-  try {
-    const response = await fetch(`http://localhost:8080/${url}`, {
-      method,
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(requestData),
-    });
+import { useError } from "@/context/ErrorContext";
 
-    const data = await response.json();
+export const useGlobalAPIHelper = () => {
+  const { showError } = useError();
 
-    if (data.error) {
-      const { cause, code } = data.error;
-      const encodedCause = encodeURIComponent(cause || "Unknown error");
-      const errorCode = code || 500;
+  const apiCall = async (
+    requestData: any,
+    method: string,
+    url: string
+  ): Promise<any> => {
+    try {
+      const response = await fetch(`http://localhost:8080/${url}`, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestData),
+      });
 
-      redirect(`/error/${errorCode}?cause=${encodedCause}`);
+
+      const text = await response.text();
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        showError("Server returned invalid JSON", response.status);
+        return { error: true, message: "Invalid server response" };
+      }
+
+
+      // Check HTTP status not OK (4xx, 5xx)
+      if (!response.ok) {
+        const errorMessage =
+          data?.error?.cause || data?.message || "Unknown error from server";
+        const errorCode = data?.error?.code || response.status;
+
+        showError(errorMessage, errorCode);
+        return { error: true, message: errorMessage };
+      }
+
+      // Check if API returned error in JSON body
+      if (data.error) {
+        const errorMessage = data.error.cause || "Unknown error";
+        const errorCode = data.error.code || 500;
+
+        showError(errorMessage, errorCode);
+        return { error: true, message: errorMessage };
+      }
+
+      // If all good, return data field or whole response
+      return data.data ?? data;
+    } catch (err: any) {
+      console.error("API call failed:", err);
+      showError(err.message || "Unexpected error", 500);
+      return { error: true, message: err.message || "Unexpected error" };
     }
+  };
 
-    return data.data;
-  } catch (err: any) {
-    console.error("API Error:", err);
-    const fallbackCause = encodeURIComponent(err.message || "Unexpected error");
-    redirect(`/error/500?cause=${fallbackCause}`);
-  }
+  return { apiCall };
 };
-
-export default GlobalAPIHelper;

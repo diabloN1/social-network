@@ -20,3 +20,9 @@ export interface Reaction {
   userReaction: boolean | null;
   isReacting?: boolean;
 }
+
+export interface PostShareModalProps {
+  postId: number;
+  isOpen: boolean;
+  onClose: () => void;
+}

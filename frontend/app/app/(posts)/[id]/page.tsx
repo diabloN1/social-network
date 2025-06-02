@@ -5,9 +5,12 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
 import "./post.css";
-import getPostData from "@/api/posts/getPostData";
-import reactToPost from "@/api/posts/reactToPost";
-import getComments from "@/api/posts/getComments";
+// import getPostData from "@/api/posts/getPostData";
+// import reactToPost from "@/api/posts/reactToPost";
+// import getComments from "@/api/posts/getComments";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
@@ -19,6 +22,7 @@ export default function SinglePostPage() {
   const params = useParams();
   const router = useRouter();
   const postId = Number(params.id);
+  const { apiCall } = useGlobalAPIHelper();
 
   const [post, setPost] = useState<Post | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -39,14 +43,16 @@ export default function SinglePostPage() {
 
   const loadComments = useCallback(async () => {
     try {
-      const commentsData = await getComments(postId);
+      const commentsData = await apiCall(
+        { type: "get-comments", data: { postId } },
+        "POST",
+        "getComments"
+      );
       if (commentsData.error) {
         console.error("Error loading comments:", commentsData.error);
       }
 
-      if (
-        commentsData.comments
-      ) {
+      if (commentsData.comments) {
         setComments(commentsData.comments);
       }
     } catch (error) {
@@ -59,7 +65,12 @@ export default function SinglePostPage() {
       setIsLoading(true);
 
       // Fetch post data
-      const data = await getPostData(postId);
+      const data = await apiCall(
+        { type: "get-post", data: { postId } },
+        "POST",
+        "getPost"
+      );
+
       if (data.error) {
         throw Error(data.error);
       }
@@ -133,7 +144,11 @@ export default function SinglePostPage() {
     });
 
     try {
-      const data = await reactToPost(postId, newReaction);
+      const data = await apiCall(
+        { type: "react-to-post", data: { reaction: newReaction } },
+        "POST",
+        "reactToPost"
+      );
 
       if (data.error) {
         console.error("Error reacting to post:", data.error);

@@ -10,7 +10,6 @@ export interface User {
   avatar?: string;
   online?: boolean;
   isaccepted?: boolean;
-
 }
 
 export interface Profile {
