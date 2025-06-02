@@ -15,7 +15,7 @@ type Payload struct {
 
 type RequestT struct {
 	Data        any
-	Ctx     context.Context
+	Ctx         context.Context
 	Middlewares []func(http.Handler, *RequestT) http.Handler
 }
 
@@ -34,8 +34,8 @@ var requestTypes = map[string]any{
 	model.Type_GET_PROFILE:          &GetProfile{},
 	model.Type_GET_PROFILES:         nil,
 	model.Type_SET_PROFILE_PRIVACY:  &SetProfilePrivacy{},
-	"create-group":                  &CreateGroup{}, 
-	"get-groups":                    nil,            
+	"create-group":                  &CreateGroup{},
+	"get-groups":                    nil,
 	"get-group-data":                &GetGroupData{},
 	"add-group-post":                &AddGroupPost{},
 	"add-group-event":               &AddGroupEvent{},
@@ -61,6 +61,7 @@ var requestTypes = map[string]any{
 	"check-new-follow-notification": nil,
 	"delete-follow-notification":    &DeleteFollowNotification{},
 	"delete-new-event-notification": &DeleteNewEventNotification{},
+	"logout":                        nil,
 }
 
 func (r Payload) Decode() (string, *RequestT, error) {
@@ -77,7 +78,7 @@ func (r Payload) Decode() (string, *RequestT, error) {
 	}
 
 	request := &RequestT{
-		Data:    instance,
+		Data: instance,
 	}
 
 	return r.Type, request, nil

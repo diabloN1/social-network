@@ -93,12 +93,10 @@ func Start() error {
 
 	s := NewServer(http.NewServeMux(), db)
 
-	// Login
+	// Auth
 	s.AddRoute("/login", s.Login)
 	s.AddRoute("/register", s.Register)
-
-	s.router.HandleFunc("/session", s.SessionHandler)
-	s.router.HandleFunc("/logout", s.LogoutHandler)
+	s.AddRoute("/logout", s.Logout)
 
 	// Posts
 	s.AddRoute("/getPosts", s.GetPosts)

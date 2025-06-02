@@ -39,9 +39,9 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		res := s.ValidateSession(map[string]any{"session": cookie.Value})
-		if res.Error != "" {
-			http.Error(w, "session error:"+res.Error, http.StatusBadRequest)
+		uid, err := s.repository.Session().FindUserIDBySession(cookie.Value)
+		if err != nil {
+			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
 			return
 		}
 
@@ -68,7 +68,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 
 		switch typ {
 		case "posts":
-			hasAccess, err := s.repository.Post().HasAccessToPost(res.Userid, id, path)
+			hasAccess, err := s.repository.Post().HasAccessToPost(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -79,7 +79,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "post-comments":
-			hasAccess, err := s.repository.Post().HasAccessToPostComment(res.Userid, id, path)
+			hasAccess, err := s.repository.Post().HasAccessToPostComment(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -90,7 +90,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "group-posts":
-			hasAccess, err := s.repository.Group().HasAccessToGroupPost(res.Userid, id, path)
+			hasAccess, err := s.repository.Group().HasAccessToGroupPost(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -107,7 +107,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			hasAccess, err := s.repository.Group().HasAccessToGroupComment(res.Userid, id, postId, path)
+			hasAccess, err := s.repository.Group().HasAccessToGroupComment(uid, id, postId, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -193,6 +193,7 @@ func (s *Server) cookieMiddleware(next http.Handler, req *request.RequestT) http
 		}
 
 		req.Ctx = context.WithValue(r.Context(), "user_id", uid)
+		req.Ctx = context.WithValue(req.Ctx, "token", token)
 		next.ServeHTTP(w, r)
 	})
 }
