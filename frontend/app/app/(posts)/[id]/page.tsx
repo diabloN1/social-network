@@ -142,7 +142,10 @@ export default function SinglePostPage() {
 
     try {
       const data = await apiCall(
-        { type: "react-to-post", data: { reaction: newReaction } },
+        {
+          type: "react-to-post",
+          data: { PostId: postId, Reaction: newReaction },
+        },
         "POST",
         "reactToPost"
       );
