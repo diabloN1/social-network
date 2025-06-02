@@ -83,7 +83,6 @@ export default function GroupInviteModal({
       );
 
       if (data.error) {
-        alert(data.error);
         return;
       }
 

@@ -7,7 +7,7 @@ import Image from "next/image";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
-import { group } from "console";
+// import { group } from "console";
 
 interface GroupCommentFormProps {
   postId: number;
@@ -20,7 +20,7 @@ export default function GroupCommentForm({
   postId,
   onCommentAdded,
   disabled,
-  groupId
+  groupId,
 }: GroupCommentFormProps) {
   const [newComment, setNewComment] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -97,17 +97,22 @@ export default function GroupCommentForm({
       const result = await apiCall(
         {
           type: "add-group-comment",
-          data: { PostId: postId, Text: newComment.trim(), Image: filename, groupId },
+          data: {
+            PostId: postId,
+            Text: newComment.trim(),
+            Image: filename,
+            groupId,
+          },
         },
         "POST",
         "addGroupComment"
       );
 
       if (result.error) {
-        setPopup({
-          message: `Failed to add comment: ${result.error}`,
-          status: "failure",
-        });
+        // setPopup({
+        //   message: `Failed to add comment: ${result.error}`,
+        //   status: "failure",
+        // });
 
         return;
       }
@@ -124,7 +129,7 @@ export default function GroupCommentForm({
       onCommentAdded();
     } catch (error) {
       console.error("Error adding group comment:", error);
-      setPopup({ message: `Failed to add comment`, status: "failure" });
+      // setPopup({ message: `Failed to add comment`, status: "failure" });
     } finally {
       setIsSubmitting(false);
     }

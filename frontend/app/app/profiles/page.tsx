@@ -9,7 +9,7 @@ import "./styles.css";
 // import acceptFollow from "@/api/follow/acceptFollow";
 // import deleteFollow from "@/api/follow/deleteFollow";
 // import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
-import Popup from "../popup";
+// import Popup from "../popup";
 // import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
 
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
@@ -24,10 +24,10 @@ export default function ProfilesPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasNewFollow, setHasNewFollow] = useState(false);
   const { apiCall } = useGlobalAPIHelper();
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
   const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
@@ -54,7 +54,8 @@ export default function ProfilesPage() {
       setNewFollowers(followNotifData.newFollowers || []);
       return profileData;
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -84,7 +85,6 @@ export default function ProfilesPage() {
         "acceptFollow"
       );
       if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -92,7 +92,7 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -108,7 +108,6 @@ export default function ProfilesPage() {
         "deleteFollow"
       );
       if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -116,7 +115,8 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -317,13 +317,13 @@ export default function ProfilesPage() {
           )}
         </div>
       </section>
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }

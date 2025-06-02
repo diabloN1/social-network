@@ -9,7 +9,7 @@ import "./profile.css";
 // import setPravicy from "@/api/profiles/setPrivacy";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
-import Popup from "../../popup";
+// import Popup from "../../popup";
 import { Profile } from "@/types/user";
 import Image from "next/image";
 import ConfirmationPopup from "../../ConfirmationPopup";
@@ -26,10 +26,10 @@ export default function ProfilePage() {
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
   const { apiCall } = useGlobalAPIHelper();
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
   const [confirmation, setConfirmation] = useState<{
     message: string;
     onConfirm: () => void;
@@ -45,7 +45,7 @@ export default function ProfilePage() {
           "getProfile"
         );
         if (response.error) {
-          setPopup({ message: response.error, status: "failure" });
+          // setPopup({ message: response.error, status: "failure" });
           return;
         }
 
@@ -59,7 +59,8 @@ export default function ProfilePage() {
             userData.follow?.isAccepted
         );
       } catch (error) {
-        setPopup({ message: `${error}`, status: "failure" });
+        // setPopup({ message: `${error}`, status: "failure" });
+        console.log(error);
       } finally {
         setLoading(false);
       }
@@ -83,13 +84,13 @@ export default function ProfilePage() {
             "setPrivacy"
           );
           if (data.error) {
-            setPopup({ message: data.error, status: "failure" });
             return;
           }
 
           setUser((prev) => prev && { ...prev, isprivate: !prev.isprivate });
         } catch (error) {
-          setPopup({ message: `${error}`, status: "failure" });
+          // setPopup({ message: `${error}`, status: "failure" });
+          console.log(error);
         } finally {
           setConfirmation(null);
         }
@@ -114,7 +115,6 @@ export default function ProfilePage() {
                 "deleteFollow"
               );
               if (data.error) {
-                setPopup({ message: data.error, status: "failure" });
                 return;
               }
 
@@ -125,7 +125,8 @@ export default function ProfilePage() {
                 setCanViewProfile(false);
               }
             } catch (error) {
-              setPopup({ message: `${error}`, status: "failure" });
+              // setPopup({ message: `${error}`, status: "failure" });
+              console.log(error);
             } finally {
               setConfirmation(null);
             }
@@ -138,7 +139,6 @@ export default function ProfilePage() {
           "requestFollow"
         );
         if (data.error) {
-          setPopup({ message: data.error, status: "failure" });
           return;
         }
 
@@ -150,7 +150,8 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
       return;
     }
   };
@@ -417,13 +418,13 @@ export default function ProfilePage() {
           onCancel={() => setConfirmation(null)}
         />
       )}
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }

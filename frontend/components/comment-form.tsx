@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 // import addComment from "@/api/posts/addComment";
 import { uploadFile } from "@/api/auth/uploadFile";
-import Popup from "@/app/app/popup";
+// import Popup from "@/app/app/popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 interface CommentFormProps {
@@ -25,27 +25,26 @@ export default function CommentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { apiCall } = useGlobalAPIHelper();
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        setPopup({ message: "Please select an image file", status: "failure" });
-
+        // setPopup({ message: "Please select an image file", status: "failure" });
         return;
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        setPopup({
-          message: "Image size must be less than 10MB",
-          status: "failure",
-        });
+        // setPopup({
+        //   message: "Image size must be less than 10MB",
+        //   status: "failure",
+        // });
         return;
       }
 
@@ -87,7 +86,7 @@ export default function CommentForm({
       }
 
       // Add comment
-      const result = await apiCall(
+      await apiCall(
         {
           type: "add-comment",
           data: {
@@ -124,7 +123,8 @@ export default function CommentForm({
       // Notify parent component
       onCommentAdded();
     } catch (error) {
-      setPopup({ message: `Failed to add comment` + error, status: "failure" });
+      // setPopup({ message: `Failed to add comment` + error, status: "failure" });
+      console.log(error);
     } finally {
       setIsSubmitting(false);
     }
@@ -206,13 +206,13 @@ export default function CommentForm({
           </button>
         </div>
       </div>
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </form>
   );
 }

@@ -3,7 +3,7 @@
 import type React from "react";
 import { useState } from "react";
 import { uploadFile } from "@/api/auth/uploadFile";
-import Popup from "@/app/app/popup";
+// import Popup from "@/app/app/popup";
 import Image from "next/image";
 
 interface CreateGroupModalProps {
@@ -23,10 +23,10 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   const [description, setDescription] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -57,7 +57,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
         description,
       });
     } catch (err) {
-      setPopup({ message: `${err}`, status: "failure" });
+      // setPopup({ message: `${err}`, status: "failure" });
       console.error(err);
     }
   };
@@ -147,13 +147,13 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
           </div>
         </form>
       </div>
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 };

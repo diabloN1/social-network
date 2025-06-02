@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
 import "./post-share-modal.css";
-import Popup from "@/app/app/popup";
+// import Popup from "@/app/app/popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
 import { PostShareModalProps } from "@/types/post";
@@ -17,10 +17,10 @@ export default function PostShareModal({
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"current" | "add">("current");
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
   const { apiCall } = useGlobalAPIHelper();
 
@@ -38,7 +38,7 @@ export default function PostShareModal({
       setAvailableUsers(allUsers.filter((user: User) => !user.isaccepted));
     } catch (error) {
       console.error("Error loading post shares:", error);
-      setPopup({ message: "Failed to load post shares", status: "failure" });
+      // setPopup({ message: "Failed to load post shares", status: "failure" });
     } finally {
       setIsLoading(false);
     }
@@ -59,17 +59,17 @@ export default function PostShareModal({
       );
 
       if (!res?.success) {
-        setPopup({
-          message: res?.Message || "Failed to add user",
-          status: "failure",
-        });
+        // setPopup({
+        //   message: res?.Message || "Failed to add user",
+        //   status: "failure",
+        // });
         return;
       }
 
       await loadPostShares();
     } catch (error) {
       console.error("Error adding user:", error);
-      setPopup({ message: "Failed to add user", status: "failure" });
+      // setPopup({ message: "Failed to add user", status: "failure" });
     }
   };
 
@@ -82,17 +82,17 @@ export default function PostShareModal({
       );
 
       if (!res?.success) {
-        setPopup({
-          message: res?.Message || "Failed to remove user",
-          status: "failure",
-        });
+        // setPopup({
+        //   message: res?.Message || "Failed to remove user",
+        //   status: "failure",
+        // });
         return;
       }
 
       await loadPostShares();
     } catch (error) {
       console.error("Error removing user:", error);
-      setPopup({ message: "Failed to remove user", status: "failure" });
+      // setPopup({ message: "Failed to remove user", status: "failure" });
     }
   };
 
@@ -226,13 +226,13 @@ export default function PostShareModal({
         </div>
       </div>
 
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }
