@@ -28,8 +28,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
-
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -109,7 +111,12 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
               {imagePreview && (
                 <div className="image-preview">
-                  <Image src={imagePreview || "/placeholder.svg"} alt="Preview" width={600} height={200}/>
+                  <Image
+                    src={imagePreview || "/placeholder.svg"}
+                    alt="Preview"
+                    width={600}
+                    height={200}
+                  />
                 </div>
               )}
             </div>
@@ -179,7 +186,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         />
       )}
     </div>
-
   );
 };
 

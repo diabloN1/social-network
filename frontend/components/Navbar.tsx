@@ -9,9 +9,9 @@ import {
   onMessageType,
   closeWebSocket,
 } from "@/helpers/webSocket";
-import fetchAllNotifications from "@/api/notif/getAllNotification";
 import logout from "@/api/auth/logout";
 import clearSessionCookie from "@/api/auth/clearSessionCookie";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -20,9 +20,14 @@ export default function Navbar() {
   const [joinRequestCount, setJoinRequestCount] = useState(0);
   const [followRequestCount, setFollowRequestCount] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { apiCall } = useGlobalAPIHelper();
 
   const fetchAllNotificationCounts = async () => {
-    const data = await fetchAllNotifications();
+    const data = await apiCall(
+      { type: "get-all-notifications" },
+      "POST",
+      "getAllNotifications"
+    );
     if (data && !data.error) {
       // console.log("notification", data);
 
@@ -34,8 +39,6 @@ export default function Navbar() {
     }
   };
 
-
-  
   // Updated handleLogout function for cookie-based sessions
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -56,7 +59,7 @@ export default function Navbar() {
       try {
         await clearSessionCookie();
       } catch (cookieError) {
-        // 
+        //
         console.error("Failed to clear session cookie:", cookieError);
       }
     } finally {
@@ -81,7 +84,7 @@ export default function Navbar() {
       setActiveTab("groups");
     } else if (pathname.includes("/app/chat")) {
       setActiveTab("chat");
-    } 
+    }
 
     const notificationTypes = [
       "followRequestHandled",
@@ -94,13 +97,12 @@ export default function Navbar() {
     );
 
     const unsubscribe = onMessageType("addMessage", () => {
-     fetchAllNotificationCounts();
+      fetchAllNotificationCounts();
     });
 
-   const NotificationsWs = onMessageType("notifications", () => {
-  fetchAllNotificationCounts(); 
-});
-
+    const NotificationsWs = onMessageType("notifications", () => {
+      fetchAllNotificationCounts();
+    });
 
     return () => {
       unsubscribe();

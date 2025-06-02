@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import getAvailableUsersToInvite from "@/api/groups/getAvailableUsersToInvite";
-import inviteUserToGroup from "@/api/groups/inviteUserToGroup";
+import getAvailableUsersToInvite from "@/api/pass-groups/pass-getAvailableUsersToInvite";
+import inviteUserToGroup from "@/api/pass-groups/pass-inviteUserToGroup";
 import "./group-invite-modal.css";
 
 interface User {

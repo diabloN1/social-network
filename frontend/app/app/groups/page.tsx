@@ -6,13 +6,10 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
 import CreateGroupModal from "@/components/create-group-modal";
-import createGroup from "@/api/groups/createGroup";
-import getGroups from "@/api/groups/getGroups";
-import requestJoinGroup from "@/api/groups/requestJoinGroup";
-import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
-import respondToGroupInvitation from "@/api/groups/respondToGroupInvitation";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import Popup from "../popup";
-import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
+// import deleteNewEventNotification from "@/api/pass-groups/deleteNewEventNotification";
 import Image from "next/image";
 import { GroupsData } from "@/types/group";
 
@@ -29,20 +26,17 @@ export default function GroupsPage() {
     status: "success" | "failure";
   } | null>(null);
 
+  const { apiCall } = useGlobalAPIHelper();
+
   const fetchGroupsData = async () => {
     try {
-      const data = await getGroups();
+      const data = await apiCall({ type: "get-groups" }, "POST", "getGroups");
       if (data.error) {
-        // console.log(data.error);
-
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
-      // console.log("data", data);
 
       setGroupsData(data);
-
-      // Extract group IDs from joinRequests to track pending requests
     } catch (error) {
       setPopup({ message: `${error}`, status: "failure" });
     }
@@ -77,7 +71,11 @@ export default function GroupsPage() {
     description: string;
   }) => {
     try {
-      const data = await createGroup(group);
+      const data = await apiCall(
+        { type: "create-group", data: { ...group } },
+        "POST",
+        "createGroup"
+      );
       if (data.error) {
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
@@ -94,7 +92,12 @@ export default function GroupsPage() {
   // Handle joining a group
   const handleJoinGroup = async (groupId: number) => {
     try {
-      const data = await requestJoinGroup(groupId);
+      // const data = await requestJoinGroup(GroupId :groupId);
+      const data = await apiCall(
+        { type: "request-join-group", data: { GroupId: groupId } },
+        "POST",
+        "requestJoinGroup"
+      );
       if (data.error) {
         setPopup({ message: `${data.error}`, status: "failure" });
 
@@ -112,7 +115,14 @@ export default function GroupsPage() {
   // Handle responding to invitations
   const handleInvitationResponse = async (groupId: number, accept: boolean) => {
     try {
-      const data = await respondToGroupInvitation(groupId, accept);
+      const data = await apiCall(
+        {
+          type: "respond-to-group-invitation",
+          data: { GroupId: groupId, Accept: accept },
+        },
+        "POST",
+        "respondToGroupInvitation"
+      );
       if (data.error) {
         setPopup({ message: `${data.error}`, status: "failure" });
         return;
@@ -137,7 +147,14 @@ export default function GroupsPage() {
     accept: boolean
   ) => {
     try {
-      const data = await respondToJoinRequest(userId, groupId, accept);
+      const data = await apiCall(
+        {
+          type: "respond-to-join-request",
+          data: { GroupId: groupId, UserId: userId, IsAccepted: accept },
+        },
+        "POST",
+        "respondToJoinRequest"
+      );
       if (data.error) {
         setPopup({ message: `${data.error}`, status: "failure" });
 
@@ -153,7 +170,11 @@ export default function GroupsPage() {
 
   const navigateToGroup = async (groupId: number) => {
     try {
-      await deleteNewEventNotification(groupId);
+      await apiCall(
+        { type: "delete-new-event-notification", data: { GroupId: groupId } },
+        "POST",
+        "deleteNotifNewEvent"
+      );
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }

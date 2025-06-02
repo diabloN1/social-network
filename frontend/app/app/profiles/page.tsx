@@ -5,12 +5,14 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
-import getProfiles from "@/api/profiles/getProfiles";
-import acceptFollow from "@/api/follow/acceptFollow";
-import deleteFollow from "@/api/follow/deleteFollow";
-import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
+// import getProfiles from "@/api/profiles/getProfiles";
+// import acceptFollow from "@/api/follow/acceptFollow";
+// import deleteFollow from "@/api/follow/deleteFollow";
+// import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
 import Popup from "../popup";
-import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
+// import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
 import Image from "next/image";
 
@@ -21,6 +23,7 @@ export default function ProfilesPage() {
   const [users, setUsers] = useState<User[] | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasNewFollow, setHasNewFollow] = useState(false);
+  const { apiCall } = useGlobalAPIHelper();
   const [popup, setPopup] = useState<{
     message: string;
     status: "success" | "failure";
@@ -30,8 +33,12 @@ export default function ProfilesPage() {
   const getData = async () => {
     try {
       const [profileData, followNotifData] = await Promise.all([
-        getProfiles(),
-        hasNewFollowNotification(),
+        apiCall({ type: "get-profiles" }, "POST", "getProfiles"),
+        apiCall(
+          { type: "check-new-follow-notification" },
+          "POST",
+          "getNewFollowNotification"
+        ),
       ]);
       // console.log("ddd", followNotifData);
 
@@ -39,7 +46,7 @@ export default function ProfilesPage() {
         alert(profileData.error || followNotifData.error);
         return;
       }
-      
+
       setCurrentUser(profileData.currentUser);
       setUsers(profileData.allUsers);
       setFollowRequests(profileData.followRequests);
@@ -71,7 +78,11 @@ export default function ProfilesPage() {
   // Handle accept follow request
   const handleAcceptRequest = async (userId: number) => {
     try {
-      const data = await acceptFollow(userId);
+      const data = await apiCall(
+        { type: "accept-follow", data: { profileId: userId } },
+        "POST",
+        "acceptFollow"
+      );
       if (data.error) {
         setPopup({ message: data.error, status: "failure" });
         return;
@@ -88,7 +99,14 @@ export default function ProfilesPage() {
   // Handle decline follow request
   const handleDeclineRequest = async (userId: number) => {
     try {
-      const data = await deleteFollow(userId, false);
+      const data = await apiCall(
+        {
+          type: "delete-follow",
+          data: { profileId: userId, IsFollower: false },
+        },
+        "POST",
+        "deleteFollow"
+      );
       if (data.error) {
         setPopup({ message: data.error, status: "failure" });
         return;
@@ -105,7 +123,11 @@ export default function ProfilesPage() {
   // Navigate to user profile
   const navigateToProfile = async (id: number) => {
     try {
-      await deleteFollowNotification(id);
+      await apiCall(
+        { type: "delete-follow-notification", data: { profileId: id } },
+        "POST",
+        "deleteFollowNotif"
+      );
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }

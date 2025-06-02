@@ -3,7 +3,8 @@
 import type React from "react";
 import { useState, useRef } from "react";
 import Image from "next/image";
-import addGroupComment from "@/api/groups/addGroupComment";
+// import addGroupComment from "@/api/groups/addGroupComment";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
 
@@ -27,6 +28,7 @@ export default function GroupCommentForm({
     message: string;
     status: "success" | "failure";
   } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,7 +90,15 @@ export default function GroupCommentForm({
       }
 
       // Add comment
-      const result = await addGroupComment(postId, newComment.trim(), filename);
+      // const result = await addGroupComment(postId, newComment.trim(), filename);
+      const result = await apiCall(
+        {
+          type: "add-group-comment",
+          data: { PostId: postId, Text: newComment.trim(), Image: filename },
+        },
+        "POST",
+        "addGroupComment"
+      );
 
       if (result.error) {
         setPopup({

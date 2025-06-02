@@ -1,11 +1,11 @@
-'use server'
+"use server";
 
-import { cookies } from 'next/headers'
+import { cookies } from "next/headers";
 
 const getMessages = async (id: number, isGroup: boolean) => {
   try {
-    const cookieStore = await cookies()
-    const token = cookieStore.get('token')?.value || ''
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value || "";
 
     const response = await fetch("http://localhost:8080/getMessages", {
       method: "POST",
@@ -15,7 +15,7 @@ const getMessages = async (id: number, isGroup: boolean) => {
       body: JSON.stringify({
         session: token,
         id: id,
-        isGroup
+        isGroup,
       }),
     });
     const data = await response.json();
@@ -23,7 +23,7 @@ const getMessages = async (id: number, isGroup: boolean) => {
     // console.log(data);
 
     if (data.error == "Invalid session") {
-        cookieStore.delete('token');
+      cookieStore.delete("token");
     }
     return data;
   } catch (err) {
@@ -31,4 +31,4 @@ const getMessages = async (id: number, isGroup: boolean) => {
   }
 };
 
-export default getMessages
+export default getMessages;

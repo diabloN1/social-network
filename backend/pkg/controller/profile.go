@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"fmt"
 	"real-time-forum/pkg/model"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"

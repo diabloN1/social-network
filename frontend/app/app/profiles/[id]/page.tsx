@@ -106,7 +106,10 @@ export default function ProfilePage() {
           onConfirm: async () => {
             try {
               const data = await apiCall(
-                { type: "followReq", data: { userID: userId, state: true } },
+                {
+                  type: "delete-follow",
+                  data: { ProfileId: userId, IsFollower: true },
+                },
                 "POST",
                 "deleteFollow"
               );
@@ -130,7 +133,7 @@ export default function ProfilePage() {
         });
       } else if (!user?.follow?.id) {
         const data = await apiCall(
-          { type: "followReq", data: { userID: userId } },
+          { type: "request-follow", data: { ProfileId: userId } },
           "POST",
           "requestFollow"
         );

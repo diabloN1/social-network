@@ -5,23 +5,17 @@ import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import getGroupData from "@/api/groups/getGroupData";
-import reactToGroupPost from "@/api/groups/reactToGroupPost";
-import getGroupComments from "@/api/groups/getGroupComments";
 import GroupCommentForm from "@/components/group-comment-form";
 import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
 import CreateEventModal from "@/components/create-event-modal";
 import GroupInviteModal from "@/components/group-invite-modal";
-import addGroupPost from "@/api/groups/addGroupPost";
-import addGroupEvent from "@/api/groups/addGroupEvent";
-import addEventOption from "@/api/groups/addEventOption";
-import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import "./group.css";
 import { Group } from "@/types/group";
 import { Post, Reaction } from "@/types/post";
 import { Comment } from "@/types/comment";
 import Popup from "../../popup";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -43,6 +37,8 @@ export default function GroupDetailPage() {
     status: "success" | "failure";
   } | null>(null);
 
+  const { apiCall } = useGlobalAPIHelper();
+
   // Reaction and comment states
   const [postReactions, setPostReactions] = useState<{
     [key: number]: Reaction;
@@ -57,7 +53,11 @@ export default function GroupDetailPage() {
   const fetchGroupData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getGroupData(groupId);
+      const data = await apiCall(
+        { type: "get-group-data", data: { GroupId: groupId } },
+        "POST",
+        "getGroup"
+      );
 
       if (data.error) {
         setError(data.error);
@@ -134,7 +134,14 @@ export default function GroupDetailPage() {
     });
 
     try {
-      await reactToGroupPost(postId, newReaction);
+      await apiCall(
+        {
+          type: "react-to-group-post",
+          data: { PostId: postId, Reaction: newReaction },
+        },
+        "POST",
+        "reactToGroupPost"
+      );
     } catch (error) {
       // Revert on error
       setPostReactions((prev) => ({
@@ -157,19 +164,23 @@ export default function GroupDetailPage() {
   // Comment handling
   const loadComments = async (postId: number) => {
     try {
-      const commentsData = await getGroupComments(postId);
+      const commentsData = await apiCall(
+        { type: "get-group-comments", data: { PostId: postId } },
+        "POST",
+        "getGroupComments"
+      );
       if (commentsData.error) {
         throw new Error(commentsData.error);
       }
 
       if (
-        commentsData.posts &&
-        commentsData.posts[0] &&
-        commentsData.posts[0].comments
+        commentsData.post &&
+        commentsData.post &&
+        commentsData.post.comments
       ) {
         setPostComments((prev) => ({
           ...prev,
-          [postId]: commentsData.posts[0].comments,
+          [postId]: commentsData.post.comments,
         }));
       }
     } catch (error) {
@@ -190,6 +201,7 @@ export default function GroupDetailPage() {
       }));
 
       if (!postComments[postId]) {
+        console.log("i'm here mate !!");
         await loadComments(postId);
       }
     }
@@ -201,12 +213,17 @@ export default function GroupDetailPage() {
 
   // Post creation
   const handleCreatePost = async (postData: {
-    image: string;
-    caption: string;
-    groupId?: number;
+    GroupId?: number;
+    Image: string;
+    Caption: string;
   }) => {
     try {
-      const data = await addGroupPost(postData);
+      // const data = await addGroupPost(postData);
+      const data = await apiCall(
+        { type: "add-group-post", data: { ...postData } },
+        "POST",
+        "addGroupPost"
+      );
       if (data.error) {
         setPopup({ message: `${error}`, status: "failure" });
         return;
@@ -221,18 +238,20 @@ export default function GroupDetailPage() {
 
   // Event creation
   const handleCreateEvent = async (event: {
-    title: string;
-    description: string;
-    option1: string;
-    option2: string;
-    date: string;
-    place: string;
+    Title: string;
+    Description: string;
+    Option1: string;
+    Option2: string;
+    Date: string;
+    Place: string;
   }) => {
     try {
-      const data = await addGroupEvent({
-        groupId,
-        ...event,
-      });
+      console.log(event);
+      const data = await apiCall(
+        { type: "add-group-event", data: { GroupId: groupId, ...event } },
+        "POST",
+        "addGroupEvent"
+      );
       if (data.error) {
         alert(data.error);
         return;
@@ -249,7 +268,15 @@ export default function GroupDetailPage() {
   const handleEventResponse = async (eventId: number, going: boolean) => {
     if (!group) return;
     try {
-      const data = await addEventOption(groupId, eventId, going);
+      // const data = await addEventOption(groupId, eventId, going);
+      const data = await apiCall(
+        {
+          type: "add-event-option",
+          data: { GroupId: groupId, EventId: eventId, Option: going },
+        },
+        "POST",
+        "addEventOption"
+      );
       // console.log(data);
       fetchGroupData();
     } catch (error) {
@@ -260,7 +287,11 @@ export default function GroupDetailPage() {
   // Join group
   const handleJoinGroup = async () => {
     try {
-      const data = await requestJoinGroup(groupId);
+      const data = await apiCall(
+        { type: "request-join-group", data: { GroupId: groupId } },
+        "POST",
+        "requestJoinGroup"
+      );
       if (data.error) {
         setPopup({ message: data.error, status: "failure" });
         return;
