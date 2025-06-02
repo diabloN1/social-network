@@ -111,3 +111,22 @@ type RespondToJoinRequest struct {
 	UserId     int  `json:"userId"`
 	IsAccepted bool `json:"isAccepted"`
 }
+
+type AddGroupComment struct {
+	PostId int    `json:"postId"`
+	Text   string `json:"text"`
+	Image  string `json:"image"`
+}
+
+type GetGroupComments struct {
+	PostId int `json:"postId"`
+}
+
+type ReactToGroupPost struct {
+	PostId   int   `json:"postId"`
+	Reaction *bool `json:"reaction"`
+}
+
+type GetGroupPost struct {
+	PostId int `json:"postId"`
+}

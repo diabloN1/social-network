@@ -3,171 +3,103 @@ package controller
 import (
 	"log"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) AddGroupComment(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "newGroupComment",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	var text, image string
-	var ok bool
-
-	// Validate postId
-	postIdRaw, ok := request["postId"]
+func (s *Server) AddGroupComment(payload *RequestT) any {
+	data, ok := payload.data.(*request.AddGroupComment)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	postId, ok = postIdRaw.(float64)
+	userId, ok := payload.context["user_id"].(int)
 	if !ok {
-		response.Error = "'postId' must be a float64"
-		return response
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	// Validate text
-	textRaw, ok := request["text"]
-	if !ok {
-		response.Error = "Missing 'text' field"
-		return response
+	if data.Text == "" && data.Image == "" {
+		return &response.Error{Code: 400, Cause: "Comment text cannot be empty"}
 	}
-	text, ok = textRaw.(string)
-	if !ok {
-		response.Error = "'text' must be a string"
-		return response
+	if len(data.Text) > 500 {
+		return &response.Error{Code: 400, Cause: "Comment text exceeds maximum length of 500 characters"}
 	}
 
-	imageRaw, ok := request["image"]
-	if !ok {
-		response.Error = "Missing 'image' field"
-		return response
-	}
-	image, ok = imageRaw.(string)
-	if !ok {
-		response.Error = "'image' must be a string"
-		return response
-	}
-
-	if text == "" && image == "" {
-		response.Error = "Comment text cannot be empty"
-		return response
-	}
-
-	if len(text) > 500 {
-		response.Error = "Comment text exceeds maximum length of 500 characters"
-		return response
-	}
-
-	// Check if user is member of the group that owns this post
-	isMember, err := s.repository.Group().IsGroupPostMember(res.Userid, int(postId))
+	isMember, err := s.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {
-		response.Error = "You are not a member of this group"
-		return response
+		return &response.Error{Code: 403, Cause: "You are not a member of this group"}
 	}
 
-	// Create comment
+	user, err := s.repository.User().Find(userId)
+	if err != nil {
+		return &response.Error{Code: 500, Cause: "Error finding user"}
+	}
+
 	comment := &model.Comment{
-		UserId: res.Userid,
-		PostId: int(postId),
-		Text:   text,
-		Image:  image,
-		Author: res.User.Username,
+		UserId: userId,
+		PostId: data.PostId,
+		Text:   data.Text,
+		Image:  data.Image,
+		Author: user.Username,
 	}
 
 	if len(comment.Text) > 10000 {
 		log.Println("Error adding group comment:")
-		response.Error = "comment cannot be too large: "
-		return response
+		return &response.Error{Code: 400, Cause: "Comment cannot be too large"}
 	}
 
-	// Add comment to database
 	err = s.repository.Group().AddGroupComment(comment)
 	if err != nil {
 		log.Println("Error adding group comment:", err)
-		response.Error = "Error adding comment: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error adding comment: " + err.Error()}
 	}
 
-	// Get the updated comments for the post
-	comments, err := s.repository.Group().GetGroupCommentsByPostId(int(postId))
+	comments, err := s.repository.Group().GetGroupCommentsByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting group comments:", err)
-		response.Error = "Error getting comments: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting comments: " + err.Error()}
 	}
 
-	// Get post data to return with comments
-	post, err := s.repository.Group().GetGroupPostById(res.Userid, int(postId))
+	post, err := s.repository.Group().GetGroupPostById(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting group post data:", err)
-		response.Error = "Error getting post data: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting post data: " + err.Error()}
 	}
 
 	post.Comment = comments
-	response.Posts = []*model.Post{post}
-	return response
+	return &response.AddGroupComment{
+		Post: post,
+	}
 }
 
-func (s *Server) GetGroupComments(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "groupComments",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	var ok bool
-
-	// Validate postId
-	postIdRaw, ok := request["postId"]
+func (s *Server) GetGroupComments(payload *RequestT) any {
+	data, ok := payload.data.(*request.GetGroupComments)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	postId, ok = postIdRaw.(float64)
+	userId, ok := payload.context["user_id"].(int)
 	if !ok {
-		response.Error = "'postId' must be a float64"
-		return response
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	// Check if user is member of the group that owns this post
-	isMember, err := s.repository.Group().IsGroupPostMember(res.Userid, int(postId))
+	isMember, err := s.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {
-		response.Error = "You are not a member of this group"
-		return response
+		return &response.Error{Code: 403, Cause: "You are not a member of this group"}
 	}
 
-	// Get comments for post
-	comments, err := s.repository.Group().GetGroupCommentsByPostId(int(postId))
+	comments, err := s.repository.Group().GetGroupCommentsByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting group comments:", err)
-		response.Error = "Error getting comments: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting comments: " + err.Error()}
 	}
 
-	// Get post data to return with comments
-	post, err := s.repository.Group().GetGroupPostById(res.Userid, int(postId))
+	post, err := s.repository.Group().GetGroupPostById(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting group post data:", err)
-		response.Error = "Error getting post data: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting post data: " + err.Error()}
 	}
 
 	post.Comment = comments
-	response.Posts = []*model.Post{post}
-	return response
+	return &response.GetGroupComments{
+		Post: post,
+	}
 }

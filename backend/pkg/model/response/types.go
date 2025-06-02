@@ -54,10 +54,26 @@ type GetProfile struct {
 
 type GetProfiles struct {
 	FollowRequests []*model.User `json:"followRequests"`
-	AllUsers       []*model.User   `json:"allUsers"`
-	CurrentUser    *model.User     `json:"currentUser"`
+	AllUsers       []*model.User `json:"allUsers"`
+	CurrentUser    *model.User   `json:"currentUser"`
 }
 
 type SetProfilePrivacy struct {
 	Success bool `json:"success"`
+}
+
+type AddGroupComment struct {
+	Post *model.Post `json:"post"`
+}
+
+type GetGroupComments struct {
+	Post *model.Post `json:"post"`
+}
+
+type ReactToGroupPost struct {
+	Post *model.Post `json:"post"`
+}
+
+type GetGroupPost struct {
+	Post *model.Post `json:"post"`
 }
