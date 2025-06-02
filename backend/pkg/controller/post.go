@@ -9,14 +9,14 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPosts(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetPosts)
+func (s *Server) GetPosts(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPosts)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 
 	}
 
-	user_id := payload.context["user_id"].(int)
+	user_id := payload.Context["user_id"].(int)
 
 	posts, err := s.repository.Post().GetPosts(user_id, data.StartId)
 	if err != nil {
@@ -30,13 +30,13 @@ func (s *Server) GetPosts(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetPostData(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetPost)
+func (s *Server) GetPostData(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id, _ := payload.context["user_id"].(int)
+	user_id, _ := payload.Context["user_id"].(int)
 	post, err := s.repository.Post().GetPostById(user_id, data.PostId)
 
 	if err != nil {
@@ -59,9 +59,9 @@ func (s *Server) GetPostData(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AddPost(payload *RequestT) any {
+func (s *Server) AddPost(payload *request.RequestT) any {
 	fmt.Println(payload)
-	data, ok := payload.data.(*request.AddPost)
+	data, ok := payload.Data.(*request.AddPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
@@ -74,7 +74,7 @@ func (s *Server) AddPost(payload *RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid privacy type"}
 	}
 
-	user, err := s.repository.User().Find(payload.context["user_id"].(int))
+	user, err := s.repository.User().Find(payload.Context["user_id"].(int))
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "An error has aquired while finding user"}
 	}
@@ -94,7 +94,7 @@ func (s *Server) AddPost(payload *RequestT) any {
 	if len(post.Caption) > 1000 {
 		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
 	}
-	
+
 	err = s.repository.Post().Add(post)
 	if err != nil {
 		log.Println("Error adding post:", err)

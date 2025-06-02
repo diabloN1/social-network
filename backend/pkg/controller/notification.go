@@ -2,170 +2,140 @@ package controller
 
 import (
 	"log"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 	"time"
 )
 
-func (s *Server) GetAllNotifications(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
-
-	res := s.ValidateSession(request)
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
+func (s *Server) GetAllNotifications(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
+	if !ok {
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	messageUnread := 0
-	groupRequests := 0
-	followRequests := 0
-	invitations := 0
-	pmCount, err := s.repository.Message().CountUnreadPM(res.Userid)
+	pmCount, err := s.repository.Message().CountUnreadPM(userId)
 	if err != nil {
 		log.Println("Error getting unread PM count:", err)
 		pmCount = 0
 	}
 
-	groupMessageCount, err := s.repository.Message().CountUnreadGroup(res.Userid)
+	groupMessageCount, err := s.repository.Message().CountUnreadGroup(userId)
 	if err != nil {
 		log.Println("Error getting unread group messages:", err)
 		groupMessageCount = 0
 	}
 
-	messageUnread = pmCount + groupMessageCount
+	messageUnread := pmCount + groupMessageCount
 
-	groupRequests, err = s.repository.Group().CountPendingJoinRequests(res.Userid)
+	groupRequests, err := s.repository.Group().CountPendingJoinRequests(userId)
 	if err != nil {
 		log.Println("Error getting group join requests:", err)
 		groupRequests = 0
 	}
 
-	followRequests, err = s.repository.Follow().GetFollowRequestCount(res.Userid)
+	followRequests, err := s.repository.Follow().GetFollowRequestCount(userId)
 	if err != nil {
 		log.Println("Error getting follow requests:", err)
 		followRequests = 0
 	}
-	publicFollowRequests, err := s.repository.Follow().CountPublicFollowRequests(res.Userid)
+	publicFollowRequests, err := s.repository.Follow().CountPublicFollowRequests(userId)
 	if err != nil {
 		log.Println("Error getting public follow requests:", err)
 		publicFollowRequests = 0
 	}
 	followRequests += publicFollowRequests
-	var eventCreatedCount int = 0
 
-	eventCreatedCount, err = s.repository.Group().CountNewEvents(res.Userid)
+	eventCreatedCount, err := s.repository.Group().CountNewEvents(userId)
 	if err != nil {
 		log.Println("Error getting event created count:", err)
 		eventCreatedCount = 0
 	}
 	groupRequests += eventCreatedCount
 
-	invitations, err = s.repository.Group().GetGroupJoinInvitations(res.Userid)
+	invitations, err := s.repository.Group().GetGroupJoinInvitations(userId)
 	if err != nil {
 		log.Println("Error getting event created count:", err)
 		invitations = 0
 	}
-	// fmt.Println("iiiiiiiiii",invitations)
 	groupRequests += invitations
 
-	response["notifications"] = map[string]int{
+	notifications := map[string]int{
 		"messageUnread":  messageUnread,
 		"groupRequests":  groupRequests,
 		"followRequests": followRequests,
 	}
+	totalCount := messageUnread + groupRequests + followRequests
 
-	response["totalCount"] = messageUnread + groupRequests + followRequests
-	return response
+	return &response.GetAllNotifications{
+		Notifications: notifications,
+		TotalCount:    totalCount,
+	}
 }
 
-func (s *Server) CheckNewFollowNotification(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
-
-	res := s.ValidateSession(request)
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
+func (s *Server) CheckNewFollowNotification(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
+	if !ok {
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	users, err := s.repository.Follow().GetNewFollowers(res.Userid)
+	users, err := s.repository.Follow().GetNewFollowers(userId)
 	if err != nil {
-		response["error"] = "Database error"
-		return response
+		return &response.Error{Code: 500, Cause: "Database error"}
 	}
 
-	response["hasNewFollow"] = len(users) > 0
-	response["newFollowers"] = users
-	return response
+	return &response.CheckNewFollowNotification{
+		HasNewFollow: len(users) > 0,
+		NewFollowers: users,
+	}
 }
 
-func (s *Server) DeleteFollowNotification(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
-
-	res := s.ValidateSession(request)
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-
-	profileIDRaw, ok := request["profileId"]
+func (s *Server) DeleteFollowNotification(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.DeleteFollowNotification)
 	if !ok {
-		response["error"] = "Missing profile ID"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	profileID, ok := profileIDRaw.(float64)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
-		response["error"] = "Invalid profile ID format"
-		return response
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	err := s.repository.Follow().DeleteNotif(int(profileID), res.Userid)
+	err := s.repository.Follow().DeleteNotif(data.ProfileId, userId)
 	if err != nil {
-		response["error"] = "Error deleting follow notification"
 		log.Println("Error deleting follow notification:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error deleting follow notification"}
 	}
 	notification := map[string]any{
 		"type":       "notifications",
-		"followerId": profileID,
+		"followerId": data.ProfileId,
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),
 	}
-	s.sendNotificationToUser(int(res.Userid), notification)
-	response["message"] = "Notification deleted"
-	return response
+	s.sendNotificationToUser(userId, notification)
+	return &response.DeleteFollowNotification{
+		Message: "Notification deleted",
+	}
 }
-func (s *Server) DeleteNewEventNotification(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
 
-	res := s.ValidateSession(request)
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-
-	groupIdRaw, ok := request["groupId"]
+func (s *Server) DeleteNewEventNotification(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.DeleteNewEventNotification)
 	if !ok {
-		response["error"] = "Missing group ID"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	groupId, ok := groupIdRaw.(float64)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
-		response["error"] = "Invalid group ID format"
-		return response
+		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
 
-	err := s.repository.Follow().DeleteEventNotif(int(groupId), res.Userid)
+	err := s.repository.Follow().DeleteEventNotif(data.GroupId, userId)
 	if err != nil {
-		response["error"] = "Error deleting follow notification"
 		log.Println("Error deleting follow notification:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error deleting follow notification"}
 	}
 	notification := map[string]any{
 		"type": "notifications",
 	}
-	s.sendNotificationToUser(int(res.Userid), notification)
-	response["message"] = "Notification deleted"
-	return response
+	s.sendNotificationToUser(userId, notification)
+	return &response.DeleteNewEventNotification{
+		Message: "Notification deleted",
+	}
 }

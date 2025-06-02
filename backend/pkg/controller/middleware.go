@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"path/filepath"
+	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
 	"strconv"
 	"strings"
@@ -163,7 +164,7 @@ func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) cookieMiddleware(next HandlerFunc, req *RequestT) http.Handler {
+func (s *Server) cookieMiddleware(next HandlerFunc, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/login" || r.URL.Path == "/register" {
 			next.ServeHTTP(w, req)
@@ -183,7 +184,7 @@ func (s *Server) cookieMiddleware(next HandlerFunc, req *RequestT) http.Handler 
 			return
 		}
 
-		req.context["user_id"] = uid
+		req.Context["user_id"] = uid
 		next.ServeHTTP(w, req)
 	})
 }

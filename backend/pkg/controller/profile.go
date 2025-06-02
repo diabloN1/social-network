@@ -7,15 +7,13 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetProfile(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetProfile)
+func (s *Server) GetProfile(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetProfile)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.context["user_id"].(int)
-	fmt.Println(userId)
-	fmt.Println(data.ProfileId)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -30,8 +28,8 @@ func (s *Server) GetProfile(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetProfiles(payload *RequestT) any {
-	userId, ok := payload.context["user_id"].(int)
+func (s *Server) GetProfiles(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -63,13 +61,13 @@ func (s *Server) GetProfiles(payload *RequestT) any {
 	}
 }
 
-func (s *Server) SetProfilePrivacy(payload *RequestT) any {
-	data, ok := payload.data.(*request.SetProfilePrivacy)
+func (s *Server) SetProfilePrivacy(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.SetProfilePrivacy)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}

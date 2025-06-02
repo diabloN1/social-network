@@ -7,15 +7,15 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToPost(payload *RequestT) any {
-	data, ok := payload.data.(*request.ReactToPost)
+func (s *Server) ReactToPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.ReactToPost)
 	if !ok {
 		return &response.Error{
 			Code: 400, Cause: "Invalid payload type",
 		}
 	}
 
-	user_id := payload.context["user_id"].(int)
+	user_id := payload.Context["user_id"].(int)
 
 	err := s.repository.Reaction().UpsertReaction(user_id, data.PostId, data.Reaction)
 	if err != nil {

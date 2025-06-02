@@ -130,3 +130,35 @@ type ReactToGroupPost struct {
 type GetGroupPost struct {
 	PostId int `json:"postId"`
 }
+
+type RequestFollow struct {
+	ProfileId int `json:"profileId"`
+}
+
+type AcceptFollow struct {
+	ProfileId int `json:"profileId"`
+}
+
+type DeleteFollow struct {
+	ProfileId  int  `json:"profileId"`
+	IsFollower bool `json:"isFollower"`
+}
+
+type GetMessages struct {
+	Id      int  `json:"id"`
+	IsGroup bool `json:"isGroup"`
+}
+
+type AddMessage struct {
+	Id      int    `json:"id"`
+	IsGroup bool   `json:"isGroup"`
+	Message string `json:"message"`
+}
+
+type DeleteFollowNotification struct {
+	ProfileId int `json:"profileId"`
+}
+
+type DeleteNewEventNotification struct {
+	GroupId int `json:"groupId"`
+}

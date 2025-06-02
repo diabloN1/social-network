@@ -2,13 +2,11 @@ package controller
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"real-time-forum/pkg/db/sqlite"
-	"real-time-forum/pkg/model"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
 	"real-time-forum/pkg/repository"
@@ -26,7 +24,7 @@ type Server struct {
 	mu         sync.RWMutex
 }
 
-func (s *Server) AddRoute(pattern string, handler func(*RequestT) any, middlewares ...http.HandlerFunc) {
+func (s *Server) AddRoute(pattern string, handler func(*request.RequestT) any, middlewares ...http.HandlerFunc) {
 	h := HandlerFunc(handler)
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
@@ -35,28 +33,19 @@ func (s *Server) AddRoute(pattern string, handler func(*RequestT) any, middlewar
 			return
 		}
 
-		reqData, err := request.Unmarshal(body)
+		_, reqData, err := request.Unmarshal(body)
 		if err != nil {
 			h.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
 			return
 		}
 
-		request := &RequestT{
-			data:    reqData,
-			context: make(map[string]any),
-		}
-		s.cookieMiddleware(h, request).ServeHTTP(resp, req)
+		s.cookieMiddleware(h, reqData).ServeHTTP(resp, req)
 	})
 }
 
-type RequestT struct {
-	data    any
-	context map[string]any
-}
+type HandlerFunc func(*request.RequestT) any
 
-type HandlerFunc func(*RequestT) any
-
-func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, request *RequestT) {
+func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, request *request.RequestT) {
 	res := h(request)
 	status, body := response.Marshal(res)
 	w.Header().Set("Content-Type", "application/json")
@@ -65,6 +54,14 @@ func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, request *RequestT) {
 }
 
 func (h HandlerFunc) ServeError(w http.ResponseWriter, err *response.Error) {
+	fmt.Println("Serving error:", err.Cause)
+	status, body := response.Marshal(err)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
+}
+
+func (s *Server) ServeError(w http.ResponseWriter, err *response.Error) {
 	fmt.Println("Serving error:", err.Cause)
 	status, body := response.Marshal(err)
 	w.Header().Set("Content-Type", "application/json")
@@ -116,9 +113,9 @@ func Start() error {
 	s.AddRoute("/setPrivacy", s.SetProfilePrivacy)
 
 	// Follows
-	s.router.HandleFunc("/requestFollow", s.requestFollowHandler)
-	s.router.HandleFunc("/acceptFollow", s.acceptFollowHandler)
-	s.router.HandleFunc("/deleteFollow", s.deleteFollowHandler)
+	s.AddRoute("/requestFollow", s.RequestFollow)
+	s.AddRoute("/acceptFollow", s.AcceptFollow)
+	s.AddRoute("/deleteFollow", s.DeleteFollow)
 
 	// Groups
 	s.AddRoute("/createGroup", s.CreateGroup)
@@ -142,13 +139,14 @@ func Start() error {
 	s.AddRoute("/respondToGroupInvitation", s.RespondToGroupInvitation)
 
 	// Chat
-	s.router.HandleFunc("/getChatData", s.GetChatHandler)
-	s.router.HandleFunc("/getMessages", s.GetMessagesHandler)
+	s.AddRoute("/getChatData", s.GetChat)
+	s.AddRoute("/getMessages", s.GetMessages)
+
 	//notif
-	s.router.HandleFunc("/getAllNotifications", s.GetAllNotificationsHandler)
-	s.router.HandleFunc("/getNewFollowNotification", s.GetNewFollowNotificationHandler)
-	s.router.HandleFunc("/deleteFollowNotif", s.DeleteFollowNotif)
-	s.router.HandleFunc("/deleteNotifNewEvent", s.deleteNotifNewEvent)
+	s.AddRoute("/getAllNotifications", s.GetAllNotifications)
+	s.AddRoute("/getNewFollowNotification", s.CheckNewFollowNotification)
+	s.AddRoute("/deleteFollowNotif", s.DeleteFollowNotification)
+	s.AddRoute("/deleteNotifNewEvent", s.DeleteNewEventNotification)
 
 	// ws
 	s.router.HandleFunc("/ws", s.WebSocketHandler)
@@ -205,28 +203,9 @@ func (s *Server) removeClient(client *Client) {
 			} else {
 				s.clients[client.UserId] = append(s.clients[client.UserId][:i], s.clients[client.UserId][i+1:]...)
 			}
-			s.BroadcastOnlineUsers()
 			return
 		}
 	}
-}
-
-func (s *Server) BroadcastOnlineUsers() {
-	// response := model.Response{}
-	// response.Type = "online"
-	// wg := sync.WaitGroup{}
-	// wg.Add(len(s.clients))
-
-	// for _, c := range s.clients {
-	// 	go func(c *Client) {
-	// 		if c.Online == true {
-	// 			response.AllUsers = s.FindAllUsers(c.Userid)
-	// 			c.Connection.WriteJSON(response)
-	// 		}
-	// 		wg.Done()
-	// 	}(c)
-	// }
-	// wg.Wait()
 }
 
 func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
@@ -234,7 +213,6 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 
 		_, payload, err := conn.ReadMessage()
 		if err != nil {
-			s.BroadcastOnlineUsers()
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("Error reading message: %v", err)
 			}
@@ -242,83 +220,42 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 			break
 		}
 
-		var request map[string]any
-
-		err = json.Unmarshal(payload, &request)
+		reqType, reqBody, err := request.Unmarshal(payload)
 
 		if err != nil {
 			log.Println("Unmarshal payload err", err)
 			return
 		}
 
-		requestType, ok := request["type"].(string)
-		if !ok {
-			log.Println("Invalid or missing 'type' field in the request.")
-			return
-		}
-
-		switch requestType {
-		case "updateseenmessages":
-			s.UpdateSeenMessageWS(request)
-		case "sendmessage":
-			response := s.AddMessage(request)
-			if response["error"] != "" {
-				fmt.Println(response["error"])
+		switch reqType {
+		// case "updateseenmessages":
+		// 	s.UpdateSeenMessageWS(request)
+		case "add-message":
+			response, err := s.AddMessage(reqBody)
+			if err != nil {
+				s.ShowMessage(client, err)
+				continue
 			}
 			s.SentToActiveRecipient(response)
-			// case "updateseenmessage":
-			// 	s.UpdateSeenMessage(request)
-			// 	response.Type = "updatetotal"
-			// 	userid := int(request["userid"].(float64))
-			// 	notifications, err := s.repository.Message().GetTotalNotifications(userid)
-			// 	if err != nil {
-			// 		log.Println("Error in Get Total:", err)
-			// 	}
-			// 	response.TotalNotifications = notifications
-			// case "typing":
-			// 	response = s.UpdateIsTyping(request)
-			// 	if response.Error == "" {
-			// 		s.SendIsTyping(response)
-			// 	}
-
 		}
-
-		// s.mu.Lock()
-
-		// if response.Session != "" {
-		// 	// response.Categories = s.GetCategoryAllData()
-		// 	response.AllUsers = s.FindAllUsers(response.Userid)
-		// }
-
-		// if response.Error != "" || (response.Type != "newmessage" && response.Type != "updatetyping") {
-		// 	client.WriteJSON(response)
-		// }
-		// if response.Type != "updatetyping" {
-		// 	s.BroadcastOnlineUsers()
-		// }
-
-		// s.mu.Unlock()
 	}
 }
 
-func (s *Server) SentToActiveRecipient(response map[string]any) {
-	if response["error"] != "" {
-		return
-	}
+func (s *Server) SentToActiveRecipient(response *response.AddMessage) {
 
-	senderId := response["message"].(*model.Message).SenderId
-	RecipientId := response["message"].(*model.Message).RecipientId
-	groupId := response["message"].(*model.Message).GroupId
+	senderId := response.Message.SenderId
+	RecipientId := response.Message.RecipientId
+	groupId := response.Message.GroupId
 
 	for _, c := range s.clients[senderId] {
-		response["isOwned"] = true
+		response.Message.IsOwned = true
 		s.ShowMessage(c, response)
 	}
 
 	if RecipientId != 0 {
 		// Brodcast to RecipientId
 		for _, c := range s.clients[RecipientId] {
-			response["isOwned"] = false
+			response.Message.IsOwned = false
 			s.ShowMessage(c, response)
 		}
 	} else {
@@ -332,31 +269,18 @@ func (s *Server) SentToActiveRecipient(response map[string]any) {
 		for _, u := range users {
 			if u.ID != senderId {
 				for _, c := range s.clients[u.ID] {
-					response["isOwned"] = false
+					response.Message.IsOwned = false
 					s.ShowMessage(c, response)
 				}
 			}
 		}
 	}
-
 }
 
-func (s *Server) ShowMessage(client *Client, response map[string]any) {
+func (s *Server) ShowMessage(client *Client, response any) {
 	if client == nil {
 		return
 	}
 
-	// notifications, err := s.repository.Message().GetTotalNotifications(client.Userid)
-	// if err != nil {
-	// 	log.Println("Error: ", err)
-	// }
-	// response.TotalNotifications = notifications
 	client.Connection.WriteJSON(response)
-}
-
-func (s *Server) SendIsTyping(response model.Response) {
-	clientsTargeted := s.clients[response.Userid]
-	for _, c := range clientsTargeted {
-		c.Connection.WriteJSON(response)
-	}
 }

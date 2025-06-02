@@ -7,13 +7,13 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) AddComment(payload *RequestT) any {
-	data, ok := payload.data.(*request.AddComment)
+func (s *Server) AddComment(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddComment)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -60,13 +60,13 @@ func (s *Server) AddComment(payload *RequestT) any {
 	return post
 }
 
-func (s *Server) GetComments(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetComments)
+func (s *Server) GetComments(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetComments)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
