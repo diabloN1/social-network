@@ -113,20 +113,20 @@ type RespondToJoinRequest struct {
 }
 
 type AddGroupComment struct {
-	PostId int    `json:"postId"`
-	Text   string `json:"text"`
-	Image  string `json:"image"`
-	GroupId int `json:"groupId"`
+	PostId  int    `json:"postId"`
+	Text    string `json:"text"`
+	Image   string `json:"image"`
+	GroupId int    `json:"groupId"`
 }
 
 type GetGroupComments struct {
-	PostId int `json:"postId"`
+	PostId  int `json:"postId"`
 	GroupId int `json:"groupId"`
 }
 
 type ReactToGroupPost struct {
 	PostId   int   `json:"postId"`
-	GroupId   int   `json:"groupId"`
+	GroupId  int   `json:"groupId"`
 	Reaction *bool `json:"reaction"`
 }
 

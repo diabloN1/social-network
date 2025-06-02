@@ -1,6 +1,6 @@
 // import { useError } from "@/context/ErrorContext";
 
-// export const useGlobalAPIHelper = () => {
+// export const useGlobloalAPIHelper = () => {
 //   const { showError } = useError();
 
 //   const apiCall = async (requestData: any, method: string, url: string) => {

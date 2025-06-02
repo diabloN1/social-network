@@ -185,3 +185,7 @@ type AddMessage struct {
 	Message *model.Message `json:"message"`
 	IsGroup bool           `json:"isGroup"`
 }
+
+type Logout struct {
+	Message string `json:"message"`
+}

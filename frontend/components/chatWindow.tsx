@@ -80,7 +80,7 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
                 type: "updateseenmessages",
                 id: currentChatId,
                 isGroup,
-                session: (await getToken()).session,
+                session: await getToken(),
               })
             );
           } catch (error) {

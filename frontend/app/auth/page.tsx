@@ -173,11 +173,10 @@ export default function AuthForm() {
               status: "failure",
             });
           }
-        }
-
-        if (data.session) {
+        } else {
           router.push("/app");
         }
+
       } catch (err) {
         setPopup({ message: "Failed to Register." + err, status: "failure" });
       }

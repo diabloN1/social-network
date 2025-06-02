@@ -8,10 +8,6 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const data = await getToken();
-  if (!data || data.error) {
-    redirect("/auth");
-  }
 
   return (
     <>
