@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import getAvailableUsersToInvite from "@/api/pass-groups/pass-getAvailableUsersToInvite";
-import inviteUserToGroup from "@/api/pass-groups/pass-inviteUserToGroup";
+// import getAvailableUsersToInvite from "@/api/pass-groups/pass-getAvailableUsersToInvite";
+// import inviteUserToGroup from "@/api/pass-groups/pass-inviteUserToGroup";
 import "./group-invite-modal.css";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 interface User {
   id: number;
@@ -30,11 +31,20 @@ export default function GroupInviteModal({
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [invitingUsers, setInvitingUsers] = useState<Set<number>>(new Set());
+  const { apiCall } = useGlobalAPIHelper();
 
   const loadAvailableUsers = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getAvailableUsersToInvite(groupId);
+      // const data = await getAvailableUsersToInvite(groupId);
+      const data = await apiCall(
+        {
+          type: "get-group-invite-users",
+          data: { GroupId: groupId },
+        },
+        "POST",
+        "getGroupInviteUsers"
+      );
 
       // console.log("data", data);
       if (data.error) {
@@ -63,7 +73,14 @@ export default function GroupInviteModal({
 
     try {
       setInvitingUsers((prev) => new Set(prev).add(userId));
-      const data = await inviteUserToGroup(groupId, userId);
+      const data = await apiCall(
+        {
+          type: "invite-user-to-group",
+          data: { GroupId: groupId, UserId: userId },
+        },
+        "POST",
+        "inviteUserToGroup"
+      );
 
       if (data.error) {
         alert(data.error);

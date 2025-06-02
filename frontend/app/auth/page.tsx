@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 import { useState } from "react";
 import "./auth-form.css";
@@ -342,7 +342,11 @@ export default function AuthForm() {
                 className="toggle-password"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <FontAwesomeIcon icon={faEyeSlash} /> :<FontAwesomeIcon icon={faEye} />}
+                {showPassword ? (
+                  <FontAwesomeIcon icon={faEyeSlash} />
+                ) : (
+                  <FontAwesomeIcon icon={faEye} />
+                )}
               </button>
             </div>
             {errors.password && (
