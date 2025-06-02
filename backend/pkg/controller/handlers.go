@@ -98,11 +98,11 @@ func (s *Server) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 // }
 
 // notification
-func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetAllNotifications(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetAllNotifications(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // Follow Handlers
 // func (s *Server) requestFollowHandler(w http.ResponseWriter, r *http.Request) {
@@ -112,17 +112,17 @@ func (s *Server) GetAllNotificationsHandler(w http.ResponseWriter, r *http.Reque
 // 	s.SendJson(w, response, err)
 // }
 
-func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.CheckNewFollowNotification(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) GetNewFollowNotificationHandler(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.CheckNewFollowNotification(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.DeleteFollowNotification(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.DeleteFollowNotification(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // func (s *Server) acceptFollowHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -184,11 +184,11 @@ func (s *Server) DeleteFollowNotif(w http.ResponseWriter, r *http.Request) {
 //		response := s.AddGroupEvent(request)
 //		s.SendJson(w, response, err)
 //	}
-func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
-	request, err := s.ReadRequest(r.Body)
-	response := s.DeleteNewEventNotification(request)
-	s.SendJson(w, response, err)
-}
+// func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.DeleteNewEventNotification(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // func (s *Server) AddEventOptionHandler(w http.ResponseWriter, r *http.Request) {
 
@@ -233,19 +233,19 @@ func (s *Server) deleteNotifNewEvent(w http.ResponseWriter, r *http.Request) {
 // 	s.SendJson(w, response, err)
 // }
 
-func (s *Server) GetChatHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) GetChatHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetChat(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetChat(request)
+// 	s.SendJson(w, response, err)
+// }
 
-func (s *Server) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
+// func (s *Server) GetMessagesHandler(w http.ResponseWriter, r *http.Request) {
 
-	request, err := s.ReadRequest(r.Body)
-	response := s.GetMessages(request)
-	s.SendJson(w, response, err)
-}
+// 	request, err := s.ReadRequest(r.Body)
+// 	response := s.GetMessages(request)
+// 	s.SendJson(w, response, err)
+// }
 
 // Images
 func (s *Server) UploadImageHandler(w http.ResponseWriter, r *http.Request) {

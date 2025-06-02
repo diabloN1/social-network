@@ -7,12 +7,12 @@ import (
 	"time"
 )
 
-func (s *Server) RequestFollow(payload *RequestT) any {
-	data, ok := payload.data.(*request.RequestFollow)
+func (s *Server) RequestFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RequestFollow)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -36,12 +36,12 @@ func (s *Server) RequestFollow(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AcceptFollow(payload *RequestT) any {
-	data, ok := payload.data.(*request.AcceptFollow)
+func (s *Server) AcceptFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AcceptFollow)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -63,12 +63,12 @@ func (s *Server) AcceptFollow(payload *RequestT) any {
 	}
 }
 
-func (s *Server) DeleteFollow(payload *RequestT) any {
-	data, ok := payload.data.(*request.DeleteFollow)
+func (s *Server) DeleteFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.DeleteFollow)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}

@@ -9,12 +9,12 @@ import (
 	"time"
 )
 
-func (s *Server) CreateGroup(payload *RequestT) any {
-	data, ok := payload.data.(*request.CreateGroup)
+func (s *Server) CreateGroup(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.CreateGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -34,8 +34,8 @@ func (s *Server) CreateGroup(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetGroups(payload *RequestT) any {
-	userId, ok := payload.context["user_id"].(int)
+func (s *Server) GetGroups(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -58,12 +58,12 @@ func (s *Server) GetGroups(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetGroupData(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetGroupData)
+func (s *Server) GetGroupData(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetGroupData)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -76,12 +76,12 @@ func (s *Server) GetGroupData(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AddGroupPost(payload *RequestT) any {
-	data, ok := payload.data.(*request.AddGroupPost)
+func (s *Server) AddGroupPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddGroupPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -114,12 +114,12 @@ func (s *Server) AddGroupPost(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AddGroupEvent(payload *RequestT) any {
-	data, ok := payload.data.(*request.AddGroupEvent)
+func (s *Server) AddGroupEvent(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddGroupEvent)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -163,12 +163,12 @@ func (s *Server) AddGroupEvent(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AddEventOption(payload *RequestT) any {
-	data, ok := payload.data.(*request.AddEventOption)
+func (s *Server) AddEventOption(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddEventOption)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -194,12 +194,12 @@ func (s *Server) AddEventOption(payload *RequestT) any {
 	}
 }
 
-func (s *Server) RequestJoinGroup(payload *RequestT) any {
-	data, ok := payload.data.(*request.RequestJoinGroup)
+func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RequestJoinGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -242,8 +242,8 @@ func (s *Server) RequestJoinGroup(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetJoinRequestCount(payload *RequestT) any {
-	userId, ok := payload.context["user_id"].(int)
+func (s *Server) GetJoinRequestCount(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -258,8 +258,8 @@ func (s *Server) GetJoinRequestCount(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetUnreadMessagesCountResponse(payload *RequestT) any {
-	userId, ok := payload.context["user_id"].(int)
+func (s *Server) GetUnreadMessagesCountResponse(payload *request.RequestT) any {
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -279,12 +279,12 @@ func (s *Server) GetUnreadMessagesCountResponse(payload *RequestT) any {
 	}
 }
 
-func (s *Server) RespondToJoinRequest(payload *RequestT) any {
-	data, ok := payload.data.(*request.RespondToJoinRequest)
+func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RespondToJoinRequest)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	adminId, ok := payload.context["user_id"].(int)
+	adminId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -326,12 +326,12 @@ func (s *Server) RespondToJoinRequest(payload *RequestT) any {
 
 // GROUP INVITATION METHODS
 
-func (s *Server) GetGroupInviteUsers(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetGroupInviteUsers)
+func (s *Server) GetGroupInviteUsers(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetGroupInviteUsers)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -344,12 +344,12 @@ func (s *Server) GetGroupInviteUsers(payload *RequestT) any {
 	}
 }
 
-func (s *Server) InviteUserToGroup(payload *RequestT) any {
-	data, ok := payload.data.(*request.InviteUserToGroup)
+func (s *Server) InviteUserToGroup(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.InviteUserToGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -379,12 +379,12 @@ func (s *Server) InviteUserToGroup(payload *RequestT) any {
 	}
 }
 
-func (s *Server) RespondToGroupInvitation(payload *RequestT) any {
-	data, ok := payload.data.(*request.RespondToGroupInvitation)
+func (s *Server) RespondToGroupInvitation(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RespondToGroupInvitation)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}

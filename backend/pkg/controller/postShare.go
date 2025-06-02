@@ -6,13 +6,13 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPostShares(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetPostShares)
+func (s *Server) GetPostShares(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPostShares)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.context["user_id"].(int)
+	user_id := payload.Context["user_id"].(int)
 
 	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {
@@ -50,13 +50,13 @@ func (s *Server) GetPostShares(payload *RequestT) any {
 	}
 }
 
-func (s *Server) AddPostShare(payload *RequestT) any {
-	data, ok := payload.data.(*request.AddPostShare)
+func (s *Server) AddPostShare(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddPostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.context["user_id"].(int)
+	user_id := payload.Context["user_id"].(int)
 
 	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {
@@ -79,13 +79,13 @@ func (s *Server) AddPostShare(payload *RequestT) any {
 	}
 }
 
-func (s *Server) RemovePostShare(payload *RequestT) any {
-	data, ok := payload.data.(*request.RemovePostShare)
+func (s *Server) RemovePostShare(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RemovePostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.context["user_id"].(int)
+	user_id := payload.Context["user_id"].(int)
 
 	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
 	if err != nil {

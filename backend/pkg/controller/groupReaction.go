@@ -7,12 +7,12 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToGroupPost(payload *RequestT) any {
-	data, ok := payload.data.(*request.ReactToGroupPost)
+func (s *Server) ReactToGroupPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.ReactToGroupPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -51,12 +51,12 @@ func (s *Server) ReactToGroupPost(payload *RequestT) any {
 	}
 }
 
-func (s *Server) GetGroupPost(payload *RequestT) any {
-	data, ok := payload.data.(*request.GetGroupPost)
+func (s *Server) GetGroupPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetGroupPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.context["user_id"].(int)
+	userId, ok := payload.Context["user_id"].(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
