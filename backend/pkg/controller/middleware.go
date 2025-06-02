@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
+	"reflect"
 	"strconv"
 	"strings"
 )
@@ -129,34 +130,41 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
+func (s *Server) isMemberMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		userID, ok := r.Context().Value("user_id").(int)
+		userID, ok := req.Ctx.Value("user_id").(int)
 		if !ok || userID == 0 {
-			http.Error(w, "Unauthorized: Missing or invalid user information", http.StatusUnauthorized)
+			s.ServeError(w, &response.Error{Cause: "Unauthorized: User ID not found in context", Code: http.StatusBadRequest})
 			return
 		}
 
-		groupIDStr := r.URL.Query().Get("group_id")
-		if groupIDStr == "" {
-			http.Error(w, "Bad Request: Missing group_id parameter", http.StatusBadRequest)
+		v := reflect.ValueOf(req.Data).Elem()
+
+		if v.Kind() != reflect.Struct {
+			s.ServeError(w, &response.Error{Cause: "Bad Request: Expected struct data", Code: http.StatusBadRequest})
 			return
 		}
 
-		groupID, err := strconv.Atoi(groupIDStr)
-		if err != nil || groupID <= 0 {
-			http.Error(w, "Bad Request: Invalid group_id parameter", http.StatusBadRequest)
+		groupField := v.FieldByName("GroupId")
+		if !groupField.IsValid() || groupField.Kind() != reflect.Int {
+			s.ServeError(w, &response.Error{Cause: "Bad Request: GroupId field missing or invalid", Code: http.StatusBadRequest})
 			return
 		}
 
-		isMember, err := s.repository.Group().IsMember(userID, groupID)
+		groupId := int(groupField.Int())
+		if groupId <= 0 {
+			s.ServeError(w, &response.Error{Cause: "Bad Request: Invalid group_id", Code: http.StatusBadRequest})
+			return
+		}
+
+		isMember, err := s.repository.Group().IsMember(userID, groupId)
 		if err != nil {
-			http.Error(w, "Internal Server Error: Unable to verify membership", http.StatusInternalServerError)
+			s.ServeError(w, &response.Error{Cause: "Internal Server Error: Unable to verify membership", Code: http.StatusInternalServerError})
 			return
 		}
 
 		if !isMember {
-			http.Error(w, "Forbidden: You are not a member of this group", http.StatusForbidden)
+			s.ServeError(w, &response.Error{Cause: "Forbidden: You are not a member of this group", Code: http.StatusForbidden})
 			return
 		}
 
@@ -164,27 +172,27 @@ func (s *Server) isMemberMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) cookieMiddleware(next HandlerFunc, req *request.RequestT) http.Handler {
+func (s *Server) cookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/login" || r.URL.Path == "/register" {
-			next.ServeHTTP(w, req)
+			next.ServeHTTP(w, r)
 			return
 		}
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session in "+ r.URL.Path, Code: http.StatusUnauthorized})
+			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session in " + r.URL.Path, Code: http.StatusUnauthorized})
 			return
 		}
 
 		token := cookie.Value
 		uid, err := s.repository.Session().FindUserIDBySession(token)
 		if err != nil {
-			next.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
 			return
 		}
 
-		req.Context["user_id"] = uid
-		next.ServeHTTP(w, req)
+		req.Ctx = context.WithValue(r.Context(), "user_id", uid)
+		next.ServeHTTP(w, r)
 	})
 }

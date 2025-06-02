@@ -20,8 +20,6 @@ const requestFollow = async (profileId?: number) => {
 
     const data = await response.json();
 
-    // console.log(data);
-
     if (data.error == "Invalid session") {
       cookieStore.delete("token");
     }

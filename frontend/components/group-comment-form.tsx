@@ -7,17 +7,20 @@ import Image from "next/image";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
+import { group } from "console";
 
 interface GroupCommentFormProps {
   postId: number;
   onCommentAdded: () => void;
   disabled?: boolean;
+  groupId: number;
 }
 
 export default function GroupCommentForm({
   postId,
   onCommentAdded,
   disabled,
+  groupId
 }: GroupCommentFormProps) {
   const [newComment, setNewComment] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -94,7 +97,7 @@ export default function GroupCommentForm({
       const result = await apiCall(
         {
           type: "add-group-comment",
-          data: { PostId: postId, Text: newComment.trim(), Image: filename },
+          data: { PostId: postId, Text: newComment.trim(), Image: filename, groupId },
         },
         "POST",
         "addGroupComment"

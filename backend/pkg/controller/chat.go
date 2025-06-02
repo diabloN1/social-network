@@ -7,10 +7,7 @@ import (
 )
 
 func (s *Server) GetChat(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	privateConvs, err := s.repository.Message().GetPrivateConversations(userId)
 	if err != nil {
@@ -39,10 +36,7 @@ func (s *Server) GetMessages(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	m := &model.Message{}
 	if data.IsGroup {
@@ -75,10 +69,7 @@ func (s *Server) AddMessage(payload *request.RequestT) (*response.AddMessage, *r
 	if !ok {
 		return nil, &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return nil, &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	if len(data.Message) == 0 || len(data.Message) > 1000 || data.Id < 1 {
 		return nil, &response.Error{Code: 400, Cause: "Invalid message input"}

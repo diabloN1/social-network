@@ -24,22 +24,25 @@ type Server struct {
 	mu         sync.RWMutex
 }
 
-func (s *Server) AddRoute(pattern string, handler func(*request.RequestT) any, middlewares ...http.HandlerFunc) {
+func (s *Server) AddRoute(pattern string, handler func(*request.RequestT) any, middlewares ...func(http.Handler, *request.RequestT) http.Handler) {
 	h := HandlerFunc(handler)
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			h.ServeError(resp, &response.Error{Cause: "oops, something went wrong", Code: 500})
+			s.ServeError(resp, &response.Error{Cause: "oops, something went wrong", Code: 500})
 			return
 		}
 
 		_, reqData, err := request.Unmarshal(body)
 		if err != nil {
-			h.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
+			s.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
 			return
 		}
 
-		s.cookieMiddleware(h, reqData).ServeHTTP(resp, req)
+		reqData.Middlewares = middlewares
+		handler := h.ApplyMiddlewares(reqData)
+		s.cookieMiddleware(handler, reqData).ServeHTTP(resp, req)
+
 	})
 }
 
@@ -53,16 +56,21 @@ func (h HandlerFunc) ServeHTTP(w http.ResponseWriter, request *request.RequestT)
 	w.Write(body)
 }
 
-func (h HandlerFunc) ServeError(w http.ResponseWriter, err *response.Error) {
-	fmt.Println("Serving error:", err.Cause)
-	status, body := response.Marshal(err)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	w.Write(body)
+func (h HandlerFunc) ApplyMiddlewares(request *request.RequestT) http.Handler {
+	var handler http.Handler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		h.ServeHTTP(w, request)
+	})
+
+	for _, mw := range request.Middlewares {
+		handler = mw(handler, request)
+	}
+
+	return handler
+
 }
 
 func (s *Server) ServeError(w http.ResponseWriter, err *response.Error) {
-	fmt.Println("Serving error:", err.Cause)
+	fmt.Println("Error:", err.Cause)
 	status, body := response.Marshal(err)
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
@@ -123,19 +131,19 @@ func Start() error {
 	s.AddRoute("/getGroup", s.GetGroupData)
 
 	// Group post reactions and comments
-	s.AddRoute("/reactToGroupPost", s.ReactToGroupPost)
-	s.AddRoute("/addGroupComment", s.AddGroupComment)
-	s.AddRoute("/getGroupComments", s.GetGroupComments)
+	s.AddRoute("/reactToGroupPost", s.ReactToGroupPost, s.isMemberMiddleware)
+	s.AddRoute("/addGroupComment", s.AddGroupComment, s.isMemberMiddleware)
+	s.AddRoute("/getGroupComments", s.GetGroupComments, s.isMemberMiddleware)
 
-	s.AddRoute("/addGroupPost", s.AddGroupPost)
-	s.AddRoute("/addGroupEvent", s.AddGroupEvent)
-	s.AddRoute("/addEventOption", s.AddEventOption)
+	s.AddRoute("/addGroupPost", s.AddGroupPost, s.isMemberMiddleware)
+	s.AddRoute("/addGroupEvent", s.AddGroupEvent, s.isMemberMiddleware)
+	s.AddRoute("/addEventOption", s.AddEventOption, s.isMemberMiddleware)
 	s.AddRoute("/requestJoinGroup", s.RequestJoinGroup)
 	s.AddRoute("/respondToJoinRequest", s.RespondToJoinRequest)
 
 	// Group Invitation Routes
-	s.AddRoute("/getGroupInviteUsers", s.GetGroupInviteUsers)
-	s.AddRoute("/inviteUserToGroup", s.InviteUserToGroup)
+	s.AddRoute("/getGroupInviteUsers", s.GetGroupInviteUsers, s.isMemberMiddleware)
+	s.AddRoute("/inviteUserToGroup", s.InviteUserToGroup, s.isMemberMiddleware)
 	s.AddRoute("/respondToGroupInvitation", s.RespondToGroupInvitation)
 
 	// Chat

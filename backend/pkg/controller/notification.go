@@ -8,10 +8,7 @@ import (
 )
 
 func (s *Server) GetAllNotifications(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	pmCount, err := s.repository.Message().CountUnreadPM(userId)
 	if err != nil {
@@ -73,10 +70,7 @@ func (s *Server) GetAllNotifications(payload *request.RequestT) any {
 }
 
 func (s *Server) CheckNewFollowNotification(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	users, err := s.repository.Follow().GetNewFollowers(userId)
 	if err != nil {
@@ -94,10 +88,7 @@ func (s *Server) DeleteFollowNotification(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	err := s.repository.Follow().DeleteNotif(data.ProfileId, userId)
 	if err != nil {
@@ -121,10 +112,7 @@ func (s *Server) DeleteNewEventNotification(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	err := s.repository.Follow().DeleteEventNotif(data.GroupId, userId)
 	if err != nil {

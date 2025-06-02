@@ -14,10 +14,7 @@ func (s *Server) CreateGroup(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	g := &model.Group{
 		OwnerId:     userId,
 		Title:       data.Title,
@@ -35,10 +32,7 @@ func (s *Server) CreateGroup(payload *request.RequestT) any {
 }
 
 func (s *Server) GetGroups(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	groupInvites, err := s.repository.Group().GetGroupInvitesByUserId(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't get group invites: " + err.Error()}
@@ -63,10 +57,7 @@ func (s *Server) GetGroupData(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	group, err := s.repository.Group().GetGroupData(data.GroupId, userId)
 	if err != nil {
 		return &response.Error{Code: 404, Cause: err.Error()}
@@ -81,10 +72,7 @@ func (s *Server) AddGroupPost(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	if data.Caption == "" && data.Image == "" {
 		return &response.Error{Code: 400, Cause: "Can't create empty posts"}
 	}
@@ -119,10 +107,7 @@ func (s *Server) AddGroupEvent(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	if data.Title == "" || data.Description == "" || data.Option1 == "" || data.Option2 == "" || data.Date == "" || data.Place == "" {
 		return &response.Error{Code: 400, Cause: "Can't create empty events (must fill all required fields)"}
 	}
@@ -168,10 +153,7 @@ func (s *Server) AddEventOption(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	user, err := s.repository.User().Find(userId)
 	if err != nil {
@@ -199,10 +181,7 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	m := &model.GroupMember{
 		UserId:     userId,
@@ -243,10 +222,7 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 }
 
 func (s *Server) GetJoinRequestCount(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	count, err := s.repository.Group().CountPendingJoinRequests(userId)
 	if err != nil {
@@ -259,10 +235,7 @@ func (s *Server) GetJoinRequestCount(payload *request.RequestT) any {
 }
 
 func (s *Server) GetUnreadMessagesCountResponse(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	pmCount, err := s.repository.Message().CountUnreadPM(userId)
 	if err != nil {
@@ -284,7 +257,7 @@ func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	adminId, ok := payload.Context["user_id"].(int)
+	adminId := payload.Ctx.Value("user_id").(int)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}
@@ -331,10 +304,7 @@ func (s *Server) GetGroupInviteUsers(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 	users, err := s.repository.Group().GetAvailableUsersToInvite(data.GroupId, userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error getting invite users: " + err.Error()}
@@ -349,10 +319,7 @@ func (s *Server) InviteUserToGroup(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	isMember, err := s.repository.Group().IsMember(userId, data.GroupId)
 	if err != nil || !isMember {
@@ -384,10 +351,7 @@ func (s *Server) RespondToGroupInvitation(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	var err error
 	var msg string

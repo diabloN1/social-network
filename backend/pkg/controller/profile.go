@@ -12,10 +12,7 @@ func (s *Server) GetProfile(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	user, err := s.repository.User().FindProfile(data.ProfileId, userId)
 	if err != nil {
@@ -28,10 +25,7 @@ func (s *Server) GetProfile(payload *request.RequestT) any {
 }
 
 func (s *Server) GetProfiles(payload *request.RequestT) any {
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	followRequests, err := s.repository.Follow().GetFollowRequests(userId)
 	if err != nil {
@@ -66,10 +60,7 @@ func (s *Server) SetProfilePrivacy(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	err := s.repository.User().SetUserPrivacy(userId, data.State)
 	if err != nil {

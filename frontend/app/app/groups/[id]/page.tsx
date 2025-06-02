@@ -137,7 +137,7 @@ export default function GroupDetailPage() {
       await apiCall(
         {
           type: "react-to-group-post",
-          data: { PostId: postId, Reaction: newReaction },
+          data: { PostId: postId, Reaction: newReaction, groupId },
         },
         "POST",
         "reactToGroupPost"
@@ -165,7 +165,7 @@ export default function GroupDetailPage() {
   const loadComments = async (postId: number) => {
     try {
       const commentsData = await apiCall(
-        { type: "get-group-comments", data: { PostId: postId } },
+        { type: "get-group-comments", data: { PostId: postId, groupId } },
         "POST",
         "getGroupComments"
       );
@@ -644,6 +644,7 @@ export default function GroupDetailPage() {
                     <GroupCommentForm
                       postId={post.id}
                       onCommentAdded={() => handleCommentAdded(post.id)}
+                      groupId={groupId}
                     />
                   </div>
                 )}

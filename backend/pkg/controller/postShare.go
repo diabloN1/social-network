@@ -12,9 +12,9 @@ func (s *Server) GetPostShares(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.Context["user_id"].(int)
+	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -29,7 +29,7 @@ func (s *Server) GetPostShares(payload *request.RequestT) any {
 		return &response.Error{Code: 500, Cause: "Error retrieving post shares"}
 	}
 
-	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(data.PostId, user_id)
+	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(data.PostId, userId)
 	if err != nil {
 		log.Println("Error getting available users:", err)
 		return &response.Error{Code: 500, Cause: "Error retrieving available users"}
@@ -56,9 +56,9 @@ func (s *Server) AddPostShare(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.Context["user_id"].(int)
+	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -85,9 +85,9 @@ func (s *Server) RemovePostShare(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id := payload.Context["user_id"].(int)
+	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, user_id)
+	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}

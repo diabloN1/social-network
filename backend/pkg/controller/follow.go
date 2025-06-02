@@ -12,10 +12,7 @@ func (s *Server) RequestFollow(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	err := s.repository.Follow().RequestFollow(data.ProfileId, userId)
 	if err != nil {
@@ -41,10 +38,7 @@ func (s *Server) AcceptFollow(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	err := s.repository.Follow().AcceptFollow(data.ProfileId, userId)
 	if err != nil {
@@ -68,10 +62,7 @@ func (s *Server) DeleteFollow(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	var err error
 	if data.IsFollower {

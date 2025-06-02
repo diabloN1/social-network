@@ -16,9 +16,9 @@ func (s *Server) GetPosts(payload *request.RequestT) any {
 
 	}
 
-	user_id := payload.Context["user_id"].(int)
+	userId := payload.Ctx.Value("user_id").(int)
 
-	posts, err := s.repository.Post().GetPosts(user_id, data.StartId)
+	posts, err := s.repository.Post().GetPosts(userId, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
 		return &response.Error{Code: 400, Cause: "Error in getting feed data"}
@@ -26,7 +26,7 @@ func (s *Server) GetPosts(payload *request.RequestT) any {
 
 	return &response.GetPosts{
 		Posts:  posts,
-		Userid: user_id,
+		Userid: userId,
 	}
 }
 
@@ -36,8 +36,8 @@ func (s *Server) GetPostData(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	user_id, _ := payload.Context["user_id"].(int)
-	post, err := s.repository.Post().GetPostById(user_id, data.PostId)
+	userId := payload.Ctx.Value("user_id").(int)
+	post, err := s.repository.Post().GetPostById(userId, data.PostId)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -54,7 +54,7 @@ func (s *Server) GetPostData(payload *request.RequestT) any {
 	fmt.Println("post", post)
 
 	return &response.GetPost{
-		Userid: user_id,
+		Userid: userId,
 		Post:   post,
 	}
 }
@@ -74,7 +74,7 @@ func (s *Server) AddPost(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid privacy type"}
 	}
 
-	user, err := s.repository.User().Find(payload.Context["user_id"].(int))
+	user, err := s.repository.User().Find(payload.Ctx.Value("user_id").(int))
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "An error has aquired while finding user"}
 	}

@@ -1,8 +1,10 @@
 package request
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"real-time-forum/pkg/model"
 )
 
@@ -12,10 +14,10 @@ type Payload struct {
 }
 
 type RequestT struct {
-	Data    any
-	Context map[string]any
+	Data        any
+	Ctx     context.Context
+	Middlewares []func(http.Handler, *RequestT) http.Handler
 }
-
 
 var requestTypes = map[string]any{
 	model.TYPE_REGISTER:             &Register{},
@@ -32,9 +34,9 @@ var requestTypes = map[string]any{
 	model.Type_GET_PROFILE:          &GetProfile{},
 	model.Type_GET_PROFILES:         nil,
 	model.Type_SET_PROFILE_PRIVACY:  &SetProfilePrivacy{},
-	"create-group":                  &CreateGroup{},  //
-	"get-groups":                    nil,             //
-	"get-group-data":                &GetGroupData{}, //
+	"create-group":                  &CreateGroup{}, 
+	"get-groups":                    nil,            
+	"get-group-data":                &GetGroupData{},
 	"add-group-post":                &AddGroupPost{},
 	"add-group-event":               &AddGroupEvent{},
 	"invite-user-to-group":          &InviteUserToGroup{},
@@ -76,7 +78,6 @@ func (r Payload) Decode() (string, *RequestT, error) {
 
 	request := &RequestT{
 		Data:    instance,
-		Context: make(map[string]any),
 	}
 
 	return r.Type, request, nil

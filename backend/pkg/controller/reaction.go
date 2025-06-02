@@ -15,9 +15,9 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 		}
 	}
 
-	user_id := payload.Context["user_id"].(int)
+	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Reaction().UpsertReaction(user_id, data.PostId, data.Reaction)
+	err := s.repository.Reaction().UpsertReaction(userId, data.PostId, data.Reaction)
 	if err != nil {
 		log.Println("Error saving reaction:", err)
 		return &response.Error{
@@ -33,7 +33,7 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 		}
 	}
 
-	userReaction, err := s.repository.Reaction().GetUserReaction(user_id, data.PostId)
+	userReaction, err := s.repository.Reaction().GetUserReaction(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting user reaction:", err)
 		return &response.Error{
@@ -43,7 +43,7 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 	counts.UserReaction = userReaction
 
 	return &response.ReactToPost{
-		Userid: user_id,
+		Userid: userId,
 		Post: &model.Post{
 			ID:        data.PostId,
 			Reactions: counts,

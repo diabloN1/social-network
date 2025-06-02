@@ -12,10 +12,8 @@ func (s *Server) ReactToGroupPost(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+
+	userId := payload.Ctx.Value("user_id").(int)
 
 	isMember, err := s.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {
@@ -56,10 +54,7 @@ func (s *Server) GetGroupPost(payload *request.RequestT) any {
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	isMember, err := s.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {

@@ -13,10 +13,7 @@ func (s *Server) AddComment(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	if data.Text == "" && data.Image == "" {
 		return &response.Error{Code: 400, Cause: "Comment text cannot be empty"}
@@ -66,10 +63,7 @@ func (s *Server) GetComments(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	userId, ok := payload.Context["user_id"].(int)
-	if !ok {
-		return &response.Error{Code: 401, Cause: "Invalid session"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	comments, err := s.repository.Comment().GetCommentsByPostId(data.PostId)
 	if err != nil {

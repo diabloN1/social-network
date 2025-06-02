@@ -20,15 +20,7 @@ export const useGlobalAPIHelper = () => {
         credentials: "include",
       });
 
-      const text = await response.text();
-
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        showError("Server returned invalid JSON", response.status);
-        return { error: true, message: "Invalid server response" };
-      }
+      const data = await response.json();
 
       // Check HTTP status not OK (4xx, 5xx)
       if (!response.ok) {
