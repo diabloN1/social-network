@@ -13,7 +13,7 @@ export const addMessage = async (
     const token = (await getToken()).session;
     socket.send(
       JSON.stringify({
-        type: "sendmessage",
+        type: "add-message",
         session: token ?? "",
         isGroup,
         id,

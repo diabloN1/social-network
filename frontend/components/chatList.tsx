@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import getChatData from "@/api/messages/getChatData";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { onMessageType } from "@/helpers/webSocket";
 import Popup from "@/app/app/popup";
 import { Chat, ResChat } from "@/types/chat";
@@ -24,11 +24,12 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
     message: string;
     status: "success" | "failure";
   } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
 
   useEffect(() => {
     const getChat = async () => {
       try {
-        const data = await getChatData();
+        const data = await apiCall({ type: "get-chat" }, "POST", "getChatData");
         if (data.error) {
           setPopup({ message: data.error, status: "failure" });
           return;
@@ -47,7 +48,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
                 : new Date(0);
               return dateB.getTime() - dateA.getTime();
             }
-          );  
+          );
         }
 
         const transformedChats: Chat[] = [
@@ -175,7 +176,6 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
 
     return matchesSearch;
   });
-
 
   if (loading) {
     return (

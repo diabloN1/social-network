@@ -2,7 +2,8 @@
 
 import type React from "react";
 import { useState, useRef, useEffect } from "react";
-import getMessages from "@/api/messages/getMesages";
+// import getMessages from "@/api/messages/getMesages";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { addMessage } from "@/helpers/addMessage";
 import { onMessageType, socket } from "@/helpers/webSocket";
 import getToken from "@/api/auth/getToken";
@@ -24,8 +25,11 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
   const [messages, setMessages] = useState<Message[] | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageInputRef = useRef<HTMLTextAreaElement>(null);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
-  
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -33,7 +37,11 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
       const id = Number(chat?.id.split("_")[1]);
       if (!id) return;
       try {
-        const data = await getMessages(id, chat?.isGroup || false);
+        const data = await apiCall(
+          { type: "get-messages", data: { Id: id, IsGroup: chat?.isGroup } },
+          "POST",
+          "getMessages"
+        );
         if (data.error) {
           setPopup({ message: data.error, status: "failure" });
           return;
@@ -67,19 +75,20 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
               prev != null ? [...prev, data.message] : [data.message]
             );
 
-          socket?.send(
-            JSON.stringify({
-              type: "updateseenmessages",
-              id: currentChatId,
-              isGroup,
-              session: (await getToken()).session,
-            })
-          );
-        } catch (error) {
-          setPopup({ message: `${error}`, status: "failure" });
+            socket?.send(
+              JSON.stringify({
+                type: "updateseenmessages",
+                id: currentChatId,
+                isGroup,
+                session: (await getToken()).session,
+              })
+            );
+          } catch (error) {
+            setPopup({ message: `${error}`, status: "failure" });
+          }
         }
       }
-    });
+    );
 
     return () => {
       unsubscribe(); // Clean up listener when chat change or component unmounts
