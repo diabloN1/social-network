@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import {
@@ -15,6 +15,7 @@ import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [joinRequestCount, setJoinRequestCount] = useState(0);
@@ -52,6 +53,7 @@ export default function Navbar() {
 
       await clearSessionCookie();
 
+      router.push("/auth");
       console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);

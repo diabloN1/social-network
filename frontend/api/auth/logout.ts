@@ -5,12 +5,16 @@ export default async function logout() {
       headers: {
         "Content-Type": "application/json",
       },
+      body: JSON.stringify({
+        type: "logout",
+      }),
+      credentials: "include",
     });
 
     const data = await response.json();
 
     if (data.error && data.error !== "Session was removed!") {
-      throw new Error(data.error);
+      throw new Error(data.error.Cause);
     }
 
     return data;

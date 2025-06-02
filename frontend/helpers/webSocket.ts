@@ -12,7 +12,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
   if (socket) return socket;
 
   try {
-    const token = (await getToken()).session;
+    const token = await getToken();
     socket = new WebSocket(`ws://localhost:8080/ws?session=${token}`);
 
     socket.onopen = () => {
