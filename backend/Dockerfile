@@ -1,5 +1,5 @@
 # Use the official Golang image for building the backend
-FROM golang:1.24 as builder
+FROM golang:1.24 AS builder
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -12,7 +12,7 @@ RUN go mod download
 COPY . .
 
 # Build the backend binary
-RUN go build -o backend ./cmd/backend # Adjust this if your main file is elsewhere
+RUN go build -o backend main.go # Adjust this if your main file is elsewhere
 
 # Final image
 FROM alpine:latest
