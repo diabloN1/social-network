@@ -1,4 +1,4 @@
-package controller
+package app
 
 import (
 	"context"
@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (app *App) corsMiddleware(next http.Handler) http.Handler {
+func (app *App) CorsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// // Allow CORS for the specified origin
 		// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -31,7 +31,7 @@ func (app *App) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) imageMiddleware(next http.Handler) http.Handler {
+func (app *App) ImageMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		if err != nil {
@@ -130,7 +130,7 @@ func (app *App) imageMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (app *App) isMemberMiddleware(next http.Handler, req *request.RequestT) http.Handler {
+func (app *App) IsMemberMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := req.Ctx.Value("user_id").(int)
 		if !ok || userID == 0 {
@@ -172,7 +172,7 @@ func (app *App) isMemberMiddleware(next http.Handler, req *request.RequestT) htt
 	})
 }
 
-func (app *App) cookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {
+func (app *App) CookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/login" || r.URL.Path == "/register" {
 			next.ServeHTTP(w, r)

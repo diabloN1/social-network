@@ -1,4 +1,4 @@
-package controller
+package app
 
 import (
 	"real-time-forum/pkg/model/request"
