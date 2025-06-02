@@ -165,3 +165,8 @@ type DeleteFollowNotification struct {
 type DeleteNewEventNotification struct {
 	GroupId int `json:"groupId"`
 }
+
+type UpdateSeenMessageWS struct {
+	Id      int  `json:"id"`
+	IsGroup bool `json:"isGroup"`
+}

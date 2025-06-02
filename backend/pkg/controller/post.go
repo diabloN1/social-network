@@ -9,7 +9,7 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPosts(payload *request.RequestT) any {
+func (app *App) GetPosts(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetPosts)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -18,7 +18,7 @@ func (s *Server) GetPosts(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	posts, err := s.repository.Post().GetPosts(userId, data.StartId)
+	posts, err := app.repository.Post().GetPosts(userId, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
 		return &response.Error{Code: 400, Cause: "Error in getting feed data"}
@@ -30,14 +30,14 @@ func (s *Server) GetPosts(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetPostData(payload *request.RequestT) any {
+func (app *App) GetPostData(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
 	userId := payload.Ctx.Value("user_id").(int)
-	post, err := s.repository.Post().GetPostById(userId, data.PostId)
+	post, err := app.repository.Post().GetPostById(userId, data.PostId)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -46,7 +46,7 @@ func (s *Server) GetPostData(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Error in getting post data"}
 	}
 
-	count, err := s.repository.Comment().GetCommentCountByPostId(data.PostId)
+	count, err := app.repository.Comment().GetCommentCountByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting comment count:", err)
 	}
@@ -59,7 +59,7 @@ func (s *Server) GetPostData(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddPost(payload *request.RequestT) any {
+func (app *App) AddPost(payload *request.RequestT) any {
 	fmt.Println(payload)
 	data, ok := payload.Data.(*request.AddPost)
 	if !ok {
@@ -74,7 +74,7 @@ func (s *Server) AddPost(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Invalid privacy type"}
 	}
 
-	user, err := s.repository.User().Find(payload.Ctx.Value("user_id").(int))
+	user, err := app.repository.User().Find(payload.Ctx.Value("user_id").(int))
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "An error has aquired while finding user"}
 	}
@@ -95,7 +95,7 @@ func (s *Server) AddPost(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
 	}
 
-	err = s.repository.Post().Add(post)
+	err = app.repository.Post().Add(post)
 	if err != nil {
 		log.Println("Error adding post:", err)
 		return &response.Error{Code: 500, Cause: "Error adding post: " + err.Error()}

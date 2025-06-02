@@ -5,7 +5,7 @@ import (
 	"real-time-forum/pkg/model"
 )
 
-func (s *Server) ValidateSession(request map[string]any) *model.Response {
+func (app *App) ValidateSession(request map[string]any) *model.Response {
 	response := &model.Response{}
 	response.Type = "session"
 	response.Error = "error"
@@ -19,13 +19,13 @@ func (s *Server) ValidateSession(request map[string]any) *model.Response {
 		return response
 	}
 
-	uid, err := s.repository.Session().FindUserIDBySession(session)
+	uid, err := app.repository.Session().FindUserIDBySession(session)
 	if err != nil {
 		log.Println("Session was not found!")
 		return response
 	}
 
-	foundUser, err := s.repository.User().Find(uid)
+	foundUser, err := app.repository.User().Find(uid)
 	if err != nil {
 		log.Println("User was not found!")
 		return response

@@ -7,7 +7,7 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToPost(payload *request.RequestT) any {
+func (app *App) ReactToPost(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.ReactToPost)
 	if !ok {
 		return &response.Error{
@@ -17,7 +17,7 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Reaction().UpsertReaction(userId, data.PostId, data.Reaction)
+	err := app.repository.Reaction().UpsertReaction(userId, data.PostId, data.Reaction)
 	if err != nil {
 		log.Println("Error saving reaction:", err)
 		return &response.Error{
@@ -25,7 +25,7 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 		}
 	}
 
-	counts, err := s.repository.Reaction().GetReactionCounts(data.PostId)
+	counts, err := app.repository.Reaction().GetReactionCounts(data.PostId)
 	if err != nil {
 		log.Println("Error getting reaction counts:", err)
 		return &response.Error{
@@ -33,7 +33,7 @@ func (s *Server) ReactToPost(payload *request.RequestT) any {
 		}
 	}
 
-	userReaction, err := s.repository.Reaction().GetUserReaction(userId, data.PostId)
+	userReaction, err := app.repository.Reaction().GetUserReaction(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting user reaction:", err)
 		return &response.Error{

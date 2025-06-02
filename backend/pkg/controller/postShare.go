@@ -6,7 +6,7 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPostShares(payload *request.RequestT) any {
+func (app *App) GetPostShares(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetPostShares)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -14,7 +14,7 @@ func (s *Server) GetPostShares(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -23,13 +23,13 @@ func (s *Server) GetPostShares(payload *request.RequestT) any {
 		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	currentShares, err := s.repository.PostShare().GetPostShares(data.PostId)
+	currentShares, err := app.repository.PostShare().GetPostShares(data.PostId)
 	if err != nil {
 		log.Println("Error getting post shares:", err)
 		return &response.Error{Code: 500, Cause: "Error retrieving post shares"}
 	}
 
-	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(data.PostId, userId)
+	availableUsers, err := app.repository.PostShare().GetAvailableUsersToShare(data.PostId, userId)
 	if err != nil {
 		log.Println("Error getting available users:", err)
 		return &response.Error{Code: 500, Cause: "Error retrieving available users"}
@@ -50,7 +50,7 @@ func (s *Server) GetPostShares(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddPostShare(payload *request.RequestT) any {
+func (app *App) AddPostShare(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.AddPostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -58,7 +58,7 @@ func (s *Server) AddPostShare(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -67,7 +67,7 @@ func (s *Server) AddPostShare(payload *request.RequestT) any {
 		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	err = s.repository.PostShare().AddPostShare(data.PostId, data.UserId)
+	err = app.repository.PostShare().AddPostShare(data.PostId, data.UserId)
 	if err != nil {
 		log.Println("Error adding post share:", err)
 		return &response.Error{Code: 500, Cause: "Error adding post share"}
@@ -79,7 +79,7 @@ func (s *Server) AddPostShare(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) RemovePostShare(payload *request.RequestT) any {
+func (app *App) RemovePostShare(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.RemovePostShare)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -87,7 +87,7 @@ func (s *Server) RemovePostShare(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
 		log.Println("Error verifying post ownership:", err)
 		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
@@ -96,7 +96,7 @@ func (s *Server) RemovePostShare(payload *request.RequestT) any {
 		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	err = s.repository.PostShare().RemovePostShare(data.PostId, data.UserId)
+	err = app.repository.PostShare().RemovePostShare(data.PostId, data.UserId)
 	if err != nil {
 		log.Println("Error removing post share:", err)
 		return &response.Error{Code: 500, Cause: "Error removing post share"}
