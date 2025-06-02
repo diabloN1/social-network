@@ -17,8 +17,8 @@ export const useGlobalAPIHelper = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify(requestData),
+        credentials: "include",
       });
-
 
       const text = await response.text();
 
@@ -29,7 +29,6 @@ export const useGlobalAPIHelper = () => {
         showError("Server returned invalid JSON", response.status);
         return { error: true, message: "Invalid server response" };
       }
-
 
       // Check HTTP status not OK (4xx, 5xx)
       if (!response.ok) {

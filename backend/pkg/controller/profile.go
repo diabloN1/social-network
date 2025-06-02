@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"fmt"
 	"real-time-forum/pkg/model"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
@@ -13,6 +14,8 @@ func (s *Server) GetProfile(payload *RequestT) any {
 	}
 
 	userId, ok := payload.context["user_id"].(int)
+	fmt.Println(userId)
+	fmt.Println(data.ProfileId)
 	if !ok {
 		return &response.Error{Code: 401, Cause: "Invalid session"}
 	}

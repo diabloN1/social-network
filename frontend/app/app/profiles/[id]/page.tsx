@@ -3,10 +3,12 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import "./profile.css";
-import getProfileData from "@/api/profiles/getProfileData";
-import deleteFollow from "@/api/follow/deleteFollow";
-import requestFollow from "@/api/follow/requestFollow";
-import setPravicy from "@/api/profiles/setPrivacy";
+// import getProfileData from "@/api/profiles/getProfileData";
+// import deleteFollow from "@/api/follow/deleteFollow";
+// import requestFollow from "@/api/follow/requestFollow";
+// import setPravicy from "@/api/profiles/setPrivacy";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+
 import Popup from "../../popup";
 import { Profile } from "@/types/user";
 import Image from "next/image";
@@ -23,7 +25,11 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
+  const [popup, setPopup] = useState<{
+    message: string;
+    status: "success" | "failure";
+  } | null>(null);
   const [confirmation, setConfirmation] = useState<{
     message: string;
     onConfirm: () => void;
@@ -33,8 +39,11 @@ export default function ProfilePage() {
     const fetchProfileData = async () => {
       setLoading(true);
       try {
-        // Use the provided initProfileData function
-        const response = await getProfileData(userId);
+        const response = await apiCall(
+          { type: "get-profile", data: { profileId: userId } },
+          "POST",
+          "getProfile"
+        );
         if (response.error) {
           setPopup({ message: response.error, status: "failure" });
           return;
@@ -68,7 +77,11 @@ export default function ProfilePage() {
       }?`,
       onConfirm: async () => {
         try {
-          const data = await setPravicy(!user.isprivate);
+          const data = await apiCall(
+            { type: "set-privacy", data: { State: !user.isprivate } },
+            "POST",
+            "setPrivacy"
+          );
           if (data.error) {
             setPopup({ message: data.error, status: "failure" });
             return;
@@ -84,7 +97,6 @@ export default function ProfilePage() {
     });
   };
 
-
   // Handle follow/unfollow
   const handleFollowAction = async () => {
     try {
@@ -93,15 +105,19 @@ export default function ProfilePage() {
           message: "Are you sure you want to unfollow this user?",
           onConfirm: async () => {
             try {
-              const data = await deleteFollow(userId, true);
+              const data = await apiCall(
+                { type: "followReq", data: { userID: userId, state: true } },
+                "POST",
+                "deleteFollow"
+              );
               if (data.error) {
                 setPopup({ message: data.error, status: "failure" });
                 return;
               }
-  
+
               setIsFollowing(false);
               setIsPending(false);
-  
+
               if (user?.isprivate) {
                 setCanViewProfile(false);
               }
@@ -113,10 +129,14 @@ export default function ProfilePage() {
           },
         });
       } else if (!user?.follow?.id) {
-        const data = await requestFollow(userId);
+        const data = await apiCall(
+          { type: "followReq", data: { userID: userId } },
+          "POST",
+          "requestFollow"
+        );
         if (data.error) {
-            setPopup({ message: data.error , status: "failure" });
-            return;
+          setPopup({ message: data.error, status: "failure" });
+          return;
         }
 
         if (user?.isprivate) {
@@ -127,8 +147,8 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-        setPopup({ message: `${error}`, status: "failure" });
-        return;
+      setPopup({ message: `${error}`, status: "failure" });
+      return;
     }
   };
 
