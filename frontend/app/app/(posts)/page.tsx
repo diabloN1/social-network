@@ -14,11 +14,11 @@ export default function PostsPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
   const [popup, setPopup] = useState<{
     message: string;
     status: "success" | "failure";
   } | null>(null);
-  const [hasMore, setHasMore] = useState(true);
   const fetchPosts = async () => {
     setIsLoading(true);
     const data = await apiCall(
@@ -34,7 +34,6 @@ export default function PostsPage() {
       const { posts, userid } = data;
       setPosts(posts);
       setCurrentUserId(userid);
-      setHasMore(posts.length === 10);
     }
 
     setIsLoading(false);
@@ -55,9 +54,9 @@ export default function PostsPage() {
       "getPosts"
     );
 
-    if (data?.posts?.length) {
+    if (data?.posts) {
       setPosts((prev) => [...prev, ...data.posts]);
-      setHasMore(data.posts.length === 10);
+      setHasMore(data.posts.length === 10); // Update this
     }
 
     setIsLoading(false);
@@ -120,9 +119,7 @@ export default function PostsPage() {
       </button>
 
       <main className="posts-container">
-        {isLoading ? (
-          <div className="loading">Loading posts...</div>
-        ) : posts.length === 0 ? (
+        {!isLoading && posts.length === 0 ? (
           <div className="no-posts">No posts yet. Create your first post!</div>
         ) : (
           posts.map((post) => {
@@ -139,10 +136,15 @@ export default function PostsPage() {
             );
           })
         )}
-        {!isLoading && posts.length > 0 && hasMore && (
-          <button onClick={fetchMorePosts} className="load-more-btn">
-            Load More
-          </button>
+        {isLoading ? (
+          <div className="loading">Loading posts...</div>
+        ) : (
+          !isLoading &&
+          hasMore && (
+            <button onClick={fetchMorePosts} className="load-more-btn">
+              Load More
+            </button>
+          )
         )}
       </main>
 
@@ -152,6 +154,7 @@ export default function PostsPage() {
           onSubmit={handleCreatePost}
         />
       )}
+
       {popup && (
         <Popup
           message={popup.message}
