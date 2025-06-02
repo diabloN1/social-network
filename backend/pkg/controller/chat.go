@@ -6,20 +6,20 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetChat(payload *request.RequestT) any {
+func (app *App) GetChat(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	privateConvs, err := s.repository.Message().GetPrivateConversations(userId)
+	privateConvs, err := app.repository.Message().GetPrivateConversations(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	groupConvs, err := s.repository.Message().GetGroupConversations(userId)
+	groupConvs, err := app.repository.Message().GetGroupConversations(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	newConvs, err := s.repository.Message().GetNewConversations(userId)
+	newConvs, err := app.repository.Message().GetNewConversations(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
@@ -31,7 +31,7 @@ func (s *Server) GetChat(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetMessages(payload *request.RequestT) any {
+func (app *App) GetMessages(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetMessages)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -46,17 +46,17 @@ func (s *Server) GetMessages(payload *request.RequestT) any {
 	}
 	m.SenderId = userId
 
-	messages, err := s.repository.Message().GetMessages(m)
+	messages, err := app.repository.Message().GetMessages(m)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	s.UpdateSeenMessage(data.IsGroup, userId, data.Id)
+	app.UpdateSeenMessage(data.IsGroup, userId, data.Id)
 	wsMsg := map[string]any{
 		"type": "unreadmsgRequestHandled",
 	}
-	for _, c := range s.clients[userId] {
-		s.ShowMessage(c, wsMsg)
+	for _, c := range app.clients[userId] {
+		app.ShowMessage(c, wsMsg)
 	}
 
 	return &response.GetMessages{
@@ -64,7 +64,7 @@ func (s *Server) GetMessages(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddMessage(payload *request.RequestT) (*response.AddMessage, *response.Error) {
+func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *response.Error) {
 	data, ok := payload.Data.(*request.AddMessage)
 	if !ok {
 		return nil, &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -86,12 +86,12 @@ func (s *Server) AddMessage(payload *request.RequestT) (*response.AddMessage, *r
 
 	// Should add middleware to validate if user can send message
 
-	err := s.repository.Message().Add(m)
+	err := app.repository.Message().Add(m)
 	if err != nil {
 		return nil, &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	err = s.repository.Message().AddGroupMessageNotifications(m)
+	err = app.repository.Message().AddGroupMessageNotifications(m)
 	if err != nil {
 		return nil, &response.Error{Code: 500, Cause: err.Error()}
 	}

@@ -7,16 +7,16 @@ import (
 	"time"
 )
 
-func (s *Server) GetAllNotifications(payload *request.RequestT) any {
+func (app *App) GetAllNotifications(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	pmCount, err := s.repository.Message().CountUnreadPM(userId)
+	pmCount, err := app.repository.Message().CountUnreadPM(userId)
 	if err != nil {
 		log.Println("Error getting unread PM count:", err)
 		pmCount = 0
 	}
 
-	groupMessageCount, err := s.repository.Message().CountUnreadGroup(userId)
+	groupMessageCount, err := app.repository.Message().CountUnreadGroup(userId)
 	if err != nil {
 		log.Println("Error getting unread group messages:", err)
 		groupMessageCount = 0
@@ -24,32 +24,32 @@ func (s *Server) GetAllNotifications(payload *request.RequestT) any {
 
 	messageUnread := pmCount + groupMessageCount
 
-	groupRequests, err := s.repository.Group().CountPendingJoinRequests(userId)
+	groupRequests, err := app.repository.Group().CountPendingJoinRequests(userId)
 	if err != nil {
 		log.Println("Error getting group join requests:", err)
 		groupRequests = 0
 	}
 
-	followRequests, err := s.repository.Follow().GetFollowRequestCount(userId)
+	followRequests, err := app.repository.Follow().GetFollowRequestCount(userId)
 	if err != nil {
 		log.Println("Error getting follow requests:", err)
 		followRequests = 0
 	}
-	publicFollowRequests, err := s.repository.Follow().CountPublicFollowRequests(userId)
+	publicFollowRequests, err := app.repository.Follow().CountPublicFollowRequests(userId)
 	if err != nil {
 		log.Println("Error getting public follow requests:", err)
 		publicFollowRequests = 0
 	}
 	followRequests += publicFollowRequests
 
-	eventCreatedCount, err := s.repository.Group().CountNewEvents(userId)
+	eventCreatedCount, err := app.repository.Group().CountNewEvents(userId)
 	if err != nil {
 		log.Println("Error getting event created count:", err)
 		eventCreatedCount = 0
 	}
 	groupRequests += eventCreatedCount
 
-	invitations, err := s.repository.Group().GetGroupJoinInvitations(userId)
+	invitations, err := app.repository.Group().GetGroupJoinInvitations(userId)
 	if err != nil {
 		log.Println("Error getting event created count:", err)
 		invitations = 0
@@ -69,10 +69,10 @@ func (s *Server) GetAllNotifications(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) CheckNewFollowNotification(payload *request.RequestT) any {
+func (app *App) CheckNewFollowNotification(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	users, err := s.repository.Follow().GetNewFollowers(userId)
+	users, err := app.repository.Follow().GetNewFollowers(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Database error"}
 	}
@@ -83,14 +83,14 @@ func (s *Server) CheckNewFollowNotification(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) DeleteFollowNotification(payload *request.RequestT) any {
+func (app *App) DeleteFollowNotification(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.DeleteFollowNotification)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Follow().DeleteNotif(data.ProfileId, userId)
+	err := app.repository.Follow().DeleteNotif(data.ProfileId, userId)
 	if err != nil {
 		log.Println("Error deleting follow notification:", err)
 		return &response.Error{Code: 500, Cause: "Error deleting follow notification"}
@@ -101,20 +101,20 @@ func (s *Server) DeleteFollowNotification(payload *request.RequestT) any {
 		"message":    "unfollow ",
 		"timestamp":  time.Now().Unix(),
 	}
-	s.sendNotificationToUser(userId, notification)
+	app.sendNotificationToUser(userId, notification)
 	return &response.DeleteFollowNotification{
 		Message: "Notification deleted",
 	}
 }
 
-func (s *Server) DeleteNewEventNotification(payload *request.RequestT) any {
+func (app *App) DeleteNewEventNotification(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.DeleteNewEventNotification)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Follow().DeleteEventNotif(data.GroupId, userId)
+	err := app.repository.Follow().DeleteEventNotif(data.GroupId, userId)
 	if err != nil {
 		log.Println("Error deleting follow notification:", err)
 		return &response.Error{Code: 500, Cause: "Error deleting follow notification"}
@@ -122,7 +122,7 @@ func (s *Server) DeleteNewEventNotification(payload *request.RequestT) any {
 	notification := map[string]any{
 		"type": "notifications",
 	}
-	s.sendNotificationToUser(userId, notification)
+	app.sendNotificationToUser(userId, notification)
 	return &response.DeleteNewEventNotification{
 		Message: "Notification deleted",
 	}

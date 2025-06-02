@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func (s *Server) CreateGroup(payload *request.RequestT) any {
+func (app *App) CreateGroup(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.CreateGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -21,7 +21,7 @@ func (s *Server) CreateGroup(payload *request.RequestT) any {
 		Description: data.Description,
 		Image:       data.Image,
 	}
-	err := s.repository.Group().Create(g)
+	err := app.repository.Group().Create(g)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't create group: " + err.Error()}
 	}
@@ -31,17 +31,17 @@ func (s *Server) CreateGroup(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetGroups(payload *request.RequestT) any {
+func (app *App) GetGroups(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
-	groupInvites, err := s.repository.Group().GetGroupInvitesByUserId(userId)
+	groupInvites, err := app.repository.Group().GetGroupInvitesByUserId(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't get group invites: " + err.Error()}
 	}
-	joinRequests, err := s.repository.Group().GetJoinRequestsByOwnerId(userId)
+	joinRequests, err := app.repository.Group().GetJoinRequestsByOwnerId(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't get join requests: " + err.Error()}
 	}
-	allGroups, err := s.repository.Group().GetGroups(userId)
+	allGroups, err := app.repository.Group().GetGroups(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't get groups: " + err.Error()}
 	}
@@ -52,13 +52,13 @@ func (s *Server) GetGroups(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetGroupData(payload *request.RequestT) any {
+func (app *App) GetGroupData(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetGroupData)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
-	group, err := s.repository.Group().GetGroupData(data.GroupId, userId)
+	group, err := app.repository.Group().GetGroupData(data.GroupId, userId)
 	if err != nil {
 		return &response.Error{Code: 404, Cause: err.Error()}
 	}
@@ -67,7 +67,7 @@ func (s *Server) GetGroupData(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddGroupPost(payload *request.RequestT) any {
+func (app *App) AddGroupPost(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.AddGroupPost)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -79,7 +79,7 @@ func (s *Server) AddGroupPost(payload *request.RequestT) any {
 	if len(data.Caption) > 1000 {
 		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
 	}
-	user, err := s.repository.User().Find(userId)
+	user, err := app.repository.User().Find(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error finding user"}
 	}
@@ -93,7 +93,7 @@ func (s *Server) AddGroupPost(payload *request.RequestT) any {
 			Avatar:    user.Avatar,
 		},
 	}
-	err = s.repository.Group().AddGroupPost(p, data.GroupId)
+	err = app.repository.Group().AddGroupPost(p, data.GroupId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error adding post: " + err.Error()}
 	}
@@ -102,7 +102,7 @@ func (s *Server) AddGroupPost(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddGroupEvent(payload *request.RequestT) any {
+func (app *App) AddGroupEvent(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.AddGroupEvent)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -111,7 +111,7 @@ func (s *Server) AddGroupEvent(payload *request.RequestT) any {
 	if data.Title == "" || data.Description == "" || data.Option1 == "" || data.Option2 == "" || data.Date == "" || data.Place == "" {
 		return &response.Error{Code: 400, Cause: "Can't create empty events (must fill all required fields)"}
 	}
-	user, err := s.repository.User().Find(userId)
+	user, err := app.repository.User().Find(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error finding user"}
 	}
@@ -125,7 +125,7 @@ func (s *Server) AddGroupEvent(payload *request.RequestT) any {
 		Place:       data.Place,
 		User:        user,
 	}
-	members, err := s.repository.Group().AddGroupEvent(e, data.GroupId)
+	members, err := app.repository.Group().AddGroupEvent(e, data.GroupId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error adding event: " + err.Error()}
 	}
@@ -139,7 +139,7 @@ func (s *Server) AddGroupEvent(payload *request.RequestT) any {
 			"message":   "A new group event has been created",
 			"timestamp": time.Now().Unix(),
 		}
-		s.sendNotificationToUser(member.ID, notification)
+		app.sendNotificationToUser(member.ID, notification)
 	}
 
 	return &response.AddGroupEvent{
@@ -148,14 +148,14 @@ func (s *Server) AddGroupEvent(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) AddEventOption(payload *request.RequestT) any {
+func (app *App) AddEventOption(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.AddEventOption)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
 
-	user, err := s.repository.User().Find(userId)
+	user, err := app.repository.User().Find(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error finding user"}
 	}
@@ -166,7 +166,7 @@ func (s *Server) AddEventOption(payload *request.RequestT) any {
 		User:    user,
 	}
 
-	err = s.repository.Group().AddEventOption(opt, data.GroupId)
+	err = app.repository.Group().AddEventOption(opt, data.GroupId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error adding option: " + err.Error()}
 	}
@@ -176,7 +176,7 @@ func (s *Server) AddEventOption(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
+func (app *App) RequestJoinGroup(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.RequestJoinGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -189,7 +189,7 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 		IsAccepted: false,
 	}
 
-	err := s.repository.Group().GetMember(m)
+	err := app.repository.Group().GetMember(m)
 	if err != sql.ErrNoRows {
 		return &response.Error{Code: 400, Cause: "Request or membership already exists"}
 	}
@@ -198,12 +198,12 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 		return &response.Error{Code: 400, Cause: "Request or membership already exists"}
 	}
 
-	err = s.repository.Group().AddMember(m)
+	err = app.repository.Group().AddMember(m)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error adding member: " + err.Error()}
 	}
 
-	ownerId, err := s.repository.Group().GetGroupOwner(m.GroupId)
+	ownerId, err := app.repository.Group().GetGroupOwner(m.GroupId)
 	if err == nil {
 		notification := map[string]any{
 			"type":      "notifications",
@@ -212,7 +212,7 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 			"message":   "New join request to your group",
 			"timestamp": time.Now().Unix(),
 		}
-		s.sendNotificationToUser(ownerId, notification)
+		app.sendNotificationToUser(ownerId, notification)
 	}
 
 	return &response.RequestJoinGroup{
@@ -221,10 +221,10 @@ func (s *Server) RequestJoinGroup(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetJoinRequestCount(payload *request.RequestT) any {
+func (app *App) GetJoinRequestCount(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	count, err := s.repository.Group().CountPendingJoinRequests(userId)
+	count, err := app.repository.Group().CountPendingJoinRequests(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Database error"}
 	}
@@ -234,15 +234,15 @@ func (s *Server) GetJoinRequestCount(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetUnreadMessagesCountResponse(payload *request.RequestT) any {
+func (app *App) GetUnreadMessagesCountResponse(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	pmCount, err := s.repository.Message().CountUnreadPM(userId)
+	pmCount, err := app.repository.Message().CountUnreadPM(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Failed to fetch PM unread count"}
 	}
 
-	groupCount, err := s.repository.Message().CountUnreadGroup(userId)
+	groupCount, err := app.repository.Message().CountUnreadGroup(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Failed to fetch group unread count"}
 	}
@@ -252,7 +252,7 @@ func (s *Server) GetUnreadMessagesCountResponse(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
+func (app *App) RespondToJoinRequest(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.RespondToJoinRequest)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -267,18 +267,18 @@ func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
 		GroupId: data.GroupId,
 	}
 
-	ownerId, err := s.repository.Group().GetGroupOwner(m.GroupId)
+	ownerId, err := app.repository.Group().GetGroupOwner(m.GroupId)
 	if err != nil || ownerId != adminId {
 		return &response.Error{Code: 403, Cause: "You are not the group owner"}
 	}
 
 	if data.IsAccepted {
-		err := s.repository.Group().AcceptMember(m)
+		err := app.repository.Group().AcceptMember(m)
 		if err != nil {
 			return &response.Error{Code: 500, Cause: "Error accepting member: " + err.Error()}
 		}
 	} else {
-		err := s.repository.Group().RemoveMember(m)
+		err := app.repository.Group().RemoveMember(m)
 		if err != nil {
 			return &response.Error{Code: 500, Cause: "Error removing member: " + err.Error()}
 		}
@@ -287,8 +287,8 @@ func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
 	wsMsg := map[string]any{
 		"type": "joinRequestHandled",
 	}
-	for _, c := range s.clients[adminId] {
-		s.ShowMessage(c, wsMsg)
+	for _, c := range app.clients[adminId] {
+		app.ShowMessage(c, wsMsg)
 	}
 
 	return &response.RespondToJoinRequest{
@@ -299,13 +299,13 @@ func (s *Server) RespondToJoinRequest(payload *request.RequestT) any {
 
 // GROUP INVITATION METHODS
 
-func (s *Server) GetGroupInviteUsers(payload *request.RequestT) any {
+func (app *App) GetGroupInviteUsers(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetGroupInviteUsers)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
-	users, err := s.repository.Group().GetAvailableUsersToInvite(data.GroupId, userId)
+	users, err := app.repository.Group().GetAvailableUsersToInvite(data.GroupId, userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error getting invite users: " + err.Error()}
 	}
@@ -314,19 +314,19 @@ func (s *Server) GetGroupInviteUsers(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) InviteUserToGroup(payload *request.RequestT) any {
+func (app *App) InviteUserToGroup(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.InviteUserToGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 	userId := payload.Ctx.Value("user_id").(int)
 
-	isMember, err := s.repository.Group().IsMember(userId, data.GroupId)
+	isMember, err := app.repository.Group().IsMember(userId, data.GroupId)
 	if err != nil || !isMember {
 		return &response.Error{Code: 403, Cause: "You are not a member of this group"}
 	}
 
-	err = s.repository.Group().InviteUserToGroup(userId, data.UserId, data.GroupId)
+	err = app.repository.Group().InviteUserToGroup(userId, data.UserId, data.GroupId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error inviting user: " + err.Error()}
 	}
@@ -338,7 +338,7 @@ func (s *Server) InviteUserToGroup(payload *request.RequestT) any {
 		"message":   "You have been invited to join a group",
 		"timestamp": time.Now().Unix(),
 	}
-	s.sendNotificationToUser(data.UserId, notification)
+	app.sendNotificationToUser(data.UserId, notification)
 
 	return &response.InviteUserToGroup{
 		Success: true,
@@ -346,7 +346,7 @@ func (s *Server) InviteUserToGroup(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) RespondToGroupInvitation(payload *request.RequestT) any {
+func (app *App) RespondToGroupInvitation(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.RespondToGroupInvitation)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -356,10 +356,10 @@ func (s *Server) RespondToGroupInvitation(payload *request.RequestT) any {
 	var err error
 	var msg string
 	if data.Accept {
-		err = s.repository.Group().AcceptGroupInvitation(userId, data.GroupId)
+		err = app.repository.Group().AcceptGroupInvitation(userId, data.GroupId)
 		msg = "Invitation accepted"
 	} else {
-		err = s.repository.Group().RejectGroupInvitation(userId, data.GroupId)
+		err = app.repository.Group().RejectGroupInvitation(userId, data.GroupId)
 		msg = "Invitation rejected"
 	}
 	if err != nil {
@@ -372,11 +372,11 @@ func (s *Server) RespondToGroupInvitation(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) sendNotificationToUser(userId int, notification map[string]any) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (app *App) sendNotificationToUser(userId int, notification map[string]any) {
+	app.mu.Lock()
+	defer app.mu.Unlock()
 
-	clients, exists := s.clients[userId]
+	clients, exists := app.clients[userId]
 	if !exists {
 		return
 	}

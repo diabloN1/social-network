@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 )
 
-func (s *Server) UploadImage(r *http.Request) map[string]any {
+func (app *App) UploadImage(r *http.Request) map[string]any {
 	res := make(map[string]any)
 	res["error"] = ""
 	const maxBytes = 10 * 1024 * 1024

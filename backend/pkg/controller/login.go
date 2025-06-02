@@ -6,7 +6,7 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Login(payload *request.RequestT) any {
+func (app *App) Login(payload *request.RequestT) any {
 	u, ok := payload.Data.(*request.Login)
 	if !ok {
 		return &response.Error{
@@ -15,7 +15,7 @@ func (s *Server) Login(payload *request.RequestT) any {
 		}
 	}
 	invalidCredError := &response.Error{Code: 400, Cause: "username or password invalid"}
-	foundUser, err := s.repository.User().Find(u.Email)
+	foundUser, err := app.repository.User().Find(u.Email)
 	if err != nil {
 		log.Println("Failed to find a user:", err)
 		return invalidCredError
@@ -25,7 +25,7 @@ func (s *Server) Login(payload *request.RequestT) any {
 		return invalidCredError
 	}
 
-	session, err := s.repository.Session().Create(foundUser.ID)
+	session, err := app.repository.Session().Create(foundUser.ID)
 	if err != nil {
 		log.Println("Failed to create a session:", err)
 		return &response.Error{Code: 500, Cause: "Failed to create session"}

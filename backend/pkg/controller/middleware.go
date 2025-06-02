@@ -11,7 +11,7 @@ import (
 	"strings"
 )
 
-func (s *Server) corsMiddleware(next http.Handler) http.Handler {
+func (app *App) corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// // Allow CORS for the specified origin
 		// w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -31,7 +31,7 @@ func (s *Server) corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) imageMiddleware(next http.Handler) http.Handler {
+func (app *App) imageMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("token")
 		if err != nil {
@@ -39,9 +39,9 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		uid, err := s.repository.Session().FindUserIDBySession(cookie.Value)
+		uid, err := app.repository.Session().FindUserIDBySession(cookie.Value)
 		if err != nil {
-			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			app.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
 			return
 		}
 
@@ -68,7 +68,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 
 		switch typ {
 		case "posts":
-			hasAccess, err := s.repository.Post().HasAccessToPost(uid, id, path)
+			hasAccess, err := app.repository.Post().HasAccessToPost(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -79,7 +79,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "post-comments":
-			hasAccess, err := s.repository.Post().HasAccessToPostComment(uid, id, path)
+			hasAccess, err := app.repository.Post().HasAccessToPostComment(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -90,7 +90,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 		case "group-posts":
-			hasAccess, err := s.repository.Group().HasAccessToGroupPost(uid, id, path)
+			hasAccess, err := app.repository.Group().HasAccessToGroupPost(uid, id, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -107,7 +107,7 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 				return
 			}
 
-			hasAccess, err := s.repository.Group().HasAccessToGroupComment(uid, id, postId, path)
+			hasAccess, err := app.repository.Group().HasAccessToGroupComment(uid, id, postId, path)
 			if err != nil {
 				http.Error(w, "error checkig if has access"+err.Error(), http.StatusBadRequest)
 				return
@@ -130,41 +130,41 @@ func (s *Server) imageMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (s *Server) isMemberMiddleware(next http.Handler, req *request.RequestT) http.Handler {
+func (app *App) isMemberMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, ok := req.Ctx.Value("user_id").(int)
 		if !ok || userID == 0 {
-			s.ServeError(w, &response.Error{Cause: "Unauthorized: User ID not found in context", Code: http.StatusBadRequest})
+			app.ServeError(w, &response.Error{Cause: "Unauthorized: User ID not found in context", Code: http.StatusBadRequest})
 			return
 		}
 
 		v := reflect.ValueOf(req.Data).Elem()
 
 		if v.Kind() != reflect.Struct {
-			s.ServeError(w, &response.Error{Cause: "Bad Request: Expected struct data", Code: http.StatusBadRequest})
+			app.ServeError(w, &response.Error{Cause: "Bad Request: Expected struct data", Code: http.StatusBadRequest})
 			return
 		}
 
 		groupField := v.FieldByName("GroupId")
 		if !groupField.IsValid() {
-			s.ServeError(w, &response.Error{Cause: "Bad Request: GroupId field missing or invalid", Code: http.StatusBadRequest})
+			app.ServeError(w, &response.Error{Cause: "Bad Request: GroupId field missing or invalid", Code: http.StatusBadRequest})
 			return
 		}
 
 		groupId := int(groupField.Int())
 		if groupId <= 0 {
-			s.ServeError(w, &response.Error{Cause: "Bad Request: Invalid group_id", Code: http.StatusBadRequest})
+			app.ServeError(w, &response.Error{Cause: "Bad Request: Invalid group_id", Code: http.StatusBadRequest})
 			return
 		}
 
-		isMember, err := s.repository.Group().IsMember(userID, groupId)
+		isMember, err := app.repository.Group().IsMember(userID, groupId)
 		if err != nil {
-			s.ServeError(w, &response.Error{Cause: "Internal Server Error: Unable to verify membership", Code: http.StatusInternalServerError})
+			app.ServeError(w, &response.Error{Cause: "Internal Server Error: Unable to verify membership", Code: http.StatusInternalServerError})
 			return
 		}
 
 		if !isMember {
-			s.ServeError(w, &response.Error{Cause: "Forbidden: You are not a member of this group", Code: http.StatusForbidden})
+			app.ServeError(w, &response.Error{Cause: "Forbidden: You are not a member of this group", Code: http.StatusForbidden})
 			return
 		}
 
@@ -172,7 +172,7 @@ func (s *Server) isMemberMiddleware(next http.Handler, req *request.RequestT) ht
 	})
 }
 
-func (s *Server) cookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {
+func (app *App) cookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/login" || r.URL.Path == "/register" {
 			next.ServeHTTP(w, r)
@@ -181,14 +181,14 @@ func (s *Server) cookieMiddleware(next http.Handler, req *request.RequestT) http
 
 		cookie, err := r.Cookie("token")
 		if err != nil {
-			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session in " + r.URL.Path, Code: http.StatusUnauthorized})
+			app.ServeError(w, &response.Error{Cause: "unauthorized: invalid session in " + r.URL.Path, Code: http.StatusUnauthorized})
 			return
 		}
 
 		token := cookie.Value
-		uid, err := s.repository.Session().FindUserIDBySession(token)
+		uid, err := app.repository.Session().FindUserIDBySession(token)
 		if err != nil {
-			s.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
+			app.ServeError(w, &response.Error{Cause: "unauthorized: invalid session", Code: http.StatusUnauthorized})
 			return
 		}
 

@@ -6,7 +6,7 @@ import (
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetProfile(payload *request.RequestT) any {
+func (app *App) GetProfile(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetProfile)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -14,7 +14,7 @@ func (s *Server) GetProfile(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	user, err := s.repository.User().FindProfile(data.ProfileId, userId)
+	user, err := app.repository.User().FindProfile(data.ProfileId, userId)
 	if err != nil {
 		return &response.Error{Code: 404, Cause: err.Error()}
 	}
@@ -24,15 +24,15 @@ func (s *Server) GetProfile(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) GetProfiles(payload *request.RequestT) any {
+func (app *App) GetProfiles(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 
-	followRequests, err := s.repository.Follow().GetFollowRequests(userId)
+	followRequests, err := app.repository.Follow().GetFollowRequests(userId)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	allUsers, err := s.repository.User().GetAllUsers()
+	allUsers, err := app.repository.User().GetAllUsers()
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}
@@ -54,7 +54,7 @@ func (s *Server) GetProfiles(payload *request.RequestT) any {
 	}
 }
 
-func (s *Server) SetProfilePrivacy(payload *request.RequestT) any {
+func (app *App) SetProfilePrivacy(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.SetProfilePrivacy)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
@@ -62,7 +62,7 @@ func (s *Server) SetProfilePrivacy(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.User().SetUserPrivacy(userId, data.State)
+	err := app.repository.User().SetUserPrivacy(userId, data.State)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: err.Error()}
 	}

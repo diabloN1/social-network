@@ -17,11 +17,15 @@ import (
 )
 
 type Server struct {
-	router     *http.ServeMux
+	router *http.ServeMux
+	app    *App
+}
+
+type App struct {
 	repository repository.Repository
-	upgrader   *websocket.Upgrader
 	clients    map[int][]*Client
-	mu         sync.RWMutex
+	mu         sync.Mutex
+	upgrader   *websocket.Upgrader
 }
 
 func (s *Server) AddRoute(pattern string, handler func(*request.RequestT) any, middlewares ...func(http.Handler, *request.RequestT) http.Handler) {
@@ -29,19 +33,19 @@ func (s *Server) AddRoute(pattern string, handler func(*request.RequestT) any, m
 	s.router.HandleFunc(pattern, func(resp http.ResponseWriter, req *http.Request) {
 		body, err := io.ReadAll(req.Body)
 		if err != nil {
-			s.ServeError(resp, &response.Error{Cause: "oops, something went wrong", Code: 500})
+			s.app.ServeError(resp, &response.Error{Cause: "oops, something went wrong", Code: 500})
 			return
 		}
 
 		_, reqData, err := request.Unmarshal(body)
 		if err != nil {
-			s.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
+			s.app.ServeError(resp, &response.Error{Cause: err.Error(), Code: 500})
 			return
 		}
 
 		reqData.Middlewares = middlewares
 		handler := h.ApplyMiddlewares(reqData)
-		s.cookieMiddleware(handler, reqData).ServeHTTP(resp, req)
+		s.app.cookieMiddleware(handler, reqData).ServeHTTP(resp, req)
 
 	})
 }
@@ -69,7 +73,7 @@ func (h HandlerFunc) ApplyMiddlewares(request *request.RequestT) http.Handler {
 
 }
 
-func (s *Server) ServeError(w http.ResponseWriter, err *response.Error) {
+func (app *App) ServeError(w http.ResponseWriter, err *response.Error) {
 	fmt.Println("Error:", err.Cause)
 	status, body := response.Marshal(err)
 	w.Header().Set("Content-Type", "application/json")
@@ -94,77 +98,77 @@ func Start() error {
 	s := NewServer(http.NewServeMux(), db)
 
 	// Auth
-	s.AddRoute("/login", s.Login)
-	s.AddRoute("/register", s.Register)
-	s.AddRoute("/logout", s.Logout)
+	s.AddRoute("/login", s.app.Login)
+	s.AddRoute("/register", s.app.Register)
+	s.AddRoute("/logout", s.app.Logout)
 
 	// Posts
-	s.AddRoute("/getPosts", s.GetPosts)
-	s.AddRoute("/getPost", s.GetPostData)
-	s.AddRoute("/addPost", s.AddPost)
-	s.AddRoute("/reactToPost", s.ReactToPost)
+	s.AddRoute("/getPosts", s.app.GetPosts)
+	s.AddRoute("/getPost", s.app.GetPostData)
+	s.AddRoute("/addPost", s.app.AddPost)
+	s.AddRoute("/reactToPost", s.app.ReactToPost)
 
 	// Post Shares
-	s.AddRoute("/getPostShares", s.GetPostShares)
-	s.AddRoute("/addPostShare", s.AddPostShare)
-	s.AddRoute("/removePostShare", s.RemovePostShare)
+	s.AddRoute("/getPostShares", s.app.GetPostShares)
+	s.AddRoute("/addPostShare", s.app.AddPostShare)
+	s.AddRoute("/removePostShare", s.app.RemovePostShare)
 
 	// Comments
-	s.AddRoute("/addComment", s.AddComment)
-	s.AddRoute("/getComments", s.GetComments)
+	s.AddRoute("/addComment", s.app.AddComment)
+	s.AddRoute("/getComments", s.app.GetComments)
 
 	// Profiles
-	s.AddRoute("/getProfiles", s.GetProfiles)
-	s.AddRoute("/getProfile", s.GetProfile)
-	s.AddRoute("/setPrivacy", s.SetProfilePrivacy)
+	s.AddRoute("/getProfiles", s.app.GetProfiles)
+	s.AddRoute("/getProfile", s.app.GetProfile)
+	s.AddRoute("/setPrivacy", s.app.SetProfilePrivacy)
 
 	// Follows
-	s.AddRoute("/requestFollow", s.RequestFollow)
-	s.AddRoute("/acceptFollow", s.AcceptFollow)
-	s.AddRoute("/deleteFollow", s.DeleteFollow)
+	s.AddRoute("/requestFollow", s.app.RequestFollow)
+	s.AddRoute("/acceptFollow", s.app.AcceptFollow)
+	s.AddRoute("/deleteFollow", s.app.DeleteFollow)
 
 	// Groups
-	s.AddRoute("/createGroup", s.CreateGroup)
-	s.AddRoute("/getGroups", s.GetGroups)
-	s.AddRoute("/getGroup", s.GetGroupData)
+	s.AddRoute("/createGroup", s.app.CreateGroup)
+	s.AddRoute("/getGroups", s.app.GetGroups)
+	s.AddRoute("/getGroup", s.app.GetGroupData)
 
 	// Group post reactions and comments
-	s.AddRoute("/reactToGroupPost", s.ReactToGroupPost, s.isMemberMiddleware)
-	s.AddRoute("/addGroupComment", s.AddGroupComment, s.isMemberMiddleware)
-	s.AddRoute("/getGroupComments", s.GetGroupComments, s.isMemberMiddleware)
+	s.AddRoute("/reactToGroupPost", s.app.ReactToGroupPost, s.app.isMemberMiddleware)
+	s.AddRoute("/addGroupComment", s.app.AddGroupComment, s.app.isMemberMiddleware)
+	s.AddRoute("/getGroupComments", s.app.GetGroupComments, s.app.isMemberMiddleware)
 
-	s.AddRoute("/addGroupPost", s.AddGroupPost, s.isMemberMiddleware)
-	s.AddRoute("/addGroupEvent", s.AddGroupEvent, s.isMemberMiddleware)
-	s.AddRoute("/addEventOption", s.AddEventOption, s.isMemberMiddleware)
-	s.AddRoute("/requestJoinGroup", s.RequestJoinGroup)
-	s.AddRoute("/respondToJoinRequest", s.RespondToJoinRequest)
+	s.AddRoute("/addGroupPost", s.app.AddGroupPost, s.app.isMemberMiddleware)
+	s.AddRoute("/addGroupEvent", s.app.AddGroupEvent, s.app.isMemberMiddleware)
+	s.AddRoute("/addEventOption", s.app.AddEventOption, s.app.isMemberMiddleware)
+	s.AddRoute("/requestJoinGroup", s.app.RequestJoinGroup)
+	s.AddRoute("/respondToJoinRequest", s.app.RespondToJoinRequest)
 
 	// Group Invitation Routes
-	s.AddRoute("/getGroupInviteUsers", s.GetGroupInviteUsers, s.isMemberMiddleware)
-	s.AddRoute("/inviteUserToGroup", s.InviteUserToGroup, s.isMemberMiddleware)
-	s.AddRoute("/respondToGroupInvitation", s.RespondToGroupInvitation)
+	s.AddRoute("/getGroupInviteUsers", s.app.GetGroupInviteUsers, s.app.isMemberMiddleware)
+	s.AddRoute("/inviteUserToGroup", s.app.InviteUserToGroup, s.app.isMemberMiddleware)
+	s.AddRoute("/respondToGroupInvitation", s.app.RespondToGroupInvitation)
 
 	// Chat
-	s.AddRoute("/getChatData", s.GetChat)
-	s.AddRoute("/getMessages", s.GetMessages)
+	s.AddRoute("/getChatData", s.app.GetChat)
+	s.AddRoute("/getMessages", s.app.GetMessages)
 
 	//notif
-	s.AddRoute("/getAllNotifications", s.GetAllNotifications)
-	s.AddRoute("/getNewFollowNotification", s.CheckNewFollowNotification)
-	s.AddRoute("/deleteFollowNotif", s.DeleteFollowNotification)
-	s.AddRoute("/deleteNotifNewEvent", s.DeleteNewEventNotification)
+	s.AddRoute("/getAllNotifications", s.app.GetAllNotifications)
+	s.AddRoute("/getNewFollowNotification", s.app.CheckNewFollowNotification)
+	s.AddRoute("/deleteFollowNotif", s.app.DeleteFollowNotification)
+	s.AddRoute("/deleteNotifNewEvent", s.app.DeleteNewEventNotification)
 
 	// ws
-	s.router.HandleFunc("/ws", s.WebSocketHandler)
+	s.router.HandleFunc("/ws", s.app.WebSocketHandler)
 
 	// Image
-	s.router.HandleFunc("/uploadImage", s.UploadImageHandler)
-	s.router.Handle("/getProtectedImage", s.imageMiddleware(http.HandlerFunc(s.ProtectedImageHandler)))
+	s.router.HandleFunc("/uploadImage", s.app.UploadImageHandler)
+	s.router.Handle("/getProtectedImage", s.app.imageMiddleware(http.HandlerFunc(s.app.ProtectedImageHandler)))
 
 	// go s.checkClientsLastActivity()
 
 	log.Println("Server started at http://localhost:8080/")
-	return http.ListenAndServe(":8080", s.corsMiddleware(s))
+	return http.ListenAndServe(":8080", s.app.corsMiddleware(s))
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -179,42 +183,44 @@ func NewServer(router *http.ServeMux, db *sql.DB) *Server {
 		ReadBufferSize:  1024,
 		WriteBufferSize: 1024,
 	}
-	r := repository.New(db)
+	app := &App{
+		repository: *repository.New(db),
+		upgrader: upgrader,
+		clients:  make(map[int][]*Client),
+	}
 
 	return &Server{
-		router:     router,
-		repository: *r,
-		upgrader:   upgrader,
-		clients:    make(map[int][]*Client),
+		router: router,
+		app:    app,
 	}
 }
 
-func (s *Server) addClient(userid int, session string, client *websocket.Conn) *Client {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (app *App) addClient(userid int, session string, client *websocket.Conn) *Client {
+	app.mu.Lock()
+	defer app.mu.Unlock()
 	c := &Client{UserId: userid, Session: session, ActiveTime: time.Now(), Connection: client}
-	s.clients[userid] = append(s.clients[userid], c)
+	app.clients[userid] = append(app.clients[userid], c)
 	return c
 }
 
-func (s *Server) removeClient(client *Client) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+func (app *App) removeClient(client *Client) {
+	app.mu.Lock()
+	defer app.mu.Unlock()
 
-	for i, c := range s.clients[client.UserId] {
+	for i, c := range app.clients[client.UserId] {
 		if c == client {
 
-			if i == len(s.clients[client.UserId])-1 {
-				s.clients[client.UserId] = s.clients[client.UserId][:i]
+			if i == len(app.clients[client.UserId])-1 {
+				app.clients[client.UserId] = app.clients[client.UserId][:i]
 			} else {
-				s.clients[client.UserId] = append(s.clients[client.UserId][:i], s.clients[client.UserId][i+1:]...)
+				app.clients[client.UserId] = append(app.clients[client.UserId][:i], app.clients[client.UserId][i+1:]...)
 			}
 			return
 		}
 	}
 }
 
-func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
+func (app *App) readMessage(conn *websocket.Conn, client *Client) {
 	for {
 
 		_, payload, err := conn.ReadMessage()
@@ -222,7 +228,7 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("Error reading message: %v", err)
 			}
-			s.removeClient(client)
+			app.removeClient(client)
 			break
 		}
 
@@ -234,39 +240,39 @@ func (s *Server) readMessage(conn *websocket.Conn, client *Client) {
 		}
 
 		switch reqType {
-		// case "updateseenmessages":
-		// 	s.UpdateSeenMessageWS(request)
+		case "updateseenmessages":
+			app.UpdateSeenMessageWS(reqBody)
 		case "add-message":
-			response, err := s.AddMessage(reqBody)
+			response, err := app.AddMessage(reqBody)
 			if err != nil {
-				s.ShowMessage(client, err)
+				app.ShowMessage(client, err)
 				continue
 			}
-			s.SentToActiveRecipient(response)
+			app.SentToActiveRecipient(response)
 		}
 	}
 }
 
-func (s *Server) SentToActiveRecipient(response *response.AddMessage) {
+func (app *App) SentToActiveRecipient(response *response.AddMessage) {
 
 	senderId := response.Message.SenderId
 	RecipientId := response.Message.RecipientId
 	groupId := response.Message.GroupId
 
-	for _, c := range s.clients[senderId] {
+	for _, c := range app.clients[senderId] {
 		response.Message.IsOwned = true
-		s.ShowMessage(c, response)
+		app.ShowMessage(c, response)
 	}
 
 	if RecipientId != 0 {
 		// Brodcast to RecipientId
-		for _, c := range s.clients[RecipientId] {
+		for _, c := range app.clients[RecipientId] {
 			response.Message.IsOwned = false
-			s.ShowMessage(c, response)
+			app.ShowMessage(c, response)
 		}
 	} else {
 		// Brodcast to group members
-		users, err := s.repository.Group().GetGroupMembers(groupId)
+		users, err := app.repository.Group().GetGroupMembers(groupId)
 		if err != nil {
 			fmt.Println("Error broadcasting to group members:", err)
 			return
@@ -274,16 +280,16 @@ func (s *Server) SentToActiveRecipient(response *response.AddMessage) {
 
 		for _, u := range users {
 			if u.ID != senderId {
-				for _, c := range s.clients[u.ID] {
+				for _, c := range app.clients[u.ID] {
 					response.Message.IsOwned = false
-					s.ShowMessage(c, response)
+					app.ShowMessage(c, response)
 				}
 			}
 		}
 	}
 }
 
-func (s *Server) ShowMessage(client *Client, response any) {
+func (app *App) ShowMessage(client *Client, response any) {
 	if client == nil {
 		return
 	}
