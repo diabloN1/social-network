@@ -19,11 +19,25 @@ export const useGlobalAPIHelper = () => {
     return { error: true, message };
   };
 
+  const lastCallTimestamps = new Map<string, number>();
+
   const apiCall = async (
     requestData: any,
     method: string,
     url: string
   ): Promise<any> => {
+    const now = Date.now();
+    const lastCall = lastCallTimestamps.get(url);
+
+    const THROTTLE_TIME = 3000; // milliseconds
+
+    if (lastCall && now - lastCall < THROTTLE_TIME) {
+      console.warn(`Throttled API call to ${url}`);
+      return { error: true, message: "Please wait before trying again." };
+    }
+
+    lastCallTimestamps.set(url, now);
+
     try {
       const response = await fetch(`http://localhost:8080/${url}`, {
         method,

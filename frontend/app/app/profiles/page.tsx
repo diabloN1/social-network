@@ -54,7 +54,6 @@ export default function ProfilesPage() {
       setNewFollowers(followNotifData.newFollowers || []);
       return profileData;
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -115,7 +114,6 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };

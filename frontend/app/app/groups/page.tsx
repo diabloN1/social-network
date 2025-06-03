@@ -415,13 +415,6 @@ export default function GroupsPage() {
           onSubmit={handleCreateGroup}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }

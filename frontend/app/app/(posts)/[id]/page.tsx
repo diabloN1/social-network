@@ -95,7 +95,6 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     } finally {
       setIsLoading(false);
