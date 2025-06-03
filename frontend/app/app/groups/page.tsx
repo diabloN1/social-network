@@ -4,7 +4,6 @@ import type React from "react";
 
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import "./styles.css";
 import CreateGroupModal from "@/components/create-group-modal";
 
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";

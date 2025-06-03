@@ -2,11 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
-import "./profile.css";
-// import getProfileData from "@/api/profiles/getProfileData";
-// import deleteFollow from "@/api/follow/deleteFollow";
-// import requestFollow from "@/api/follow/requestFollow";
-// import setPravicy from "@/api/profiles/setPrivacy";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 // import Popup from "../../popup";
