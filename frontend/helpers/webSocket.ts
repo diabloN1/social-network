@@ -46,6 +46,7 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
       console.error("WebSocket error:", err);
     };
 
+
     return socket;
   } catch (error) {
     alert("WebSocket connection failed: " + error);
