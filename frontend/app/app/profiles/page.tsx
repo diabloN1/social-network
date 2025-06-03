@@ -5,12 +5,6 @@ import type React from "react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
-// import getProfiles from "@/api/profiles/getProfiles";
-// import acceptFollow from "@/api/follow/acceptFollow";
-// import deleteFollow from "@/api/follow/deleteFollow";
-// import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
-// import Popup from "../popup";
-// import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
 
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
@@ -24,10 +18,6 @@ export default function ProfilesPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasNewFollow, setHasNewFollow] = useState(false);
   const { apiCall } = useGlobalAPIHelper();
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
   const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
   const getData = async () => {
@@ -40,10 +30,7 @@ export default function ProfilesPage() {
           "getNewFollowNotification"
         ),
       ]);
-      // console.log("ddd", followNotifData);
-
       if (profileData.error || followNotifData.error) {
-        alert(profileData.error || followNotifData.error);
         return;
       }
 
@@ -63,7 +50,6 @@ export default function ProfilesPage() {
   }, []);
 
   // Filter users based on search term
-  // console.log("Users", users);
   const filteredUsers = users?.filter(
     (user) =>
       user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -315,13 +301,6 @@ export default function ProfilesPage() {
           )}
         </div>
       </section>
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }

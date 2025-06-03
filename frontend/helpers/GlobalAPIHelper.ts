@@ -13,7 +13,7 @@ export const useGlobalAPIHelper = () => {
     if (message.toLowerCase().startsWith("unauthorized: invalid session")) {
       setTimeout(() => {
         router.push("/auth");
-      }, 1000); // Delay allows popup to show
+      }, 1000);
     }
 
     return { error: true, message };
@@ -29,7 +29,7 @@ export const useGlobalAPIHelper = () => {
     const now = Date.now();
     const lastCall = lastCallTimestamps.get(url);
 
-    const THROTTLE_TIME = 3000; // milliseconds
+    const THROTTLE_TIME = 3000;
 
     if (lastCall && now - lastCall < THROTTLE_TIME) {
       console.warn(`Throttled API call to ${url}`);
