@@ -6,10 +6,12 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o backend ./main.go
+# Enable Cgo and build the binary
+RUN apt-get update && apt-get install -y gcc musl-dev
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o backend ./main.go
 
-FROM alpine:latest
-RUN apk --no-cache add ca-certificates
+# Use Debian-based runtime image
+FROM debian:bullseye-slim
 
 WORKDIR /root/
 COPY --from=builder /app/backend .
