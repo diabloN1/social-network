@@ -1,173 +1,99 @@
-package controller
+package app
 
 import (
 	"log"
-	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 	"time"
 )
 
-func (s *Server) RequestFollow(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "followReq",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var profileId float64
-	profileIdRaw, ok := request["profileId"]
+func (app *App) RequestFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RequestFollow)
 	if !ok {
-		response.Error = "Missing 'profileId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	profileId, ok = profileIdRaw.(float64)
-	if !ok {
-		response.Error = "'profileId' must be a float64"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Follow().RequestFollow(int(profileId), res.Userid)
+	err := app.repository.Follow().RequestFollow(data.ProfileId, userId)
 	if err != nil {
-		response.Error = err.Error()
 		log.Println("Error requesting follow:", err)
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 	notification := map[string]any{
 		"type":       "notifications",
-		"followerId": res.Userid,
+		"followerId": userId,
 		"message":    "New follow request",
 		"timestamp":  time.Now().Unix(),
 	}
-	s.sendNotificationToUser(int(profileId), notification)
+	app.sendNotificationToUser(data.ProfileId, notification)
 
-	return response
+	return &response.RequestFollow{
+		Success: true,
+		Message: "Follow request sent",
+	}
 }
 
-func (s *Server) AcceptFollow(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "followReq",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var profileId float64
-	profileIdRaw, ok := request["profileId"]
+func (app *App) AcceptFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AcceptFollow)
 	if !ok {
-		response.Error = "Missing 'profileId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	profileId, ok = profileIdRaw.(float64)
-	if !ok {
-		response.Error = "'profileId' must be a float64"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	err := s.repository.Follow().AcceptFollow(int(profileId), res.Userid)
+	err := app.repository.Follow().AcceptFollow(data.ProfileId, userId)
 	if err != nil {
-		response.Error = err.Error()
 		log.Println("Error accepting follow:", err)
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 	wsMsg := map[string]any{
 		"type": "followRequestHandled",
 	}
-	for _, c := range s.clients[res.Userid] {
-		s.ShowMessage(c, wsMsg)
+	for _, c := range app.clients[userId] {
+		app.ShowMessage(c, wsMsg)
 	}
-	return response
+	return &response.AcceptFollow{
+		Success: true,
+		Message: "Follow request accepted",
+	}
 }
 
-func (s *Server) DeleteFollow(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "followReq",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var profileId float64
-	profileIdRaw, ok := request["profileId"]
+func (app *App) DeleteFollow(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.DeleteFollow)
 	if !ok {
-		response.Error = "Missing 'profileId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	profileId, ok = profileIdRaw.(float64)
-	if !ok {
-		response.Error = "'profileId' must be a float64"
-		return response
-	}
-
-	var isFollower bool
-	isFollowerRaw, ok := request["isFollower"]
-	if !ok {
-		response.Error = "Missing 'isFollower' field"
-		return response
-	}
-	isFollower, ok = isFollowerRaw.(bool)
-	if !ok {
-		response.Error = "'isFollower' must be a bool"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	var err error
-
-	// isFollower or been followed.
-	if isFollower {
-		err = s.repository.Follow().DeleteFollow(int(profileId), res.Userid)
-		if err != nil {
-			response.Error = err.Error()
-			log.Println("Error deletting follow:", err)
-		}
-
-		err = s.repository.Follow().DeleteNotif(res.Userid, int(profileId))
-		if err != nil {
-			response.Error = err.Error()
-			log.Println("Error deletting notif follow:", err)
+	if data.IsFollower {
+		err = app.repository.Follow().DeleteFollow(data.ProfileId, userId)
+		if err == nil {
+			err = app.repository.Follow().DeleteNotif(userId, data.ProfileId)
 		}
 		notification := map[string]any{
 			"type":       "notifications",
-			"followerId": res.Userid,
-			"message":    "unfollow ",
+			"followerId": userId,
+			"message":    "unfollow",
 			"timestamp":  time.Now().Unix(),
 		}
-		s.sendNotificationToUser(int(profileId), notification)
+		app.sendNotificationToUser(data.ProfileId, notification)
 	} else {
-		err = s.repository.Follow().DeleteFollow(res.Userid, int(profileId))
-		if err != nil {
-			response.Error = err.Error()
-			log.Println("Error deletting follow:", err)
-		}
+		err = app.repository.Follow().DeleteFollow(userId, data.ProfileId)
 		notification := map[string]any{
 			"type":       "notifications",
-			"followerId": profileId,
-			"message":    "unfollow ",
+			"followerId": data.ProfileId,
+			"message":    "unfollow",
 			"timestamp":  time.Now().Unix(),
 		}
-		s.sendNotificationToUser(int(res.Userid), notification)
+		app.sendNotificationToUser(userId, notification)
 	}
 	if err != nil {
-		response.Error = err.Error()
-		log.Println("Error deletting follow:", err)
+		log.Println("Error deleting follow:", err)
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	notification := map[string]any{
-		"type":       "notifications",
-		"followerId": res.Userid,
-		"message":    "unfollow ",
-		"timestamp":  time.Now().Unix(),
+	return &response.DeleteFollow{
+		Success: true,
+		Message: "Unfollowed successfully",
 	}
-	s.sendNotificationToUser(int(profileId), notification)
-
-	return response
 }

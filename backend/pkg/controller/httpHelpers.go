@@ -1,25 +1,12 @@
-package controller
+package app
 
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 )
 
-func (s *Server) ReadRequest(reqBody io.Reader) (map[string]any, error) {
-	request := make(map[string]any)
-	body, err := io.ReadAll(reqBody)
-	if err != nil {
-		return nil, err
-	}
-
-	json.Unmarshal(body, &request)
-
-	return request, nil
-}
-
-func (s *Server) SendJson(w http.ResponseWriter, response any, err error) {
+func (app *App) SendJson(w http.ResponseWriter, response any, err error) {
 	if err != nil {
 		w.WriteHeader(500)
 		fmt.Println(err)

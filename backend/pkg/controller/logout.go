@@ -1,32 +1,20 @@
-package controller
+package app
 
 import (
 	"log"
-	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Logout(request map[string]any) *model.Response {
+func (app *App) Logout(payload *request.RequestT) any {
 
-	response := &model.Response{}
-
-	response.Type = "logout"
-	response.Session = ""
-	response.Data = ""
-	response.Error = "Session was removed!"
-
-	var session string
-	if sessionRaw, ok := request["session"]; !ok {
-		response.Error = "Missing 'session' field"
-		return response
-	} else if session, ok = sessionRaw.(string); !ok {
-		response.Error = "'session' must be a string"
-		return response
-	}
-
-	err := s.repository.Session().RemoveSession(session)
+	session := payload.Ctx.Value("token").(string)
+	err := app.repository.Session().RemoveSession(session)
 	if err != nil {
 		log.Println("Failed to remove session:", err)
 	}
 
-	return response
+	return &response.Logout{
+		Message: "Session was removed!",
+	}
 }

@@ -1,180 +1,104 @@
-package controller
+package app
 
 import (
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetChat(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
+func (app *App) GetChat(payload *request.RequestT) any {
+	userId := payload.Ctx.Value("user_id").(int)
 
-	res := s.ValidateSession(request)
-
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-
-	privateConvs, err := s.repository.Message().GetPrivateConversations(res.Userid)
+	privateConvs, err := app.repository.Message().GetPrivateConversations(userId)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	groupConvs, err := s.repository.Message().GetGroupConversations(res.Userid)
+	groupConvs, err := app.repository.Message().GetGroupConversations(userId)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	newConvs, err := s.repository.Message().GetNewConversations(res.Userid)
+	newConvs, err := app.repository.Message().GetNewConversations(userId)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	response["privateConvs"] = privateConvs
-	response["groupConvs"] = groupConvs
-	response["newConvs"] = newConvs
-
-	return response
+	return &response.GetChat{
+		PrivateConvs: privateConvs,
+		GroupConvs:   groupConvs,
+		NewConvs:     newConvs,
+	}
 }
 
-func (s *Server) GetMessages(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["error"] = ""
-
-	res := s.ValidateSession(request)
-
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-	// Validate Inputs
-	idRaw, ok := request["id"]
+func (app *App) GetMessages(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetMessages)
 	if !ok {
-		response["error"] = "Missing 'id' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	id, ok := idRaw.(float64)
-	if !ok {
-		response["error"] = "'id' must be a int"
-		return response
-	}
-
-	isGroupRaw, ok := request["isGroup"]
-	if !ok {
-		response["error"] = "Missing 'isGroup' field"
-		return response
-	}
-	isGroup, ok := isGroupRaw.(bool)
-	if !ok {
-		response["error"] = "'isGroup' must be a bool"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
 	m := &model.Message{}
-	if isGroup {
-		m.GroupId = int(id)
+	if data.IsGroup {
+		m.GroupId = data.Id
 	} else {
-		m.RecipientId = int(id)
+		m.RecipientId = data.Id
 	}
-	m.SenderId = res.Userid
+	m.SenderId = userId
 
-	messages, err := s.repository.Message().GetMessages(m)
+	messages, err := app.repository.Message().GetMessages(m)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	response["messages"] = messages
-	s.UpdateSeenMessage(isGroup, res.Userid, int(id))
+	app.UpdateSeenMessage(data.IsGroup, userId, data.Id)
 	wsMsg := map[string]any{
 		"type": "unreadmsgRequestHandled",
 	}
-	for _, c := range s.clients[res.Userid] {
-		s.ShowMessage(c, wsMsg)
+	for _, c := range app.clients[userId] {
+		app.ShowMessage(c, wsMsg)
 	}
-	return response
+
+	return &response.GetMessages{
+		Messages: messages,
+	}
 }
 
-func (s *Server) AddMessage(request map[string]any) map[string]any {
-	response := make(map[string]any)
-	response["type"] = "addMessage"
-	response["error"] = ""
-
-	res := s.ValidateSession(request)
-
-	if res.Session == "" {
-		response["error"] = "Invalid session"
-		return response
-	}
-
-	// Validate Inputs
-	idRaw, ok := request["id"]
+func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *response.Error) {
+	data, ok := payload.Data.(*request.AddMessage)
 	if !ok {
-		response["error"] = "Missing 'id' field"
-		return response
+		return nil, &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	id, ok := idRaw.(float64)
-	if !ok {
-		response["error"] = "'id' must be a int"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	isGroupRaw, ok := request["isGroup"]
-	if !ok {
-		response["error"] = "Missing 'isGroup' field"
-		return response
-	}
-	isGroup, ok := isGroupRaw.(bool)
-	if !ok {
-		response["error"] = "'isGroup' must be a bool"
-		return response
-	}
-
-	messageRaw, ok := request["message"]
-	if !ok {
-		response["error"] = "Missing 'message' field"
-		return response
-	}
-	message, ok := messageRaw.(string)
-	if !ok {
-		response["error"] = "'message' must be a bool"
-		return response
-	}
-
-	if len(message) == 0 || len(message) > 1000 || id < 1 {
-		response["error"] = "Invalid message input"
-		return response
+	if len(data.Message) == 0 || len(data.Message) > 1000 || data.Id < 1 {
+		return nil, &response.Error{Code: 400, Cause: "Invalid message input"}
 	}
 
 	m := &model.Message{}
-	if isGroup {
-		m.GroupId = int(id)
-
+	if data.IsGroup {
+		m.GroupId = data.Id
 	} else {
-		m.RecipientId = int(id)
+		m.RecipientId = data.Id
 	}
-	m.SenderId = res.Userid
-	m.Text = message
+	m.SenderId = userId
+	m.Text = data.Message
 
-	/////////// should add middleware to validate if message user can send message
+	// Should add middleware to validate if user can send message
 
-	err := s.repository.Message().Add(m)
+	err := app.repository.Message().Add(m)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return nil, &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	err = s.repository.Message().AddGroupMessageNotifications(m)
+	err = app.repository.Message().AddGroupMessageNotifications(m)
 	if err != nil {
-		response["error"] = err.Error()
-		return response
+		return nil, &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	response["message"] = m
-	response["isGroup"] = isGroup
-
-	return response
+	return &response.AddMessage{
+		Type:  "addMessage",
+		Message: m,
+		IsGroup: data.IsGroup,
+	}, nil
 }

@@ -1,157 +1,82 @@
-package controller
+package app
 
 import (
 	"log"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) AddComment(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "newComment",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	var text, image string
-	var ok bool
-
-	// Validate postId
-	postIdRaw, ok := request["postId"]
+func (app *App) AddComment(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddComment)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a float64"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	// Validate text
-	textRaw, ok := request["text"]
-	if !ok {
-		response.Error = "Missing 'text' field"
-		return response
+	userId := payload.Ctx.Value("user_id").(int)
+
+	if data.Text == "" && data.Image == "" {
+		return &response.Error{Code: 400, Cause: "Comment text cannot be empty"}
 	}
-	text, ok = textRaw.(string)
-	if !ok {
-		response.Error = "'text' must be a string"
-		return response
-	}
-	imageRaw, ok := request["image"]
-	if !ok {
-		response.Error = "Missing 'image' field"
-		return response
-	}
-	image, ok = imageRaw.(string)
-	if !ok {
-		response.Error = "'image' must be a string"
-		return response
+	if len(data.Text) > 500 {
+		return &response.Error{Code: 400, Cause: "Comment text exceeds maximum length of 500 characters"}
 	}
 
-	if text == "" && image == "" {
-		response.Error = "Comment text cannot be empty"
-		return response
+	user, err := app.repository.User().Find(userId)
+	if err != nil {
+		return &response.Error{Code: 500, Cause: "Error finding user"}
 	}
 
-	if len(text) > 500 {
-		response.Error = "Comment text exceeds maximum length of 500 characters"
-		return response
-	}
-
-	// Create comment
 	comment := &model.Comment{
-		UserId: res.Userid,
-		PostId: int(postId),
-		Text:   text,
-		Image:  image,
-		Author: res.User.Username,
-	}
-	if len(comment.Text) > 10000 {
-		log.Println("Error adding comment:")
-		response.Error = "comment cannot be too large: "
-		return response
+		UserId: userId,
+		PostId: data.PostId,
+		Text:   data.Text,
+		Image:  data.Image,
+		Author: user.Username,
 	}
 
-	// Add comment to database
-	err := s.repository.Comment().Add(comment)
+	err = app.repository.Comment().Add(comment)
 	if err != nil {
 		log.Println("Error adding comment:", err)
-		response.Error = "Error adding comment: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error adding comment: " + err.Error()}
 	}
 
-	// Get the updated comments for the post
-	comments, err := s.repository.Comment().GetCommentsByPostId(int(postId))
+	comments, err := app.repository.Comment().GetCommentsByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting comments:", err)
-		response.Error = "Error getting comments: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting comments: " + err.Error()}
 	}
 
-	// Get post data to return with comments
-	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	post, err := app.repository.Post().GetPostById(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting post data:", err)
-		response.Error = "Error getting post data: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting post data: " + err.Error()}
 	}
 
 	post.Comment = comments
-	response.Posts = []*model.Post{post}
-	return response
+	return post
 }
 
-func (s *Server) GetComments(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "comments",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	var ok bool
-
-	// Validate postId
-	postIdRaw, ok := request["postId"]
+func (app *App) GetComments(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetComments)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a float64"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	// Get comments for post
-	comments, err := s.repository.Comment().GetCommentsByPostId(int(postId))
+	userId := payload.Ctx.Value("user_id").(int)
+
+	comments, err := app.repository.Comment().GetCommentsByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting comments:", err)
-		response.Error = "Error getting comments: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting comments: " + err.Error()}
 	}
 
-	// Get post data to return with comments
-	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	post, err := app.repository.Post().GetPostById(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting post data:", err)
-		response.Error = "Error getting post data: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting post data: " + err.Error()}
 	}
 
 	post.Comment = comments
-	response.Posts = []*model.Post{post}
-	return response
+	return post
 }

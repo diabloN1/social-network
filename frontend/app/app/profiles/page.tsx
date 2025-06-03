@@ -2,15 +2,11 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
-import getProfiles from "@/api/profiles/getProfiles";
-import acceptFollow from "@/api/follow/acceptFollow";
-import deleteFollow from "@/api/follow/deleteFollow";
-import hasNewFollowNotification from "@/api/follow/getPuplicFollowReq";
-import Popup from "../popup";
-import deleteFollowNotification from "@/api/follow/deletPuplicNotiFollow";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
 import Image from "next/image";
 
@@ -21,42 +17,39 @@ export default function ProfilesPage() {
   const [users, setUsers] = useState<User[] | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasNewFollow, setHasNewFollow] = useState(false);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
   const [newFollowers, setNewFollowers] = useState<User[]>([]);
 
-  const getData = async () => {
+  const getData = useCallback(async () => {
     try {
       const [profileData, followNotifData] = await Promise.all([
-        getProfiles(),
-        hasNewFollowNotification(),
+        apiCall({ type: "get-profiles" }, "POST", "getProfiles"),
+        apiCall(
+          { type: "check-new-follow-notification" },
+          "POST",
+          "getNewFollowNotification"
+        ),
       ]);
-      // console.log("ddd", followNotifData);
-
       if (profileData.error || followNotifData.error) {
-        alert(profileData.error || followNotifData.error);
         return;
       }
 
-      setCurrentUser(profileData.currentuser);
-      setUsers(profileData.allusers);
-      setFollowRequests(profileData.followrequests);
+      setCurrentUser(profileData.currentUser);
+      setUsers(profileData.allUsers);
+      setFollowRequests(profileData.followRequests);
       setHasNewFollow(followNotifData.hasNewFollow);
       setNewFollowers(followNotifData.newFollowers || []);
       return profileData;
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
-  };
+  }, [apiCall]);
 
   useEffect(() => {
     getData();
-  }, []);
+  }, [getData]);
 
   // Filter users based on search term
-  // console.log("Users", users);
   const filteredUsers = users?.filter(
     (user) =>
       user.nickname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,9 +64,12 @@ export default function ProfilesPage() {
   // Handle accept follow request
   const handleAcceptRequest = async (userId: number) => {
     try {
-      const data = await acceptFollow(userId);
+      const data = await apiCall(
+        { type: "accept-follow", data: { profileId: userId } },
+        "POST",
+        "acceptFollow"
+      );
       if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -81,16 +77,22 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
   // Handle decline follow request
   const handleDeclineRequest = async (userId: number) => {
     try {
-      const data = await deleteFollow(userId, false);
+      const data = await apiCall(
+        {
+          type: "delete-follow",
+          data: { profileId: userId, IsFollower: false },
+        },
+        "POST",
+        "deleteFollow"
+      );
       if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
         return;
       }
 
@@ -98,14 +100,18 @@ export default function ProfilesPage() {
         prev ? prev.filter((request) => request.id !== userId) : null
       );
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
   // Navigate to user profile
   const navigateToProfile = async (id: number) => {
     try {
-      await deleteFollowNotification(id);
+      await apiCall(
+        { type: "delete-follow-notification", data: { profileId: id } },
+        "POST",
+        "deleteFollowNotif"
+      );
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
@@ -295,13 +301,6 @@ export default function ProfilesPage() {
           )}
         </div>
       </section>
-      {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )}
     </div>
   );
 }

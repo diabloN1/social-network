@@ -5,13 +5,16 @@ import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import "../posts.css";
 import "./post.css";
-import getPostData from "@/api/posts/getPostData";
-import reactToPost from "@/api/posts/reactToPost";
-import getComments from "@/api/posts/getComments";
+// import getPostData from "@/api/posts/getPostData";
+// import reactToPost from "@/api/posts/reactToPost";
+// import getComments from "@/api/posts/getComments";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
-import Popup from "../../popup";
+// import Popup from "../../popup";
 import { Post } from "@/types/post";
 import { Comment as CommentType } from "@/types/comment";
 
@@ -19,6 +22,7 @@ export default function SinglePostPage() {
   const params = useParams();
   const router = useRouter();
   const postId = Number(params.id);
+  const { apiCall } = useGlobalAPIHelper();
 
   const [post, setPost] = useState<Post | null>(null);
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
@@ -32,56 +36,57 @@ export default function SinglePostPage() {
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
-      const commentsData = await getComments(postId);
+      const commentsData = await apiCall(
+        { type: "get-comments", data: { postId } },
+        "POST",
+        "getComments"
+      );
       if (commentsData.error) {
-        throw new Error(commentsData.error);
+        console.error("Error loading comments:", commentsData.error);
       }
 
-      if (
-        commentsData.posts &&
-        commentsData.posts[0] &&
-        commentsData.posts[0].comments
-      ) {
-        setComments(commentsData.posts[0].comments);
+      if (commentsData.comments) {
+        setComments(commentsData.comments);
       }
     } catch (error) {
       console.error("Error loading comments:", error);
     }
-  }, [postId]);
+  }, [postId, apiCall]);
 
   const pageLoadHandler = useCallback(async () => {
     try {
       setIsLoading(true);
 
       // Fetch post data
-      const data = await getPostData(postId);
-      if (data.error && data.error !== "") {
-        throw Error(data.error);
-      }
+      const data = await apiCall(
+        { type: "get-post", data: { postId } },
+        "POST",
+        "getPost"
+      );
 
-      const foundData = data.posts[0];
+      const post = data.post;
 
-      if (!foundData || foundData.id === 0) {
+      if (!post || post.id === 0) {
         router.push("/404");
         return;
       }
 
-      setPost(foundData);
+      setPost(post);
       setCurrentUserId(data.userid);
 
       // Set reactions from post data
-      if (foundData.reactions) {
+      if (post.reactions) {
         setReactions({
-          likes: foundData.reactions.likes || 0,
-          dislikes: foundData.reactions.dislikes || 0,
-          userReaction: foundData.reactions.userReaction,
+          likes: post.reactions.likes || 0,
+          dislikes: post.reactions.dislikes || 0,
+          userReaction: post.reactions.userReaction,
         });
       }
 
@@ -90,11 +95,11 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     } finally {
       setIsLoading(false);
     }
-  }, [postId, router, loadComments]);
+  }, [postId, router, loadComments, apiCall]);
 
   useEffect(() => {
     pageLoadHandler();
@@ -135,10 +140,16 @@ export default function SinglePostPage() {
     });
 
     try {
-      const data = await reactToPost(postId, newReaction);
+      const data = await apiCall(
+        {
+          type: "react-to-post",
+          data: { PostId: postId, Reaction: newReaction },
+        },
+        "POST",
+        "reactToPost"
+      );
 
       if (data.error) {
-        console.error("Error reacting to post:", data.error);
         if (post?.reactions) {
           setReactions({
             likes: post.reactions.likes || 0,
@@ -439,13 +450,13 @@ export default function SinglePostPage() {
           onClose={() => setIsShareModalOpen(false)}
         />
       )}
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </>
   );
 }

@@ -2,17 +2,14 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
 import CreateGroupModal from "@/components/create-group-modal";
-import createGroup from "@/api/groups/createGroup";
-import getGroups from "@/api/groups/getGroups";
-import requestJoinGroup from "@/api/groups/requestJoinGroup";
-import respondToJoinRequest from "@/api/groups/respondeToJoinRequest";
-import respondToGroupInvitation from "@/api/groups/respondToGroupInvitation";
-import Popup from "../popup";
-import deleteNewEventNotification from "@/api/groups/deleteNewEventNotification";
+
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+// import Popup from "../popup";
+// import deleteNewEventNotification from "@/api/pass-groups/deleteNewEventNotification";
 import Image from "next/image";
 import { GroupsData } from "@/types/group";
 
@@ -24,33 +21,29 @@ export default function GroupsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
 
-  const fetchGroupsData = async () => {
+  const { apiCall } = useGlobalAPIHelper();
+
+  const fetchGroupsData = useCallback(async () => {
     try {
-      const data = await getGroups();
+      const data = await apiCall({ type: "get-groups" }, "POST", "getGroups");
       if (data.error) {
-        // console.log(data.error);
-
-        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
-      // console.log("data", data);
 
       setGroupsData(data);
-
-      // Extract group IDs from join_requests to track pending requests
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
-  };
+  }, [apiCall]);
 
   useEffect(() => {
     fetchGroupsData();
-  }, []);
+  }, [fetchGroupsData]);
 
   // Filter groups based on search term and active tab
   const filteredGroups = groupsData?.all?.filter((group) => {
@@ -77,9 +70,12 @@ export default function GroupsPage() {
     description: string;
   }) => {
     try {
-      const data = await createGroup(group);
+      const data = await apiCall(
+        { type: "create-group", data: { ...group } },
+        "POST",
+        "createGroup"
+      );
       if (data.error) {
-        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
 
@@ -87,24 +83,29 @@ export default function GroupsPage() {
       // Refresh groups data
       fetchGroupsData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
   // Handle joining a group
   const handleJoinGroup = async (groupId: number) => {
     try {
-      const data = await requestJoinGroup(groupId);
+      // const data = await requestJoinGroup(GroupId :groupId);
+      const data = await apiCall(
+        { type: "request-join-group", data: { GroupId: groupId } },
+        "POST",
+        "requestJoinGroup"
+      );
       if (data.error) {
-        setPopup({ message: `${data.error}`, status: "failure" });
-
         return;
       }
 
       // Refresh groups data to update the is_pending status
       fetchGroupsData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -112,21 +113,28 @@ export default function GroupsPage() {
   // Handle responding to invitations
   const handleInvitationResponse = async (groupId: number, accept: boolean) => {
     try {
-      const data = await respondToGroupInvitation(groupId, accept);
+      const data = await apiCall(
+        {
+          type: "respond-to-group-invitation",
+          data: { GroupId: groupId, Accept: accept },
+        },
+        "POST",
+        "respondToGroupInvitation"
+      );
       if (data.error) {
-        setPopup({ message: `${data.error}`, status: "failure" });
         return;
       }
 
-      setPopup({
-        message: `Invitation ${accept ? "accepted" : "declined"} successfully.`,
-        status: "success",
-      });
+      // setPopup({
+      //   message: `Invitation ${accept ? "accepted" : "declined"} successfully.`,
+      //   status: "success",
+      // });
 
       // Refresh groups data to update UI
       fetchGroupsData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -137,15 +145,21 @@ export default function GroupsPage() {
     accept: boolean
   ) => {
     try {
-      const data = await respondToJoinRequest(userId, groupId, accept);
+      const data = await apiCall(
+        {
+          type: "respond-to-join-request",
+          data: { GroupId: groupId, UserId: userId, IsAccepted: accept },
+        },
+        "POST",
+        "respondToJoinRequest"
+      );
       if (data.error) {
-        setPopup({ message: `${data.error}`, status: "failure" });
-
         return;
       }
       fetchGroupsData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      // setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -153,7 +167,11 @@ export default function GroupsPage() {
 
   const navigateToGroup = async (groupId: number) => {
     try {
-      await deleteNewEventNotification(groupId);
+      await apiCall(
+        { type: "delete-new-event-notification", data: { GroupId: groupId } },
+        "POST",
+        "deleteNotifNewEvent"
+      );
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
@@ -193,11 +211,11 @@ export default function GroupsPage() {
       </section>
 
       {/* Group Invitations Section */}
-      {groupsData?.group_invites && groupsData.group_invites.length > 0 && (
+      {groupsData?.groupInvites && groupsData.groupInvites.length > 0 && (
         <section className="invitations-section">
           <h2>Group Invitations</h2>
           <div className="invitations-list">
-            {groupsData.group_invites.map((invite) => (
+            {groupsData.groupInvites.map((invite) => (
               <div key={invite.id} className="invitation-card">
                 <div className="invitation-info">
                   <Image
@@ -248,11 +266,11 @@ export default function GroupsPage() {
       )}
 
       {/* Join Requests Section (for group owners) */}
-      {groupsData?.join_requests && groupsData.join_requests.length > 0 && (
+      {groupsData?.joinRequests && groupsData.joinRequests.length > 0 && (
         <section className="requests-section">
           <h2>Join Requests</h2>
           <div className="requests-list">
-            {groupsData.join_requests.map((request) => (
+            {groupsData.joinRequests.map((request) => (
               <div key={request.id} className="request-card">
                 <div className="request-info">
                   <Image
@@ -394,13 +412,6 @@ export default function GroupsPage() {
         <CreateGroupModal
           onClose={() => setShowCreateModal(false)}
           onSubmit={handleCreateGroup}
-        />
-      )}
-      {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
         />
       )}
     </div>

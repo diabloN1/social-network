@@ -1,12 +1,12 @@
-package controller
+package app
 
 import (
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) Register(payload any) any {
-	data, ok := payload.(*request.Register)
+func (app *App) Register(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.Register)
 	if !ok {
 		return response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
@@ -16,11 +16,11 @@ func (s *Server) Register(payload any) any {
 		return err
 	}
 
-	id, err := s.repository.User().Create(data)
+	id, err := app.repository.User().Create(data)
 	if err != nil {
 		return err
 	}
-	session, sessionErr := s.repository.Session().Create(id)
+	session, sessionErr := app.repository.Session().Create(id)
 	if sessionErr != nil {
 		return response.Error{Code: 500, Cause: "Failed to create a session!"}
 	}

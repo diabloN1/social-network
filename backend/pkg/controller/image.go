@@ -1,13 +1,14 @@
-package controller
+package app
 
 import (
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
-func (s *Server) UploadImage(r *http.Request) map[string]any {
+func (app *App) UploadImage(r *http.Request) map[string]any {
 	res := make(map[string]any)
 	res["error"] = ""
 	const maxBytes = 10 * 1024 * 1024
@@ -25,19 +26,32 @@ func (s *Server) UploadImage(r *http.Request) map[string]any {
 		return res
 	}
 
-	file, fileHeaeder, err := r.FormFile("image")
+	file, fileHeader, err := r.FormFile("image")
 	if err != nil {
 		res["error"] = err.Error()
 		return res
 	}
 	defer file.Close()
 
-	if fileHeaeder.Size > maxBytes {
+	if fileHeader.Size > maxBytes {
 		res["error"] = "The image is beyond 10MB!"
 		return res
 	}
 
-	// Create the directory if it doesn't exist
+	// Extension check
+	ext := strings.ToLower(filepath.Ext(fileName))
+	allowed := map[string]bool{
+		".jpg": true,
+		".jpeg": true,
+		".png": true,
+		".gif": true,
+	}
+	if !allowed[ext] {
+		res["error"] = "Only .jpg, .jpeg, .png, .gif files are allowed"
+		return res
+	}
+
+	// Create directory if it doesn't exist
 	dirPath := filepath.Join("./static", targetPath)
 	err = os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
@@ -62,6 +76,7 @@ func (s *Server) UploadImage(r *http.Request) map[string]any {
 
 	return res
 }
+
 
 // func (s *Server) HasAccessProtectedImage(r *http.Request) (bool, string, error) {
 // 	// (session, path, type, id)

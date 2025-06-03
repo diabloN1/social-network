@@ -41,6 +41,6 @@ export interface JoinRequest {
 export interface GroupsData {
   all: Group[];
   error: string;
-  group_invites: GroupInvite[] | null;
-  join_requests: JoinRequest[] | null;
+  groupInvites: GroupInvite[] | null;
+  joinRequests: JoinRequest[] | null;
 }

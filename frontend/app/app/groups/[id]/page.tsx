@@ -5,23 +5,17 @@ import type React from "react";
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import getGroupData from "@/api/groups/getGroupData";
-import reactToGroupPost from "@/api/groups/reactToGroupPost";
-import getGroupComments from "@/api/groups/getGroupComments";
 import GroupCommentForm from "@/components/group-comment-form";
 import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
 import CreateEventModal from "@/components/create-event-modal";
 import GroupInviteModal from "@/components/group-invite-modal";
-import addGroupPost from "@/api/groups/addGroupPost";
-import addGroupEvent from "@/api/groups/addGroupEvent";
-import addEventOption from "@/api/groups/addEventOption";
-import requestJoinGroup from "@/api/groups/requestJoinGroup";
 import "./group.css";
 import { Group } from "@/types/group";
 import { Post, Reaction } from "@/types/post";
 import { Comment } from "@/types/comment";
-import Popup from "../../popup";
+// import Popup from "../../popup";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function GroupDetailPage() {
   const params = useParams();
@@ -38,10 +32,12 @@ export default function GroupDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  const [popup, setPopup] = useState<{
-    message: string;
-    status: "success" | "failure";
-  } | null>(null);
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
+
+  const { apiCall } = useGlobalAPIHelper();
 
   // Reaction and comment states
   const [postReactions, setPostReactions] = useState<{
@@ -57,10 +53,13 @@ export default function GroupDetailPage() {
   const fetchGroupData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await getGroupData(groupId);
+      const data = await apiCall(
+        { type: "get-group-data", data: { GroupId: groupId } },
+        "POST",
+        "getGroup"
+      );
 
       if (data.error) {
-        setError(data.error);
         return;
       }
 
@@ -84,7 +83,7 @@ export default function GroupDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, apiCall]);
 
   useEffect(() => {
     fetchGroupData();
@@ -134,14 +133,21 @@ export default function GroupDetailPage() {
     });
 
     try {
-      await reactToGroupPost(postId, newReaction);
+      await apiCall(
+        {
+          type: "react-to-group-post",
+          data: { PostId: postId, Reaction: newReaction, groupId },
+        },
+        "POST",
+        "reactToGroupPost"
+      );
     } catch (error) {
       // Revert on error
+      console.log(error);
       setPostReactions((prev) => ({
         ...prev,
         [postId]: { ...currentReaction, isReacting: false },
       }));
-      setPopup({ message: `${error}`, status: "failure" });
     } finally {
       // Just remove loading state, counts are already correct
       setPostReactions((prev) => ({
@@ -157,23 +163,27 @@ export default function GroupDetailPage() {
   // Comment handling
   const loadComments = async (postId: number) => {
     try {
-      const commentsData = await getGroupComments(postId);
+      const commentsData = await apiCall(
+        { type: "get-group-comments", data: { PostId: postId, groupId } },
+        "POST",
+        "getGroupComments"
+      );
       if (commentsData.error) {
         throw new Error(commentsData.error);
       }
 
       if (
-        commentsData.posts &&
-        commentsData.posts[0] &&
-        commentsData.posts[0].comments
+        commentsData.post &&
+        commentsData.post &&
+        commentsData.post.comments
       ) {
         setPostComments((prev) => ({
           ...prev,
-          [postId]: commentsData.posts[0].comments,
+          [postId]: commentsData.post.comments,
         }));
       }
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -190,6 +200,7 @@ export default function GroupDetailPage() {
       }));
 
       if (!postComments[postId]) {
+        console.log("i'm here mate !!");
         await loadComments(postId);
       }
     }
@@ -200,22 +211,34 @@ export default function GroupDetailPage() {
   };
 
   // Post creation
-  const handleCreatePost = async (postData: {
+  const handleCreatePost = async (post: {
     image: string;
     caption: string;
+    privacy?: string;
     groupId?: number;
   }) => {
     try {
-      const data = await addGroupPost(postData);
+      const data = await apiCall(
+        {
+          type: "add-group-post",
+          data: {
+            GroupId: post.groupId ?? groupId,
+            Image: post.image,
+            Caption: post.caption,
+            Privacy: post.privacy,
+          },
+        },
+        "POST",
+        "addGroupPost"
+      );
       if (data.error) {
-        setPopup({ message: `${error}`, status: "failure" });
         return;
       }
 
       setShowCreatePostModal(false);
       fetchGroupData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -229,19 +252,31 @@ export default function GroupDetailPage() {
     place: string;
   }) => {
     try {
-      const data = await addGroupEvent({
-        groupId,
-        ...event,
-      });
+      console.log(event);
+      const data = await apiCall(
+        {
+          type: "add-group-event",
+          data: {
+            GroupId: groupId,
+            Title: event.title,
+            Description: event.description,
+            Option1: event.option1,
+            Option2: event.option2,
+            Date: event.date,
+            Place: event.place,
+          },
+        },
+        "POST",
+        "addGroupEvent"
+      );
       if (data.error) {
-        alert(data.error);
         return;
       }
 
       setShowCreateEventModal(false);
       fetchGroupData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -249,25 +284,36 @@ export default function GroupDetailPage() {
   const handleEventResponse = async (eventId: number, going: boolean) => {
     if (!group) return;
     try {
-      const data = await addEventOption(groupId, eventId, going);
-      console.log(data);
+      // const data = await addEventOption(groupId, eventId, going);
+      await apiCall(
+        {
+          type: "add-event-option",
+          data: { GroupId: groupId, EventId: eventId, Option: going },
+        },
+        "POST",
+        "addEventOption"
+      );
+      // console.log(data);
       fetchGroupData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
   // Join group
   const handleJoinGroup = async () => {
     try {
-      const data = await requestJoinGroup(groupId);
+      const data = await apiCall(
+        { type: "request-join-group", data: { GroupId: groupId } },
+        "POST",
+        "requestJoinGroup"
+      );
       if (data.error) {
-        setPopup({ message: data.error, status: "failure" });
         return;
       }
       fetchGroupData();
     } catch (error) {
-      setPopup({ message: `${error}`, status: "failure" });
+      console.log(error);
     }
   };
 
@@ -613,6 +659,7 @@ export default function GroupDetailPage() {
                     <GroupCommentForm
                       postId={post.id}
                       onCommentAdded={() => handleCommentAdded(post.id)}
+                      groupId={groupId}
                     />
                   </div>
                 )}
@@ -829,13 +876,13 @@ export default function GroupDetailPage() {
           onSubmit={handleCreateEvent}
         />
       )}
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }

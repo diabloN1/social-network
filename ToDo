@@ -7,6 +7,9 @@ ToDo :
 
  # Single Profile Page
 
+ # Middlewares
+ - canSendMessage
+ - isMember / is Owner (groups hanlders)
 
 
 # Problems

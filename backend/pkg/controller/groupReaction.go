@@ -1,135 +1,73 @@
-package controller
+package app
 
 import (
 	"log"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToGroupPost(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "groupReaction",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	postIdRaw, ok := request["postId"]
+func (app *App) ReactToGroupPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.ReactToGroupPost)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok := postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a number"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	reactionRaw, ok := request["reaction"]
-	if !ok {
-		response.Error = "Missing 'reaction' field"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	var reaction *bool = nil
-
-	if reactionRaw != nil {
-		reactionVal, ok := reactionRaw.(bool)
-		if !ok {
-			response.Error = "'reaction' must be a boolean or null"
-			return response
-		}
-		reaction = &reactionVal
-	}
-
-	// Check if user is member of the group that owns this post
-	isMember, err := s.repository.Group().IsGroupPostMember(res.Userid, int(postId))
+	isMember, err := app.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {
-		response.Error = "You are not a member of this group"
-		return response
+		return &response.Error{Code: 403, Cause: "You are not a member of this group"}
 	}
 
-	err = s.repository.Group().UpsertGroupReaction(res.Userid, int(postId), reaction)
+	err = app.repository.Group().UpsertGroupReaction(userId, data.PostId, data.Reaction)
 	if err != nil {
 		log.Println("Error saving group reaction:", err)
-		response.Error = "Error saving reaction: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error saving reaction: " + err.Error()}
 	}
 
-	counts, err := s.repository.Group().GetGroupReactionCounts(int(postId))
+	counts, err := app.repository.Group().GetGroupReactionCounts(data.PostId)
 	if err != nil {
 		log.Println("Error getting group reaction counts:", err)
-		response.Error = "Error getting reaction counts: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting reaction counts: " + err.Error()}
 	}
 
-	// Get user's own reaction
-	userReaction, err := s.repository.Group().GetGroupUserReaction(res.Userid, int(postId))
+	userReaction, err := app.repository.Group().GetGroupUserReaction(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting group user reaction:", err)
-		response.Error = "Error getting user reaction: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting user reaction: " + err.Error()}
 	}
-
 	counts.UserReaction = userReaction
 
-	// Create a post object with the reaction counts to return
 	post := &model.Post{
-		ID:        int(postId),
+		ID:        data.PostId,
 		Reactions: counts,
 	}
 
-	response.Success = true
-	response.Posts = []*model.Post{post}
-
-	return response
+	return &response.ReactToGroupPost{
+		Post: post,
+	}
 }
 
-func (s *Server) GetGroupPost(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "groupPost",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	var ok bool
-
-	// Validate postId
-	postIdRaw, ok := request["postId"]
+func (app *App) GetGroupPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetGroupPost)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a float64"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	// Check if user is member of the group that owns this post
-	isMember, err := s.repository.Group().IsGroupPostMember(res.Userid, int(postId))
+	isMember, err := app.repository.Group().IsGroupPostMember(userId, data.PostId)
 	if err != nil || !isMember {
-		response.Error = "You are not a member of this group"
-		return response
+		return &response.Error{Code: 403, Cause: "You are not a member of this group"}
 	}
 
-	// Get post data
-	post, err := s.repository.Group().GetGroupPostById(res.Userid, int(postId))
+	post, err := app.repository.Group().GetGroupPostById(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting group post data:", err)
-		response.Error = "Error getting post data: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "Error getting post data: " + err.Error()}
 	}
 
-	response.Posts = []*model.Post{post}
-	return response
+	return &response.GetGroupPost{
+		Post: post,
+	}
 }

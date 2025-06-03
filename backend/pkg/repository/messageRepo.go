@@ -132,11 +132,11 @@ func (r *MessageRepository) GetGroupConversations(userId int) ([]*model.Conv, er
 			g.id,
 			g.title,
 			g.image,
-			m.text,
-			m.creation_date
+			COALESCE(m.text, 'no messages yet'),
+			COALESCE(m.creation_date, g.creation_date)
 			FROM groups g
 			JOIN group_members gm ON gm.group_id = g.id
-			INNER JOIN messages m ON m.id = (
+			LEFT JOIN messages m ON m.id = (
 			SELECT id FROM messages WHERE group_id = g.id
 			ORDER BY creation_date DESC, id DESC
 			)

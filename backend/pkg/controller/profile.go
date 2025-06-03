@@ -1,110 +1,73 @@
-package controller
+package app
 
 import (
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetProfile(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "profile",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var profileId float64
-	profileIdRaw, ok := request["profileId"]
+func (app *App) GetProfile(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetProfile)
 	if !ok {
-		response.Error = "Missing 'profileId' field"
-		return response
-	}
-	profileId, ok = profileIdRaw.(float64)
-	if !ok {
-		response.Error = "'profileId' must be a float64"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	var err error
-	response.User, err = s.repository.User().FindProfile(int(profileId), res.Userid)
+	userId := payload.Ctx.Value("user_id").(int)
+
+	user, err := app.repository.User().FindProfile(data.ProfileId, userId)
 	if err != nil {
-		response.Error = err.Error()
-		return response
+		return &response.Error{Code: 404, Cause: err.Error()}
 	}
 
-	return response
+	return &response.GetProfile{
+		User: user,
+	}
 }
 
-func (s *Server) GetProfiles(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "profiles feed",
-		Error: "",
-	}
+func (app *App) GetProfiles(payload *request.RequestT) any {
+	userId := payload.Ctx.Value("user_id").(int)
 
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var err error
-	response.FollowRequests, err = s.repository.Follow().GetFollowRequests(res.Userid)
+	followRequests, err := app.repository.Follow().GetFollowRequests(userId)
 	if err != nil {
-		response.Error = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	AllUsers, err := s.repository.User().GetAllUsers()
+	allUsers, err := app.repository.User().GetAllUsers()
 	if err != nil {
-		response.Error = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
 	var otherUsers []*model.User
-	for _, user := range AllUsers {
-		if user.ID != res.Userid {
+	var currentUser *model.User
+	for _, user := range allUsers {
+		if user.ID != userId {
 			otherUsers = append(otherUsers, user)
 		} else {
-			response.CurrentUser = user
+			currentUser = user
 		}
 	}
 
-	response.AllUsers = otherUsers
-	return response
+	return &response.GetProfiles{
+		FollowRequests: followRequests,
+		AllUsers:       otherUsers,
+		CurrentUser:    currentUser,
+	}
 }
 
-func (s *Server) setProfilePrivacy(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "privacy",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var state bool
-	stateRaw, ok := request["state"]
+func (app *App) SetProfilePrivacy(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.SetProfilePrivacy)
 	if !ok {
-		response.Error = "Missing 'state' field"
-		return response
-	}
-	state, ok = stateRaw.(bool)
-	if !ok {
-		response.Error = "'state' must be a bool"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	err := s.repository.User().SetUserPrivacy(res.Userid, state)
+	userId := payload.Ctx.Value("user_id").(int)
+
+	err := app.repository.User().SetUserPrivacy(userId, data.State)
 	if err != nil {
-		response.Error = err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: err.Error()}
 	}
 
-	return response
+	return &response.SetProfilePrivacy{
+		Success: true,
+	}
 }

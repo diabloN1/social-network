@@ -2,11 +2,11 @@ package main
 
 import (
 	"log"
-	"real-time-forum/pkg/controller"
+	"real-time-forum/pkg/server"
 )
 
 func main() {
-	if err := controller.Start(); err != nil {
+	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
 }

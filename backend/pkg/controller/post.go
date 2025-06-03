@@ -1,162 +1,106 @@
-package controller
+package app
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 	"real-time-forum/pkg/model"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPosts(payload any) any {
-	data, ok := payload.(*request.GetPosts)
+func (app *App) GetPosts(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPosts)
 	if !ok {
-		return response.Error{Code: 400, Cause: "Invalid payload type"}
-
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(map[string]any{"session": data.Session})
-	if res.Error != "" {
-		return response.Error{Code: 401, Cause: "Unauthorized"}
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	posts, err := s.repository.Post().GetPosts(res.Userid, data.StartId)
+	posts, err := app.repository.Post().GetPosts(userId, data.StartId)
 	if err != nil {
 		log.Println("Error in getting feed data:", err)
-		return response.Error{Code: 400, Cause: "Error in getting feed data"}
+		return &response.Error{Code: 400, Cause: "Error in getting feed data"}
 	}
 
 	return &response.GetPosts{
 		Posts:  posts,
-		Userid: res.Userid,
+		Userid: userId,
 	}
 }
 
-func (s *Server) GetPostData(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "postData",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	postIdRaw, ok := request["postId"]
+func (app *App) GetPostData(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPost)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'startId' must be a float64"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	post, err := s.repository.Post().GetPostById(res.Userid, int(postId))
+	userId := payload.Ctx.Value("user_id").(int)
+	post, err := app.repository.Post().GetPostById(userId, data.PostId)
+
 	if err != nil {
-		response.Error = err.Error()
-		log.Println("Error in getting Post Data:", err)
+		if err == sql.ErrNoRows {
+			return &response.Error{Code: 404, Cause: "Post not found"}
+		}
+		return &response.Error{Code: 400, Cause: "Error in getting post data"}
 	}
 
-	count, err := s.repository.Comment().GetCommentCountByPostId(int(postId))
+	count, err := app.repository.Comment().GetCommentCountByPostId(data.PostId)
 	if err != nil {
 		log.Println("Error getting comment count:", err)
 	}
 	post.CommentCount = count
+	fmt.Println("post", post)
 
-	response.Posts = []*model.Post{post}
-
-	return response
+	return &response.GetPost{
+		Userid: userId,
+		Post:   post,
+	}
 }
 
-func (s *Server) AddPost(request map[string]any) *model.Response {
-	p := &model.Post{}
-	u := &model.User{}
-	p.User = u
-	response := &model.Response{}
-
-	var ok bool
-	var caption, privacy, image string
-
-	// Validate text
-	captionRaw, ok := request["caption"]
+func (app *App) AddPost(payload *request.RequestT) any {
+	fmt.Println(payload)
+	data, ok := payload.Data.(*request.AddPost)
 	if !ok {
-		response.Error = "Missing 'caption' field"
-		return response
-	}
-	caption, ok = captionRaw.(string)
-	if !ok {
-		response.Error = "'caption' must be a string"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	privacyRaw, ok := request["privacy"]
-	if !ok {
-		response.Error = "Missing 'privacy' field"
-		return response
-	}
-	privacy, ok = privacyRaw.(string)
-	if !ok {
-		response.Error = "'privacy' must be a string"
-		return response
+	if data.Caption == "" && data.Image == "" {
+		return &response.Error{Code: 400, Cause: "Can't create empty posts"}
 	}
 
-	imageRaw, ok := request["image"]
-	if !ok {
-		response.Error = "Missing 'image' field"
-		return response
-	}
-	image, ok = imageRaw.(string)
-	if !ok {
-		response.Error = "'image' must be a string"
-		return response
+	if data.Privacy != "public" && data.Privacy != "almost-private" && data.Privacy != "private" {
+		return &response.Error{Code: 400, Cause: "Invalid privacy type"}
 	}
 
-	if caption == "" && image == "" {
-		response.Error = "Can't create empty posts"
-		return response
-	}
-
-	if privacy != "public" && privacy != "almost-private" && privacy != "private" {
-		response.Error = "Privacy must be one of the following : public - almost-private - private"
-		return response
-	}
-
-	res := s.ValidateSession(request)
-
-	if res.Session == "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	// Assign values after validation
-	p.UserId = res.Userid
-	p.Caption = caption
-	p.Privacy = privacy
-	p.Image = image
-	p.User.Firstname = res.User.Firstname
-	p.User.Lastname = res.User.Lastname
-	p.User.Avatar = res.User.Avatar
-
-	response.Type = "newPost"
-
-	// Should protect fields . . .
-	if len(p.Caption) > 1000 {
-		log.Println("Caption exceed limited chars")
-		response.Error = "Error text or title exceed limited chars or empty"
-		return response
-	}
-
-	err := s.repository.Post().Add(p)
-
+	user, err := app.repository.User().Find(payload.Ctx.Value("user_id").(int))
 	if err != nil {
-		response.Error = "Error adding post: " + err.Error()
-		return response
+		return &response.Error{Code: 500, Cause: "An error has aquired while finding user"}
 	}
 
-	response.Posts = []*model.Post{p}
-	return response
+	post := &model.Post{
+		UserId:  user.ID,
+		Caption: data.Caption,
+		Privacy: data.Privacy,
+		Image:   data.Image,
+		User: &model.User{
+			Firstname: user.Firstname,
+			Lastname:  user.Lastname,
+			Avatar:    user.Avatar,
+		},
+	}
+
+	if len(post.Caption) > 1000 {
+		return &response.Error{Code: 400, Cause: "Caption exceeds maximum allowed length"}
+	}
+
+	err = app.repository.Post().Add(post)
+	if err != nil {
+		log.Println("Error adding post:", err)
+		return &response.Error{Code: 500, Cause: "Error adding post: " + err.Error()}
+	}
+
+	return &response.AddPost{
+		Post: post,
+	}
 }

@@ -3,20 +3,24 @@
 import type React from "react";
 import { useState, useRef } from "react";
 import Image from "next/image";
-import addGroupComment from "@/api/groups/addGroupComment";
+// import addGroupComment from "@/api/groups/addGroupComment";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { uploadFile } from "@/api/auth/uploadFile";
 import Popup from "@/app/app/popup";
+// import { group } from "console";
 
 interface GroupCommentFormProps {
   postId: number;
   onCommentAdded: () => void;
   disabled?: boolean;
+  groupId: number;
 }
 
 export default function GroupCommentForm({
   postId,
   onCommentAdded,
   disabled,
+  groupId,
 }: GroupCommentFormProps) {
   const [newComment, setNewComment] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -27,6 +31,7 @@ export default function GroupCommentForm({
     message: string;
     status: "success" | "failure";
   } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -88,13 +93,26 @@ export default function GroupCommentForm({
       }
 
       // Add comment
-      const result = await addGroupComment(postId, newComment.trim(), filename);
+      // const result = await addGroupComment(postId, newComment.trim(), filename);
+      const result = await apiCall(
+        {
+          type: "add-group-comment",
+          data: {
+            PostId: postId,
+            Text: newComment.trim(),
+            Image: filename,
+            groupId,
+          },
+        },
+        "POST",
+        "addGroupComment"
+      );
 
       if (result.error) {
-        setPopup({
-          message: `Failed to add comment: ${result.error}`,
-          status: "failure",
-        });
+        // setPopup({
+        //   message: `Failed to add comment: ${result.error}`,
+        //   status: "failure",
+        // });
 
         return;
       }
@@ -111,7 +129,7 @@ export default function GroupCommentForm({
       onCommentAdded();
     } catch (error) {
       console.error("Error adding group comment:", error);
-      setPopup({ message: `Failed to add comment`, status: "failure" });
+      // setPopup({ message: `Failed to add comment`, status: "failure" });
     } finally {
       setIsSubmitting(false);
     }

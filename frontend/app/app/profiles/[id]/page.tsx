@@ -3,11 +3,13 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import "./profile.css";
-import getProfileData from "@/api/profiles/getProfileData";
-import deleteFollow from "@/api/follow/deleteFollow";
-import requestFollow from "@/api/follow/requestFollow";
-import setPravicy from "@/api/profiles/setPrivacy";
-import Popup from "../../popup";
+// import getProfileData from "@/api/profiles/getProfileData";
+// import deleteFollow from "@/api/follow/deleteFollow";
+// import requestFollow from "@/api/follow/requestFollow";
+// import setPravicy from "@/api/profiles/setPrivacy";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
+
+// import Popup from "../../popup";
 import { Profile } from "@/types/user";
 import Image from "next/image";
 import ConfirmationPopup from "../../ConfirmationPopup";
@@ -23,7 +25,11 @@ export default function ProfilePage() {
   const [isFollowing, setIsFollowing] = useState(false);
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [popup, setPopup] = useState<{ message: string; status: "success" | "failure" } | null>(null);
+  const { apiCall } = useGlobalAPIHelper();
+  // const [popup, setPopup] = useState<{
+  //   message: string;
+  //   status: "success" | "failure";
+  // } | null>(null);
   const [confirmation, setConfirmation] = useState<{
     message: string;
     onConfirm: () => void;
@@ -33,10 +39,13 @@ export default function ProfilePage() {
     const fetchProfileData = async () => {
       setLoading(true);
       try {
-        // Use the provided initProfileData function
-        const response = await getProfileData(userId);
+        const response = await apiCall(
+          { type: "get-profile", data: { profileId: userId } },
+          "POST",
+          "getProfile"
+        );
         if (response.error) {
-          setPopup({ message: response.error, status: "failure" });
+          // setPopup({ message: response.error, status: "failure" });
           return;
         }
 
@@ -50,14 +59,14 @@ export default function ProfilePage() {
             userData.follow?.isAccepted
         );
       } catch (error) {
-        setPopup({ message: `${error}`, status: "failure" });
+        console.log(error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchProfileData();
-  }, [userId]);
+  }, [userId, apiCall]);
 
   // Toggle private/public profile
   const togglePrivateProfile = async () => {
@@ -68,22 +77,24 @@ export default function ProfilePage() {
       }?`,
       onConfirm: async () => {
         try {
-          const data = await setPravicy(!user.isprivate);
+          const data = await apiCall(
+            { type: "set-privacy", data: { State: !user.isprivate } },
+            "POST",
+            "setPrivacy"
+          );
           if (data.error) {
-            setPopup({ message: data.error, status: "failure" });
             return;
           }
 
           setUser((prev) => prev && { ...prev, isprivate: !prev.isprivate });
         } catch (error) {
-          setPopup({ message: `${error}`, status: "failure" });
+          console.log(error);
         } finally {
           setConfirmation(null);
         }
       },
     });
   };
-
 
   // Handle follow/unfollow
   const handleFollowAction = async () => {
@@ -93,30 +104,39 @@ export default function ProfilePage() {
           message: "Are you sure you want to unfollow this user?",
           onConfirm: async () => {
             try {
-              const data = await deleteFollow(userId, true);
+              const data = await apiCall(
+                {
+                  type: "delete-follow",
+                  data: { ProfileId: userId, IsFollower: true },
+                },
+                "POST",
+                "deleteFollow"
+              );
               if (data.error) {
-                setPopup({ message: data.error, status: "failure" });
                 return;
               }
-  
+
               setIsFollowing(false);
               setIsPending(false);
-  
+
               if (user?.isprivate) {
                 setCanViewProfile(false);
               }
             } catch (error) {
-              setPopup({ message: `${error}`, status: "failure" });
+              console.log(error);
             } finally {
               setConfirmation(null);
             }
           },
         });
       } else if (!user?.follow?.id) {
-        const data = await requestFollow(userId);
+        const data = await apiCall(
+          { type: "request-follow", data: { ProfileId: userId } },
+          "POST",
+          "requestFollow"
+        );
         if (data.error) {
-            setPopup({ message: data.error , status: "failure" });
-            return;
+          return;
         }
 
         if (user?.isprivate) {
@@ -127,8 +147,8 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-        setPopup({ message: `${error}`, status: "failure" });
-        return;
+      console.log(error);
+      return;
     }
   };
 
@@ -394,13 +414,13 @@ export default function ProfilePage() {
           onCancel={() => setConfirmation(null)}
         />
       )}
-      {popup && (
+      {/* {popup && (
         <Popup
           message={popup.message}
           status={popup.status}
           onClose={() => setPopup(null)}
         />
-      )}
+      )} */}
     </div>
   );
 }

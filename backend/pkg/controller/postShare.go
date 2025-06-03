@@ -1,200 +1,109 @@
-package controller
+package app
 
 import (
 	"log"
-	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) GetPostShares(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "postShares",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	var postId float64
-	postIdRaw, ok := request["postId"]
+func (app *App) GetPostShares(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.GetPostShares)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a number"
-		return response
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	// Verify post ownership
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(int(postId), res.Userid)
+	userId := payload.Ctx.Value("user_id").(int)
+
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
-		response.Error = "Error verifying post ownership"
 		log.Println("Error verifying post ownership:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
 	}
-
 	if !isOwner {
-		response.Error = "You don't have permission to manage this post"
-		return response
+		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	// Get current shares
-	currentShares, err := s.repository.PostShare().GetPostShares(int(postId))
+	currentShares, err := app.repository.PostShare().GetPostShares(data.PostId)
 	if err != nil {
-		response.Error = "Error getting post shares"
 		log.Println("Error getting post shares:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error retrieving post shares"}
 	}
 
-	// Get available users to share with
-	availableUsers, err := s.repository.PostShare().GetAvailableUsersToShare(int(postId), res.Userid)
+	availableUsers, err := app.repository.PostShare().GetAvailableUsersToShare(data.PostId, userId)
 	if err != nil {
-		response.Error = "Error getting available users"
 		log.Println("Error getting available users:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error retrieving available users"}
 	}
 
-	// Mark current shares with a flag
 	for _, user := range currentShares {
-		user.IsAccepted = true // Reuse this field to mark current shares
+		user.IsAccepted = true
 	}
-    
-	// Mark available users with a different flag
 	for _, user := range availableUsers {
-		user.IsAccepted = false // Mark as available to add
+		user.IsAccepted = false
 	}
 
-	// Combine both lists
-	response.AllUsers = append(currentShares, availableUsers...)
-	response.Success = true
+	allUsers := append(currentShares, availableUsers...)
 
-	return response
+	return &response.GetPostShares{
+		AllUsers: allUsers,
+		Success:  true,
+	}
 }
 
-func (s *Server) AddPostShare(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "addPostShare",
-		Error: "",
+func (app *App) AddPostShare(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.AddPostShare)
+	if !ok {
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	var postId, userId float64
-	postIdRaw, ok := request["postId"]
-	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a number"
-		return response
-	}
-
-	userIdRaw, ok := request["userId"]
-	if !ok {
-		response.Error = "Missing 'userId' field"
-		return response
-	}
-	userId, ok = userIdRaw.(float64)
-	if !ok {
-		response.Error = "'userId' must be a number"
-		return response
-	}
-
-	// Verify post ownership
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(int(postId), res.Userid)
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
-		response.Error = "Error verifying post ownership"
 		log.Println("Error verifying post ownership:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
 	}
-
 	if !isOwner {
-		response.Error = "You don't have permission to manage this post"
-		return response
+		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	// Add the share
-	err = s.repository.PostShare().AddPostShare(int(postId), int(userId))
+	err = app.repository.PostShare().AddPostShare(data.PostId, data.UserId)
 	if err != nil {
-		response.Error = "Error adding post share"
 		log.Println("Error adding post share:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error adding post share"}
 	}
 
-	response.Success = true
-	response.Data = "User added successfully"
-
-	return response
+	return &response.AddPostShare{
+		Message: "User added successfully",
+		Success: true,
+	}
 }
 
-func (s *Server) RemovePostShare(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "removePostShare",
-		Error: "",
+func (app *App) RemovePostShare(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.RemovePostShare)
+	if !ok {
+		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
 
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
+	userId := payload.Ctx.Value("user_id").(int)
 
-	var postId, userId float64
-	postIdRaw, ok := request["postId"]
-	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok = postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a number"
-		return response
-	}
-
-	userIdRaw, ok := request["userId"]
-	if !ok {
-		response.Error = "Missing 'userId' field"
-		return response
-	}
-	userId, ok = userIdRaw.(float64)
-	if !ok {
-		response.Error = "'userId' must be a number"
-		return response
-	}
-
-	// Verify post ownership
-	isOwner, err := s.repository.PostShare().VerifyPostOwnership(int(postId), res.Userid)
+	isOwner, err := app.repository.PostShare().VerifyPostOwnership(data.PostId, userId)
 	if err != nil {
-		response.Error = "Error verifying post ownership"
 		log.Println("Error verifying post ownership:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error verifying post ownership"}
 	}
-
 	if !isOwner {
-		response.Error = "You don't have permission to manage this post"
-		return response
+		return &response.Error{Code: 403, Cause: "You don't have permission to manage this post"}
 	}
 
-	// Remove the share
-	err = s.repository.PostShare().RemovePostShare(int(postId), int(userId))
+	err = app.repository.PostShare().RemovePostShare(data.PostId, data.UserId)
 	if err != nil {
-		response.Error = "Error removing post share"
 		log.Println("Error removing post share:", err)
-		return response
+		return &response.Error{Code: 500, Cause: "Error removing post share"}
 	}
 
-	response.Success = true
-	response.Data = "User removed successfully"
-
-	return response
+	return &response.RemovePostShare{
+		Message: "User removed successfully",
+		Success: true,
+	}
 }

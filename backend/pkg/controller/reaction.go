@@ -1,82 +1,53 @@
-package controller
+package app
 
 import (
 	"log"
 	"real-time-forum/pkg/model"
+	"real-time-forum/pkg/model/request"
+	"real-time-forum/pkg/model/response"
 )
 
-func (s *Server) ReactToPost(request map[string]any) *model.Response {
-	response := &model.Response{
-		Type:  "reaction",
-		Error: "",
-	}
-
-	res := s.ValidateSession(request)
-	if res.Error != "" {
-		response.Error = "Invalid session"
-		return response
-	}
-
-	postIdRaw, ok := request["postId"]
+func (app *App) ReactToPost(payload *request.RequestT) any {
+	data, ok := payload.Data.(*request.ReactToPost)
 	if !ok {
-		response.Error = "Missing 'postId' field"
-		return response
-	}
-	postId, ok := postIdRaw.(float64)
-	if !ok {
-		response.Error = "'postId' must be a number"
-		return response
-	}
-
-	reactionRaw, ok := request["reaction"]
-	if !ok {
-		response.Error = "Missing 'reaction' field"
-		return response
-	}
-
-	var reaction *bool = nil
-
-	if reactionRaw != nil {
-		reactionVal, ok := reactionRaw.(bool)
-		if !ok {
-			response.Error = "'reaction' must be a boolean or null"
-			return response
+		return &response.Error{
+			Code: 400, Cause: "Invalid payload type",
 		}
-		reaction = &reactionVal
 	}
 
-	err := s.repository.Reaction().UpsertReaction(res.Userid, int(postId), reaction)
+	userId := payload.Ctx.Value("user_id").(int)
+
+	err := app.repository.Reaction().UpsertReaction(userId, data.PostId, data.Reaction)
 	if err != nil {
 		log.Println("Error saving reaction:", err)
-		response.Error = "Error saving reaction: " + err.Error()
-		return response
+		return &response.Error{
+			Code: 500, Cause: "Error saving reaction: " + err.Error(),
+		}
 	}
 
-	counts, err := s.repository.Reaction().GetReactionCounts(int(postId))
+	counts, err := app.repository.Reaction().GetReactionCounts(data.PostId)
 	if err != nil {
 		log.Println("Error getting reaction counts:", err)
-		response.Error = "Error getting reaction counts: " + err.Error()
-		return response
+		return &response.Error{
+			Code: 500, Cause: "Error getting reaction counts: " + err.Error(),
+		}
 	}
 
-	// Get user's own reaction
-	userReaction, err := s.repository.Reaction().GetUserReaction(res.Userid, int(postId))
+	userReaction, err := app.repository.Reaction().GetUserReaction(userId, data.PostId)
 	if err != nil {
 		log.Println("Error getting user reaction:", err)
-		response.Error = "Error getting user reaction: " + err.Error()
-		return response
+		return &response.Error{
+			Code: 500, Cause: "Error getting user reaction: " + err.Error(),
+		}
 	}
-
 	counts.UserReaction = userReaction
 
-	// Create a post object with the reaction counts to return
-	post := &model.Post{
-		ID:        int(postId),
-		Reactions: counts,
+	return &response.ReactToPost{
+		Userid: userId,
+		Post: &model.Post{
+			ID:        data.PostId,
+			Reactions: counts,
+		},
+		Success: true,
 	}
-
-	response.Success = true
-	response.Posts = []*model.Post{post}
-
-	return response
 }

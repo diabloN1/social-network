@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
 import {
@@ -9,33 +9,34 @@ import {
   onMessageType,
   closeWebSocket,
 } from "@/helpers/webSocket";
-import fetchAllNotifications from "@/api/notif/getAllNotification";
-import logout from "@/api/auth/logout";
 import clearSessionCookie from "@/api/auth/clearSessionCookie";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState("home");
   const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [joinRequestCount, setJoinRequestCount] = useState(0);
   const [followRequestCount, setFollowRequestCount] = useState(0);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { apiCall } = useGlobalAPIHelper();
 
-  const fetchAllNotificationCounts = async () => {
-    const data = await fetchAllNotifications();
+  const fetchAllNotificationCounts = useCallback(async () => {
+    const data = await apiCall(
+      { type: "get-all-notifications" },
+      "POST",
+      "getAllNotifications"
+    );
     if (data && !data.error) {
-      // console.log("notification", data);
-
       const notifications = data.notifications;
 
       setChatUnreadCount(notifications.messageUnread || 0);
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);
     }
-  };
+  }, [apiCall]);
 
-
-  
   // Updated handleLogout function for cookie-based sessions
   const handleLogout = async () => {
     if (isLoggingOut) return;
@@ -45,10 +46,11 @@ export default function Navbar() {
     try {
       closeWebSocket();
 
-      await logout();
+      await apiCall({ type: "logout" }, "POST", "logout");
 
       await clearSessionCookie();
 
+      router.push("/auth");
       console.log("Logout successful");
     } catch (error) {
       console.error("Logout failed:", error);
@@ -56,7 +58,7 @@ export default function Navbar() {
       try {
         await clearSessionCookie();
       } catch (cookieError) {
-        // 
+        //
         console.error("Failed to clear session cookie:", cookieError);
       }
     } finally {
@@ -70,7 +72,7 @@ export default function Navbar() {
 
   useEffect(() => {
     fetchAllNotificationCounts();
-  }, []);
+  }, [fetchAllNotificationCounts]);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -81,7 +83,7 @@ export default function Navbar() {
       setActiveTab("groups");
     } else if (pathname.includes("/app/chat")) {
       setActiveTab("chat");
-    } 
+    }
 
     const notificationTypes = [
       "followRequestHandled",
@@ -94,13 +96,12 @@ export default function Navbar() {
     );
 
     const unsubscribe = onMessageType("addMessage", () => {
-     fetchAllNotificationCounts();
+      fetchAllNotificationCounts();
     });
 
-   const NotificationsWs = onMessageType("notifications", () => {
-  fetchAllNotificationCounts(); 
-});
-
+    const NotificationsWs = onMessageType("notifications", () => {
+      fetchAllNotificationCounts();
+    });
 
     return () => {
       unsubscribe();
@@ -108,7 +109,7 @@ export default function Navbar() {
 
       notificationUnsubs.forEach((unsub) => unsub());
     };
-  }, [pathname]);
+  }, [pathname, fetchAllNotificationCounts]);
 
   const navItems = [
     {

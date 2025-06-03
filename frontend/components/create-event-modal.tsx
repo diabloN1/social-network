@@ -28,14 +28,14 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-      onSubmit({
-        title,
-        description,
-        option1,
-        option2,
-        date,
-        place,
-      });
+    onSubmit({
+      title,
+      description,
+      option1,
+      option2,
+      date,
+      place,
+    });
   };
 
   return (
