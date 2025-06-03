@@ -36,7 +36,6 @@ export default function GroupInviteModal({
   const loadAvailableUsers = useCallback(async () => {
     try {
       setIsLoading(true);
-      // const data = await getAvailableUsersToInvite(groupId);
       const data = await apiCall(
         {
           type: "get-group-invite-users",
@@ -46,7 +45,7 @@ export default function GroupInviteModal({
         "getGroupInviteUsers"
       );
 
-      // console.log("data", data);
+      console.log("data", data);
       if (data.error) {
         console.error("Error loading users:", data.error);
         setAvailableUsers([]);
@@ -60,7 +59,7 @@ export default function GroupInviteModal({
     } finally {
       setIsLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, apiCall]);
 
   useEffect(() => {
     if (isOpen) {

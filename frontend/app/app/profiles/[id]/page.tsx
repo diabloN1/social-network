@@ -59,7 +59,6 @@ export default function ProfilePage() {
             userData.follow?.isAccepted
         );
       } catch (error) {
-        // setPopup({ message: `${error}`, status: "failure" });
         console.log(error);
       } finally {
         setLoading(false);
@@ -67,7 +66,7 @@ export default function ProfilePage() {
     };
 
     fetchProfileData();
-  }, [userId]);
+  }, [userId, apiCall]);
 
   // Toggle private/public profile
   const togglePrivateProfile = async () => {
@@ -89,7 +88,6 @@ export default function ProfilePage() {
 
           setUser((prev) => prev && { ...prev, isprivate: !prev.isprivate });
         } catch (error) {
-          // setPopup({ message: `${error}`, status: "failure" });
           console.log(error);
         } finally {
           setConfirmation(null);
@@ -125,7 +123,6 @@ export default function ProfilePage() {
                 setCanViewProfile(false);
               }
             } catch (error) {
-              // setPopup({ message: `${error}`, status: "failure" });
               console.log(error);
             } finally {
               setConfirmation(null);
@@ -150,7 +147,6 @@ export default function ProfilePage() {
         }
       }
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
       return;
     }

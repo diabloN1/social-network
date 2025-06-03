@@ -42,7 +42,7 @@ export default function PostShareModal({
     } finally {
       setIsLoading(false);
     }
-  }, [postId]);
+  }, [postId, apiCall]);
 
   useEffect(() => {
     if (isOpen) {

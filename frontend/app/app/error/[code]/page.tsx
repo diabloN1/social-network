@@ -1,17 +1,14 @@
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import "@/components/post-share-modal.css";
+import Link from "next/link";
 
-interface ErrorPageProps {
-  params: {
-    code: string;
-  };
-}
-
-export default function ErrorPage({ params }: ErrorPageProps) {
-  const { code } = params;
+export default function ErrorPage() {
+  const params = useParams();
   const searchParams = useSearchParams();
+
+  const code = params?.code ?? "Unknown";
   const cause = searchParams.get("cause") || "An unexpected error occurred.";
 
   return (
@@ -35,9 +32,9 @@ export default function ErrorPage({ params }: ErrorPageProps) {
           </p>
 
           <div style={{ textAlign: "center" }}>
-            <a href="/" className="add-btn" style={{ textDecoration: "none" }}>
+            <Link href="/" className="add-btn" style={{ textDecoration: "none" }}>
               Go Back Home
-            </a>
+            </Link>
           </div>
         </div>
       </div>

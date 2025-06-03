@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import "./Navbar.css";
@@ -22,7 +22,7 @@ export default function Navbar() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { apiCall } = useGlobalAPIHelper();
 
-  const fetchAllNotificationCounts = async () => {
+  const fetchAllNotificationCounts = useCallback(async () => {
     const data = await apiCall(
       { type: "get-all-notifications" },
       "POST",
@@ -35,7 +35,7 @@ export default function Navbar() {
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);
     }
-  };
+  }, [apiCall]);
 
   // Updated handleLogout function for cookie-based sessions
   const handleLogout = async () => {
@@ -72,7 +72,7 @@ export default function Navbar() {
 
   useEffect(() => {
     fetchAllNotificationCounts();
-  }, []);
+  }, [fetchAllNotificationCounts]);
 
   useEffect(() => {
     if (pathname === "/app") {
@@ -109,7 +109,7 @@ export default function Navbar() {
 
       notificationUnsubs.forEach((unsub) => unsub());
     };
-  }, [pathname]);
+  }, [pathname, fetchAllNotificationCounts]);
 
   const navItems = [
     {

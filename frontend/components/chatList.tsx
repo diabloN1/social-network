@@ -106,7 +106,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
       }
     };
     getChat();
-  }, []);
+  }, [apiCall]);
 
   useEffect(() => {
     const unsubscribe = onMessageType("addMessage", (data: AddMessageEvent) => {

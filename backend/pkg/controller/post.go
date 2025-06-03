@@ -13,7 +13,6 @@ func (app *App) GetPosts(payload *request.RequestT) any {
 	data, ok := payload.Data.(*request.GetPosts)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
-
 	}
 
 	userId := payload.Ctx.Value("user_id").(int)

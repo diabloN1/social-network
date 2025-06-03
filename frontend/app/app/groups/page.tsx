@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import "./styles.css";
 import CreateGroupModal from "@/components/create-group-modal";
@@ -28,7 +28,7 @@ export default function GroupsPage() {
 
   const { apiCall } = useGlobalAPIHelper();
 
-  const fetchGroupsData = async () => {
+  const fetchGroupsData = useCallback(async () => {
     try {
       const data = await apiCall({ type: "get-groups" }, "POST", "getGroups");
       if (data.error) {
@@ -37,14 +37,13 @@ export default function GroupsPage() {
 
       setGroupsData(data);
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
-  };
+  }, [apiCall]);
 
   useEffect(() => {
     fetchGroupsData();
-  }, []);
+  }, [fetchGroupsData]);
 
   // Filter groups based on search term and active tab
   const filteredGroups = groupsData?.all?.filter((group) => {
@@ -415,13 +414,6 @@ export default function GroupsPage() {
           onSubmit={handleCreateGroup}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }

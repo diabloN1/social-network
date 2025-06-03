@@ -91,7 +91,7 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
     return () => {
       unsubscribe(); // Clean up listener when chat change or component unmounts
     };
-  }, [chat]);
+  }, [chat, apiCall]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({

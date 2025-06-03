@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import CreatePostModal from "@/components/create-post-modal";
 import Post from "@/components/post";
 import "./posts.css";
-// import Popup from "../popup";
 import { Post as PostType, Reaction } from "@/types/post";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
@@ -14,12 +13,8 @@ export default function PostsPage() {
   const [currentUserId, setCurrentUserId] = useState<number | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
   const [hasMore, setHasMore] = useState(true);
-  const fetchPosts = async () => {
+  const fetchPosts = useCallback(async () => {
     setIsLoading(true);
     const data = await apiCall(
       {
@@ -38,7 +33,7 @@ export default function PostsPage() {
     }
 
     setIsLoading(false);
-  };
+  }, [apiCall]);
 
   const fetchMorePosts = async () => {
     if (posts.length === 0) return;
@@ -65,7 +60,7 @@ export default function PostsPage() {
 
   useEffect(() => {
     fetchPosts();
-  }, []);
+  }, [fetchPosts]);
 
   const handleCreatePost = async (newPost: {
     image: string;
@@ -86,11 +81,9 @@ export default function PostsPage() {
       if (data?.post) {
         setPosts([data.post, ...posts]);
       } else {
-        // setPopup({ message: "Post creation failed.", status: "failure" });
         return;
       }
     } catch (err) {
-      // setPopup({ message: `Unexpected error: ${err}`, status: "failure" });
       console.log(err);
     }
 
@@ -154,13 +147,6 @@ export default function PostsPage() {
           onSubmit={handleCreatePost}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }

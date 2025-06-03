@@ -58,7 +58,7 @@ export default function SinglePostPage() {
     } catch (error) {
       console.error("Error loading comments:", error);
     }
-  }, [postId]);
+  }, [postId, apiCall]);
 
   const pageLoadHandler = useCallback(async () => {
     try {
@@ -95,12 +95,11 @@ export default function SinglePostPage() {
 
       setDisplay("block");
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     } finally {
       setIsLoading(false);
     }
-  }, [postId, router, loadComments]);
+  }, [postId, router, loadComments, apiCall]);
 
   useEffect(() => {
     pageLoadHandler();

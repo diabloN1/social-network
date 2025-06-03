@@ -83,7 +83,7 @@ export default function GroupDetailPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [groupId]);
+  }, [groupId, apiCall]);
 
   useEffect(() => {
     fetchGroupData();
@@ -148,7 +148,6 @@ export default function GroupDetailPage() {
         ...prev,
         [postId]: { ...currentReaction, isReacting: false },
       }));
-      // setPopup({ message: `${error}`, status: "failure" });
     } finally {
       // Just remove loading state, counts are already correct
       setPostReactions((prev) => ({
@@ -184,7 +183,6 @@ export default function GroupDetailPage() {
         }));
       }
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -240,7 +238,6 @@ export default function GroupDetailPage() {
       setShowCreatePostModal(false);
       fetchGroupData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -279,7 +276,6 @@ export default function GroupDetailPage() {
       setShowCreateEventModal(false);
       fetchGroupData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -300,7 +296,6 @@ export default function GroupDetailPage() {
       // console.log(data);
       fetchGroupData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };

@@ -1,7 +1,7 @@
 "use client";
 
 import getToken from "@/api/auth/getToken";
-import { handleAPIError } from "./GlobalAPIHelper";
+//import { handleAPIError } from "./GlobalAPIHelper";
 
 export let socket: WebSocket | null = null;
 
@@ -24,7 +24,10 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
         console.log("WebSocket message received:", data);
 
         if (data.error) {
-          handleAPIError(data.error.cause || "Unknown error", data.error.code || 500);
+          // handleAPIError(
+          //   data.error.cause || "Unknown error",
+          //   data.error.code || 500
+          // );
           console.error("WebSocket error:", data.error);
           return;
         }
@@ -59,7 +62,7 @@ export const closeWebSocket = (): void => {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.close();
     socket = null;
-    listeners = ({} = {});
+    listeners = {} = {};
     console.log("🔌 WebSocket connection closed");
   }
 };
