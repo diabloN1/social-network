@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"slices"
 )
 
 type App struct {
@@ -66,12 +68,13 @@ func (app *App) removeClient(client *Client) {
 	for i, c := range app.clients[client.UserId] {
 		if c == client {
 
+			fmt.Println("Removing client:", client.UserId, "Session:", client.Session, len(app.clients[client.UserId]))
 			if i == len(app.clients[client.UserId])-1 {
 				app.clients[client.UserId] = app.clients[client.UserId][:i]
 			} else {
-				app.clients[client.UserId] = append(app.clients[client.UserId][:i], app.clients[client.UserId][i+1:]...)
+				app.clients[client.UserId] = slices.Delete(app.clients[client.UserId], i, i+1)
 			}
-			return
+			fmt.Println(app.clients[client.UserId], "after remove client")
 		}
 	}
 }
@@ -95,8 +98,30 @@ func (app *App) readMessage(conn *websocket.Conn, client *Client) {
 			return
 		}
 
+		session := app.GetReflectValue(reqBody, "Session", "string")
+
+		fmt.Println("session", session)
+		if session == nil || session.(string) != client.Session {
+			app.ShowMessage(client, &response.Error{
+				Code:  401,
+				Cause: "unauthorized: invalid session111",
+			})
+			app.removeClient(client)
+			break
+		}
+
+		uid, err := app.repository.Session().FindUserIDBySession(session.(string))
+		if err != nil {
+			app.ShowMessage(client, &response.Error{
+				Code:  401,
+				Cause: "unauthorized: invalid session",
+			})
+			app.removeClient(client)
+			break
+		}
+		reqBody.Ctx = context.WithValue(context.Background(), "user_id", uid)
 		switch reqType {
-		case "updateseenmessages":
+		case "update-seen-messages":
 			app.UpdateSeenMessageWS(reqBody)
 		case "add-message":
 			response, err := app.AddMessage(reqBody)
@@ -129,6 +154,8 @@ func (app *App) SentToActiveRecipient(response *response.AddMessage) {
 	} else {
 		// Brodcast to group members
 		users, err := app.repository.Group().GetGroupMembers(groupId)
+		response.Message.IsOwned = false
+
 		if err != nil {
 			fmt.Println("Error broadcasting to group members:", err)
 			return
@@ -145,10 +172,12 @@ func (app *App) SentToActiveRecipient(response *response.AddMessage) {
 	}
 }
 
-func (app *App) ShowMessage(client *Client, response any) {
+func (app *App) ShowMessage(client *Client, res any) {
 	if client == nil {
 		return
 	}
 
-	client.Connection.WriteJSON(response)
+	_, data := response.Marshal(res)
+
+	client.Connection.WriteMessage(websocket.TextMessage, data)
 }

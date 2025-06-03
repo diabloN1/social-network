@@ -2,6 +2,7 @@
 
 import getToken from "@/api/auth/getToken";
 import { socket } from "./webSocket";
+import { handleAPIError } from "./GlobalAPIHelper";
 
 export const addMessage = async (
   id: number,
@@ -9,18 +10,22 @@ export const addMessage = async (
   message: string
 ) => {
   if (!socket) return;
+
   try {
-    const token = (await getToken()).session;
+    const token = await getToken();
+    if (!token) {
+      handleAPIError("unauthorized: invalid session", 401);
+      return;
+    }
+
     socket.send(
       JSON.stringify({
         type: "add-message",
-        session: token ?? "",
-        isGroup,
-        id,
-        message,
+        data: { session: token, isGroup, id, message },
       })
     );
-  } catch (err) {
+  } catch (err: any) {
+    handleAPIError(err.Cause, 500);
     console.error(err);
   }
 };

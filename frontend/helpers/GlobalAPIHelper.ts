@@ -4,21 +4,6 @@ import { useError } from "@/context/ErrorContext";
 import { useRouter } from "next/navigation";
 
 export const useGlobalAPIHelper = () => {
-  const { showError } = useError();
-  const router = useRouter();
-
-  const handleAPIError = (message: string, code: number = 500) => {
-    showError(message, code);
-
-    if (message.toLowerCase().startsWith("unauthorized: invalid session")) {
-      setTimeout(() => {
-        router.push("/auth");
-      }, 1000); // Delay allows popup to show
-    }
-
-    return { error: true, message };
-  };
-
   const apiCall = async (
     requestData: any,
     method: string,
@@ -57,4 +42,18 @@ export const useGlobalAPIHelper = () => {
   };
 
   return { apiCall };
+};
+
+export const handleAPIError = (message: string, code: number = 500) => {
+  const { showError } = useError();
+  const router = useRouter();
+
+  showError(message, code);
+  if (message.toLowerCase().startsWith("unauthorized: invalid session")) {
+    setTimeout(() => {
+      router.push("/auth");
+    }, 1000); // Delay allows popup to show
+  }
+
+  return { error: true, message };
 };

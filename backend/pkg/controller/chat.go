@@ -97,6 +97,7 @@ func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *re
 	}
 
 	return &response.AddMessage{
+		Type:  "addMessage",
 		Message: m,
 		IsGroup: data.IsGroup,
 	}, nil

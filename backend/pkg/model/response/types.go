@@ -182,6 +182,7 @@ type GetMessages struct {
 }
 
 type AddMessage struct {
+	Type   string         `json:"type"`
 	Message *model.Message `json:"message"`
 	IsGroup bool           `json:"isGroup"`
 }

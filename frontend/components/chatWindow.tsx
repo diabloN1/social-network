@@ -65,10 +65,6 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
           : data.message.sender_id === currentChatId ||
             data.message.recipient_id === currentChatId;
 
-        console.log("- - - - - -", chat, isGroup, isMatch);
-
-        data.message.isOwned = data.isOwned;
-
         if (isMatch) {
           try {
             setMessages((prev) =>
@@ -77,10 +73,12 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
 
             socket?.send(
               JSON.stringify({
-                type: "updateseenmessages",
-                id: currentChatId,
-                isGroup,
-                session: await getToken(),
+                type: "update-seen-message-ws",
+                data: {
+                  id: currentChatId,
+                  isGroup,
+                  session: await getToken(),
+                },
               })
             );
           } catch (error) {

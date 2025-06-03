@@ -138,26 +138,14 @@ func (app *App) IsMemberMiddleware(next http.Handler, req *request.RequestT) htt
 			return
 		}
 
-		v := reflect.ValueOf(req.Data).Elem()
+		groupIdAny := app.GetReflectValue(req.Data, "GroupId", "int")
 
-		if v.Kind() != reflect.Struct {
-			app.ServeError(w, &response.Error{Cause: "Bad Request: Expected struct data", Code: http.StatusBadRequest})
-			return
-		}
-
-		groupField := v.FieldByName("GroupId")
-		if !groupField.IsValid() {
-			app.ServeError(w, &response.Error{Cause: "Bad Request: GroupId field missing or invalid", Code: http.StatusBadRequest})
-			return
-		}
-
-		groupId := int(groupField.Int())
-		if groupId <= 0 {
+		if groupIdAny == nil {
 			app.ServeError(w, &response.Error{Cause: "Bad Request: Invalid group_id", Code: http.StatusBadRequest})
 			return
 		}
 
-		isMember, err := app.repository.Group().IsMember(userID, groupId)
+		isMember, err := app.repository.Group().IsMember(userID, groupIdAny.(int))
 		if err != nil {
 			app.ServeError(w, &response.Error{Cause: "Internal Server Error: Unable to verify membership", Code: http.StatusInternalServerError})
 			return
@@ -170,6 +158,34 @@ func (app *App) IsMemberMiddleware(next http.Handler, req *request.RequestT) htt
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+func (app *App) GetReflectValue(data any, field string, typ string) any {
+
+	switch typ {
+	case "int":
+		v := reflect.ValueOf(data).Elem()
+
+		groupField := v.FieldByName(field)
+		if !groupField.IsValid() {
+			return nil
+		}
+
+		return int(groupField.Int())
+	case "string":
+		v := reflect.ValueOf(data).Elem()
+
+		dataField := v.FieldByName("Data").Elem().Elem()
+
+		groupField := dataField.FieldByName(field)
+		if !groupField.IsValid() {
+			return nil
+		}
+
+		return groupField.String()
+	}
+
+	return nil
 }
 
 func (app *App) CookieMiddleware(next http.Handler, req *request.RequestT) http.Handler {

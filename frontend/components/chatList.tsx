@@ -34,6 +34,7 @@ export default function ChatList({ activeChat, setActiveChat }: ChatListProps) {
           setPopup({ message: data.error, status: "failure" });
           return;
         }
+        console.log("privateConvs", data);
         if (data.privateConvs) {
           data.privateConvs.sort(
             (

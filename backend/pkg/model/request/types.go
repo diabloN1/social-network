@@ -1,7 +1,7 @@
 package request
 
 type Login struct {
-	Email    string `json:"email"` // Email or Username
+	Email    string `json:"email"`
 	Password string `json:"password"`
 }
 
@@ -156,6 +156,7 @@ type AddMessage struct {
 	Id      int    `json:"id"`
 	IsGroup bool   `json:"isGroup"`
 	Message string `json:"message"`
+	Session string `json:"session"`
 }
 
 type DeleteFollowNotification struct {
@@ -169,4 +170,5 @@ type DeleteNewEventNotification struct {
 type UpdateSeenMessageWS struct {
 	Id      int  `json:"id"`
 	IsGroup bool `json:"isGroup"`
+	Session string `json:"session"`
 }

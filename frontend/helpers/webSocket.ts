@@ -1,13 +1,12 @@
 "use client";
 
 import getToken from "@/api/auth/getToken";
+import { handleAPIError } from "./GlobalAPIHelper";
 
 export let socket: WebSocket | null = null;
 
-// One listener per message type
-const listeners: { [key: string]: ((data: any) => void)[] } = ({} = {});
+let listeners: { [key: string]: ((data: any) => void)[] } = ({} = {});
 
-// Connect WebSocket and set up event handlers
 export const connectWebSocket = async (): Promise<WebSocket | null> => {
   if (socket) return socket;
 
@@ -22,16 +21,14 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
     socket.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
-
-        // check if error
-        // ...
+        console.log("WebSocket message received:", data);
 
         if (data.error) {
+          handleAPIError(data.error.cause || "Unknown error", data.error.code || 500);
           console.error("WebSocket error:", data.error);
           return;
         }
 
-        console.log("socket ", data);
         const type = data.data?.type;
 
         if (type && listeners[type]) {
@@ -58,11 +55,11 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
   }
 };
 
-// ADD THIS FUNCTION - Close WebSocket connection
 export const closeWebSocket = (): void => {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.close();
     socket = null;
+    listeners = ({} = {});
     console.log("🔌 WebSocket connection closed");
   }
 };
@@ -80,10 +77,10 @@ export const onMessageType = (
 
   // Return an unsubscribe function
   return () => {
-    listeners[type] = listeners[type].filter((cb) => cb !== callback);
+    listeners[type] = listeners[type]?.filter((cb) => cb !== callback);
 
     // Clean up if no more listeners
-    if (listeners[type].length === 0) {
+    if (listeners[type]?.length === 0) {
       delete listeners[type];
     }
   };
