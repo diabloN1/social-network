@@ -3,7 +3,6 @@
 import { useState } from "react";
 import ChatList from "@/components/chatList";
 import ChatWindow from "@/components/chatWindow";
-import "./chat.css";
 import { Chat } from "@/types/chat";
 
 export default function ChatPage() {

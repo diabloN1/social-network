@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import CreatePostModal from "@/components/create-post-modal";
 import Post from "@/components/post";
-import "./posts.css";
 import { Post as PostType, Reaction } from "@/types/post";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 

@@ -42,14 +42,10 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
       }
     };
 
-    socket.onclose = () => {
-      console.log("WebSocket disconnected");
-      socket = null;
-    };
-
     socket.onerror = (err) => {
       console.error("WebSocket error:", err);
     };
+
 
     return socket;
   } catch (error) {

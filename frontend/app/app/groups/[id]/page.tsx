@@ -10,7 +10,6 @@ import GroupComment from "@/components/group-comment";
 import CreatePostModal from "@/components/create-post-modal";
 import CreateEventModal from "@/components/create-event-modal";
 import GroupInviteModal from "@/components/group-invite-modal";
-import "./group.css";
 import { Group } from "@/types/group";
 import { Post, Reaction } from "@/types/post";
 import { Comment } from "@/types/comment";

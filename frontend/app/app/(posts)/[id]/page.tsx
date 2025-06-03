@@ -3,18 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import "../posts.css";
-import "./post.css";
-// import getPostData from "@/api/posts/getPostData";
-// import reactToPost from "@/api/posts/reactToPost";
-// import getComments from "@/api/posts/getComments";
 
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 import CommentForm from "@/components/comment-form";
 import Comment from "@/components/comment";
 import PostShareModal from "@/components/post-share-modal";
-// import Popup from "../../popup";
 import { Post } from "@/types/post";
 import { Comment as CommentType } from "@/types/comment";
 
