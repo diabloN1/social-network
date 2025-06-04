@@ -293,7 +293,7 @@ func (app *App) RespondToJoinRequest(payload *request.RequestT) any {
 	notification := map[string]any{
 		"type":       "notifications",
 		"owner": ownerId,
-		"message":    "New follow request",
+		"message":    "new request",
 		"timestamp":  time.Now().Unix(),
 	}
 	app.sendNotificationToUser(ownerId, notification)
@@ -374,7 +374,7 @@ func (app *App) RespondToGroupInvitation(payload *request.RequestT) any {
 notification := map[string]any{
 		"type":       "notifications",
 		"invited": userId,
-		"message":    "New follow request",
+		"message":    "new invitation",
 		"timestamp":  time.Now().Unix(),
 	}
 	app.sendNotificationToUser(userId, notification)

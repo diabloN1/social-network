@@ -73,7 +73,7 @@ export default function ChatWindow({ chat }: ChatWindowProps) {
 
             socket?.send(
               JSON.stringify({
-                type: "update-seen-message-ws",
+                type: "update-seen-messages",
                 data: {
                   id: currentChatId,
                   isGroup,

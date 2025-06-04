@@ -78,8 +78,20 @@ func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *re
 	m := &model.Message{}
 	if data.IsGroup {
 		m.GroupId = data.Id
+		notification := map[string]any{
+		"type":       "notifications",
+		"followerId": m.GroupId,
+		"message":    "new message",
+	}
+	app.sendNotificationToUser(m.RecipientId, notification)
 	} else {
 		m.RecipientId = data.Id
+		notification := map[string]any{
+		"type":       "notifications",
+		"followerId": m.RecipientId,
+		"message":    "new message",
+	}
+	app.sendNotificationToUser(m.RecipientId, notification)
 	}
 	m.SenderId = userId
 	m.Text = data.Message
@@ -95,7 +107,7 @@ func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *re
 	if err != nil {
 		return nil, &response.Error{Code: 500, Cause: err.Error()}
 	}
-
+	
 	return &response.AddMessage{
 		Type:  "addMessage",
 		Message: m,
