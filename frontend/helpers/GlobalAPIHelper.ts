@@ -70,6 +70,7 @@ export const useGlobalAPIHelper = () => {
         return data.data ?? data;
       } catch (err: any) {
         console.error("API call failed:", err);
+        alert(err.data.cause)
        // return handleAPIError(err.message || "Unexpected error", 500);
       }
     },
