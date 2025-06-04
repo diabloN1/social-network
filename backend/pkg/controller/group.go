@@ -371,7 +371,13 @@ func (app *App) RespondToGroupInvitation(payload *request.RequestT) any {
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Error responding to invitation: " + err.Error()}
 	}
-
+notification := map[string]any{
+		"type":       "notifications",
+		"invited": userId,
+		"message":    "New follow request",
+		"timestamp":  time.Now().Unix(),
+	}
+	app.sendNotificationToUser(userId, notification)
 	return &response.RespondToGroupInvitation{
 		Success: true,
 		Message: msg,
