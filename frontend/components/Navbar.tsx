@@ -28,6 +28,8 @@ export default function Navbar() {
       "POST",
       "getAllNotifications"
     );
+    console.log("iiiii",data);
+    
     if (data && !data.error) {
       const notifications = data.notifications;
 
@@ -100,6 +102,8 @@ export default function Navbar() {
     });
 
     const NotificationsWs = onMessageType("notifications", () => {
+      console.log("recieved notif");
+      
       fetchAllNotificationCounts();
     });
 

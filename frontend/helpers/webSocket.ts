@@ -32,7 +32,8 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
           return;
         }
 
-        const type = data.data?.type;
+        const type = data?.type;
+console.log(data);
 
         if (type && listeners[type]) {
           listeners[type].forEach((callback) => callback(data.data));
