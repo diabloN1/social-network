@@ -1,20 +1,41 @@
 "use client";
 
-import { createContext, useState, useContext, ReactNode } from "react";
+import {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from "react";
 
+// Error interface
 interface Error {
   message: string;
   code?: number;
 }
 
+// Context type
 interface ErrorContextType {
   error: Error | null;
   showError: (message: string, code?: number) => void;
   clearError: () => void;
 }
 
+// Create the context
 const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
 
+// Global error handler reference
+let globalShowError: ((message: string, code?: number) => void) | null = null;
+
+export const setGlobalErrorHandler = (
+  fn: (message: string, code?: number) => void
+) => {
+  globalShowError = fn;
+};
+
+export const getGlobalErrorHandler = () => globalShowError;
+
+// Provider component
 export const ErrorProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<Error | null>(null);
 
@@ -26,6 +47,14 @@ export const ErrorProvider = ({ children }: { children: ReactNode }) => {
     setError(null);
   };
 
+  useEffect(() => {
+    // Register the global error handler
+    setGlobalErrorHandler(showError);
+    return () => {
+      setGlobalErrorHandler(() => {}); // Clear on unmount
+    };
+  }, []);
+
   return (
     <ErrorContext.Provider value={{ error, showError, clearError }}>
       {children}
@@ -33,6 +62,7 @@ export const ErrorProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// Hook for using context in components
 export const useError = () => {
   const context = useContext(ErrorContext);
   if (!context) {
