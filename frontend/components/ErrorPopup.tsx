@@ -1,4 +1,3 @@
-// components/ErrorPopup.tsx
 "use client";
 
 import { useError } from "@/context/ErrorContext";

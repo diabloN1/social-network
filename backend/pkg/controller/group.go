@@ -6,25 +6,47 @@ import (
 	"real-time-forum/pkg/model"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
+	"regexp"
+	"strings"
 	"time"
 )
 
+
+
 func (app *App) CreateGroup(payload *request.RequestT) any {
+	titleRegex := regexp.MustCompile(`^[a-zA-Z0-9\s\-]{3,50}$`)
 	data, ok := payload.Data.(*request.CreateGroup)
 	if !ok {
 		return &response.Error{Code: 400, Cause: "Invalid payload type"}
 	}
+
+	// Trim input
+	title := strings.TrimSpace(data.Title)
+	description := strings.TrimSpace(data.Description)
+
+	// Title validation
+	if !titleRegex.MatchString(title) {
+		return &response.Error{Code: 400, Cause: "Title must be 3-50 characters long and can only contain letters, numbers, spaces, and dashes"}
+	}
+
+	// Description validation
+	if len(description) > 300 {
+		return &response.Error{Code: 400, Cause: "Description must be 300 characters or fewer"}
+	}
+
 	userId := payload.Ctx.Value("user_id").(int)
 	g := &model.Group{
 		OwnerId:     userId,
-		Title:       data.Title,
-		Description: data.Description,
+		Title:       title,
+		Description: description,
 		Image:       data.Image,
 	}
+
 	err := app.repository.Group().Create(g)
 	if err != nil {
 		return &response.Error{Code: 500, Cause: "Can't create group: " + err.Error()}
 	}
+
 	return &response.CreateGroup{
 		Success: true,
 		Group:   g,

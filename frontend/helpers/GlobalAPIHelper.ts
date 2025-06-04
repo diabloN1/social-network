@@ -3,31 +3,32 @@
 import { useError } from "@/context/ErrorContext";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { closeWebSocket } from "./webSocket";
 
 export const useGlobalAPIHelper = () => {
+  const { showError } = useError();
+  const router = useRouter();
 
-  // const handleAPIError = (message: string, code: number = 500) => {
-  //   // const { showError } = useError();
-  //   const router = useRouter();
+  const handleAPIError = (message: string, code = 500) => {
+    showError(message, code);
 
-  //   // showError(message, code);
-  //   if (
-  //     message.toLowerCase().startsWith("unauthorized: invalid session") &&
-  //     router
-  //   ) {
-  //     setTimeout(() => {
-  //       router.push("/auth");
-  //     }, 1000); // Delay allows popup to show
-  //   }
+    if (
+      message.toLowerCase().startsWith("unauthorized: invalid session") &&
+      router
+    ) {
+      closeWebSocket();
+      setTimeout(() => {
+        router.push("/auth");
+      }, 1000); // Delay allows popup to show
+    }
 
-  //   console.log(`API Error [${code}]: ${message}`);
-  //   return { error: true, message };
-  // };
+    console.log(`API Error [${code}]: ${message}`);
+    return { error: true, message };
+  };
 
   const apiCall = useCallback(
     async (requestData: any, method: string, url: string): Promise<any> => {
       try {
-
         const response = await fetch(`http://localhost:8080/${url}`, {
           method,
           headers: {
@@ -43,19 +44,19 @@ export const useGlobalAPIHelper = () => {
           const message =
             data?.error?.cause || data?.message || "Unknown error from server";
           const code = data?.error?.code || response.status;
-          // return handleAPIError(message, code);
+          return handleAPIError(message, code);
         }
 
         if (data.error) {
           const message = data.error.cause || "Unknown error";
           const code = data.error.code || 500;
-          // return handleAPIError(message, code);
+          return handleAPIError(message, code);
         }
 
         return data.data ?? data;
       } catch (err: any) {
         console.error("API call failed:", err);
-        // return handleAPIError(err.message || "Unexpected error", 500);
+        return handleAPIError(err.message || "Unexpected error", 500);
       }
     },
     []

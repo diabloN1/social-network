@@ -11,8 +11,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gorilla/websocket"
 	"slices"
+
+	"github.com/gorilla/websocket"
 )
 
 type App struct {
