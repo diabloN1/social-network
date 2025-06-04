@@ -1,5 +1,6 @@
 "use client";
 
+
 import { useError } from "@/context/ErrorContext";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
@@ -69,7 +70,8 @@ export const useGlobalAPIHelper = () => {
         return data.data ?? data;
       } catch (err: any) {
         console.error("API call failed:", err);
-        // return handleAPIError(err.message || "Unexpected error", 500);
+        alert(err.data.cause)
+       // return handleAPIError(err.message || "Unexpected error", 500);
       }
     },
     []
