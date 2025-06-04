@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"log"
 	"real-time-forum/pkg/model/request"
 	"real-time-forum/pkg/model/response"
@@ -29,6 +30,7 @@ func (app *App) GetAllNotifications(payload *request.RequestT) any {
 		log.Println("Error getting group join requests:", err)
 		groupRequests = 0
 	}
+	fmt.Println("Group Requests Count:", groupRequests)
 
 	followRequests, err := app.repository.Follow().GetFollowRequestCount(userId)
 	if err != nil {
@@ -56,6 +58,7 @@ func (app *App) GetAllNotifications(payload *request.RequestT) any {
 	}
 	groupRequests += invitations
 
+	fmt.Println(userId, groupRequests, invitations)
 	notifications := map[string]int{
 		"messageUnread":  messageUnread,
 		"groupRequests":  groupRequests,

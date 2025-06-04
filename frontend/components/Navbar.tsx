@@ -31,6 +31,8 @@ export default function Navbar() {
     if (data && !data.error) {
       const notifications = data.notifications;
 
+      console.log("Fetched notifications:", notifications);
+
       setChatUnreadCount(notifications.messageUnread || 0);
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);

@@ -28,11 +28,11 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
           //   data.error.cause || "Unknown error",
           //   data.error.code || 500
           // );
-          console.error("WebSocket error:", data.error);
+          console.warn("WebSocket error:", data.error);
           return;
         }
 
-        const type = data.data?.type;
+        const type = data.data?.type || data?.type;
 
         if (type && listeners[type]) {
           listeners[type].forEach((callback) => callback(data.data));
@@ -49,7 +49,6 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
 
     return socket;
   } catch (error) {
-    alert("WebSocket connection failed: " + error);
     return null;
   }
 };

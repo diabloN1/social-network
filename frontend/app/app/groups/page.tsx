@@ -35,6 +35,7 @@ export default function GroupsPage() {
       }
 
       setGroupsData(data);
+      console.log("Groups data fetched:", data);
     } catch (error) {
       console.log(error);
     }
