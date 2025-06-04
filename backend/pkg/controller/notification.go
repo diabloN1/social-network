@@ -37,6 +37,7 @@ func (app *App) GetAllNotifications(payload *request.RequestT) any {
 		log.Println("Error getting follow requests:", err)
 		followRequests = 0
 	}
+
 	publicFollowRequests, err := app.repository.Follow().CountPublicFollowRequests(userId)
 	if err != nil {
 		log.Println("Error getting public follow requests:", err)

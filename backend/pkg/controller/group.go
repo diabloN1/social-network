@@ -290,7 +290,13 @@ func (app *App) RespondToJoinRequest(payload *request.RequestT) any {
 	for _, c := range app.clients[adminId] {
 		app.ShowMessage(c, wsMsg)
 	}
-
+	notification := map[string]any{
+		"type":       "notifications",
+		"owner": ownerId,
+		"message":    "new request",
+		"timestamp":  time.Now().Unix(),
+	}
+	app.sendNotificationToUser(ownerId, notification)
 	return &response.RespondToJoinRequest{
 		Success: true,
 		Message: "Join request handled",
@@ -374,7 +380,6 @@ func (app *App) RespondToGroupInvitation(payload *request.RequestT) any {
 		"timestamp": time.Now().Unix(),
 	}
 	app.sendNotificationToUser(userId, notification)
-
 	return &response.RespondToGroupInvitation{
 		Success: true,
 		Message: msg,
