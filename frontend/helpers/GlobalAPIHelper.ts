@@ -4,6 +4,7 @@ import { useError } from "@/context/ErrorContext";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { closeWebSocket } from "./webSocket";
+import setSessionCookie from "@/api/auth/setSession";
 
 export const useGlobalAPIHelper = () => {
   const { showError } = useError();
@@ -39,6 +40,15 @@ export const useGlobalAPIHelper = () => {
         });
 
         const data = await response.json();
+
+        if (
+          (url === "login" || url === "register") &&
+          data.data?.session &&
+          !data.error
+        ) {
+          await setSessionCookie(data.data?.session);
+          data.data.session = "true";
+        }
 
         if (!response.ok) {
           const message =

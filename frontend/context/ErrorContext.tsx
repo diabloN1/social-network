@@ -25,7 +25,7 @@ interface ErrorContextType {
 const ErrorContext = createContext<ErrorContextType | undefined>(undefined);
 
 // Global error handler reference
-let globalShowError: ((message: string, code?: number) => void) | null = null;
+let globalShowError: ((message: string, code?: number) => void) ;
 
 export const setGlobalErrorHandler = (
   fn: (message: string, code?: number) => void

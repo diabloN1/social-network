@@ -6,10 +6,9 @@ import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 import { useState } from "react";
 import "./auth-form.css";
-import postAuth from "@/api/auth/postAuth";
+import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/api/auth/uploadFile";
-// import Popup from "@/app/app/popup";
 import Image from "next/image";
 
 export default function AuthForm() {
@@ -39,11 +38,8 @@ export default function AuthForm() {
     birth: "",
   });
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
+  const { apiCall } = useGlobalAPIHelper();
   const router = useRouter();
 
   const handleChange = (
@@ -148,7 +144,6 @@ export default function AuthForm() {
       const path = isLogin ? "login" : "register";
 
       // Create FormData object to handle file upload
-
       try {
         if (formData.avatarImage) {
           const submitData = new FormData();
@@ -158,7 +153,11 @@ export default function AuthForm() {
           formData.avatar = "";
         }
 
-        const data = await postAuth(path, formData);
+        const data = await apiCall(
+          { type: path, data: { ...formData } },
+          "POST",
+          path
+        );
 
         if (data.error) {
           if (errors.hasOwnProperty(data.error.field)) {
@@ -168,17 +167,12 @@ export default function AuthForm() {
             });
             return;
           } else {
-            // setPopup({
-            //   message: `Failed to Register.\n${data.error.cause}`,
-            //   status: "failure",
-            // });
             return;
           }
         } else {
           router.push("/app");
         }
       } catch (err) {
-        // setPopup({ message: "Failed to Register." + err, status: "failure" });
         console.log(err);
       }
     }
