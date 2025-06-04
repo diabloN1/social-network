@@ -22,6 +22,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
   const [description, setDescription] = useState("");
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [image, setImage] = useState<File | null>(null);
+  const [disableButton, setDisableButton] = useState(false);
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -36,7 +37,7 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+    setDisableButton(true);
     try {
       let imageUrl = "";
 
@@ -53,7 +54,11 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
       });
     } catch (err) {
       // setPopup({ message: `${err}`, status: "failure" });
+      setDisableButton(true);
+
       console.error(err);
+    } finally {
+      setDisableButton(true);
     }
   };
 
@@ -136,7 +141,11 @@ const CreateGroupModal: React.FC<CreateGroupModalProps> = ({
             >
               Cancel
             </button>
-            <button type="submit" className="create-post-btn">
+            <button
+              type="submit"
+              className="create-post-btn"
+              disabled = {disableButton}
+            >
               Create Group
             </button>
           </div>
