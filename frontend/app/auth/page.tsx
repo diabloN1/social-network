@@ -8,7 +8,7 @@ import { useState } from "react";
 import "./auth-form.css";
 import postAuth from "@/api/auth/postAuth";
 import { useRouter } from "next/navigation";
-import { uploadFile } from "@/api/auth/uploadFile";
+import { uploadFile } from "@/helpers/uploadFile";
 // import Popup from "@/app/app/popup";
 import Image from "next/image";
 

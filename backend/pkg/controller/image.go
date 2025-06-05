@@ -5,122 +5,76 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"real-time-forum/pkg/model/response"
 	"strings"
 )
 
-func (app *App) UploadImage(r *http.Request) map[string]any {
-	res := make(map[string]any)
-	res["error"] = ""
+func (app *App) UploadImage(w http.ResponseWriter, r *http.Request) {
+
 	const maxBytes = 10 * 1024 * 1024
 
 	err := r.ParseMultipartForm(maxBytes)
 	if err != nil {
-		res["error"] = err.Error()
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		return
 	}
 
 	targetPath := r.FormValue("path")
 	fileName := r.FormValue("filename")
 	if targetPath == "" || fileName == "" {
-		res["error"] = "Missing 'path' or 'filename'"
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		return
 	}
 
 	file, fileHeader, err := r.FormFile("image")
 	if err != nil {
-		res["error"] = err.Error()
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		return
 	}
 	defer file.Close()
 
 	if fileHeader.Size > maxBytes {
-		res["error"] = "The image is beyond 10MB!"
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		return
 	}
 
 	// Extension check
 	ext := strings.ToLower(filepath.Ext(fileName))
 	allowed := map[string]bool{
-		".jpg": true,
+		".jpg":  true,
 		".jpeg": true,
-		".png": true,
-		".gif": true,
+		".png":  true,
+		".gif":  true,
 	}
 	if !allowed[ext] {
-		res["error"] = "Only .jpg, .jpeg, .png, .gif files are allowed"
-		return res
+		app.ServeError(w, &response.Error{Cause: "Only .jpg, .jpeg, .png, .gif files are allowed", Code: 400})
+		return
 	}
 
 	// Create directory if it doesn't exist
 	dirPath := filepath.Join("./static", targetPath)
 	err = os.MkdirAll(dirPath, os.ModePerm)
 	if err != nil {
-		res["error"] = "Failed to create directory: " + err.Error()
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 500})
+		return
 	}
 
 	destPath := filepath.Join(dirPath, fileName)
 
 	dst, err := os.Create(destPath)
 	if err != nil {
-		res["error"] = "Failed to create file: " + err.Error()
-		return res
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 500})
+		return
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, file)
 	if err != nil {
-		res["error"] = "Failed to write file: " + err.Error()
-		return res
+
+		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 500})
+		return
 	}
 
-	return res
+	w.WriteHeader(200)
+	w.Write([]byte("File saved successfully"))
 }
-
-
-// func (s *Server) HasAccessProtectedImage(r *http.Request) (bool, string, error) {
-// 	// (session, path, type, id)
-
-// 	// Add session manually from cookie (like ValidateSession expects)
-// 	cookie, err := r.Cookie("session_token")
-// 	if err != nil {
-// 		http.Error(w, "session error:"+err.Error(), http.StatusBadRequest)
-// 		return false, "", err
-// 	}
-
-// 	res := s.ValidateSession(map[string]any{"session": cookie.Value})
-// 	if res.Error != "" {
-// 		http.Error(w, "session error:"+res.Error, http.StatusBadRequest)
-// 		return false, "", err
-// 	}
-
-// 	path := r.URL.Query().Get("path")
-// 	if path == "" {
-// 		return false, "", errors.New("missing path")
-// 	}
-// 	typ := r.URL.Query().Get("type")
-// 	if typ == "" {
-// 		return false, "", errors.New("missing type")
-// 	}
-// 	idStr := r.URL.Query().Get("id")
-// 	if idStr == "" {
-// 		return false, "", errors.New("missing id")
-// 	}
-// 	id, err := strconv.Atoi(idStr)
-// 	if err != nil {
-// 		return false, "", errors.New("invalid id")
-// 	}
-
-// 	switch typ {
-// 	case "post":
-// 		hasAccess, err := s.repository.Post().HasAccessToPost(res.Userid, id)
-// 		return hasAccess, cleanPath, err
-// 	case "group-post":
-// 		hasAccess, err := s.repository.Group().IsMember(res.Userid, id)
-// 		return hasAccess, cleanPath, err
-// 	case "public":
-// 		return true, cleanPath, nil
-// 	default:
-// 		return false, "", errors.New("invalid type")
-// 	}
-// }

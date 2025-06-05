@@ -1,5 +1,3 @@
-"use server";
-
 export async function uploadFile(
   formData: FormData,
   route: string
@@ -42,13 +40,17 @@ export async function uploadFile(
       body: formData,
     });
 
+    if (response.ok) {
+      return uniqueFileName;
+    }
+
     const data = await response.json();
 
     if (data.error) {
       throw new Error(data.error);
     }
 
-    return uniqueFileName;
+    return ""
   } catch (error) {
     console.error(error);
     throw new Error("Failed to upload file: " + error);

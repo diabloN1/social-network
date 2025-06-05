@@ -7,10 +7,8 @@ import (
 )
 
 func Start() error {
-	db, err := sqlite.InitDB("pkg/db/forum.db")
-	if err != nil {
-		return err
-	}
+	db := sqlite.InitDB("pkg/db/forum.db")
+
 	defer db.Close()
 
 	s := NewServer(http.NewServeMux(), db)
@@ -80,7 +78,7 @@ func Start() error {
 	s.router.HandleFunc("/ws", s.app.WebSocketHandler)
 
 	// Image
-	s.router.HandleFunc("/uploadImage", s.app.UploadImageHandler)
+	s.router.HandleFunc("/uploadImage", s.app.UploadImage)
 	s.router.Handle("/getProtectedImage", s.app.ImageMiddleware(http.HandlerFunc(s.app.ProtectedImageHandler)))
 
 	log.Println("Server started at http://localhost:8080/")

@@ -68,15 +68,13 @@ func (app *App) removeClient(client *Client) {
 
 	for i, c := range app.clients[client.UserId] {
 		if c == client {
-
-			fmt.Println("Removing client:", client.UserId, "Session:", client.Session, len(app.clients[client.UserId]))
-			if i == len(app.clients[client.UserId])-1 {
-				app.clients[client.UserId] = app.clients[client.UserId][:i]
-			} else {
-				app.clients[client.UserId] = slices.Delete(app.clients[client.UserId], i, i+1)
-			}
-			fmt.Println(app.clients[client.UserId], "after remove client")
+			app.clients[client.UserId] = slices.Delete(app.clients[client.UserId], i, i+1)
+			break
 		}
+	}
+
+	if len(app.clients[client.UserId]) == 0 {
+		delete(app.clients, client.UserId)
 	}
 }
 
@@ -182,3 +180,4 @@ func (app *App) ShowMessage(client *Client, res any) {
 
 	client.Connection.WriteMessage(websocket.TextMessage, data)
 }
+
