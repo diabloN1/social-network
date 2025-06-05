@@ -62,7 +62,7 @@ var requestTypes = map[string]any{
 	"delete-follow-notification":    &DeleteFollowNotification{},
 	"delete-new-event-notification": &DeleteNewEventNotification{},
 	"logout":                        nil,
-	"update-seen-message-ws":        &UpdateSeenMessageWS{},
+	"update-seen-message":        &UpdateSeenMessageWS{},
 }
 
 func (r Payload) Decode() (string, *RequestT, error) {

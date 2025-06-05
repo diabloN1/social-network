@@ -19,6 +19,11 @@ func (app *App) UpdateSeenMessage(isGroup bool, currentId, targetId int) {
 		if err != nil {
 			log.Println("Error in updating seen messages!")
 		}
+		notification := map[string]any{
+		"type":       "notifications",
+		"messages": m.GroupId ,
+	}
+	app.sendNotificationToUser(m.GroupId , notification)
 	} else {
 		m.SenderId = int(targetId)
 
@@ -26,6 +31,11 @@ func (app *App) UpdateSeenMessage(isGroup bool, currentId, targetId int) {
 		if err != nil {
 			log.Println("Error in updating seen messages!")
 		}
+		notification := map[string]any{
+		"type":       "notifications",
+		"message": m.RecipientId ,
+	}
+	app.sendNotificationToUser(m.RecipientId , notification)
 	}
 
 }
