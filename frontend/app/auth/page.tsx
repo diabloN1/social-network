@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 
 import { useState } from "react";
-import "./auth-form.css";
+// import "./auth-form.css";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/helpers/uploadFile";

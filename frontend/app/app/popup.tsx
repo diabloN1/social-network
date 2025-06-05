@@ -1,7 +1,7 @@
   // FC stands for Function Component
   import { FC, useEffect } from "react";
   import '@fortawesome/fontawesome-free/css/all.min.css';
-  import "./popup.css";
+  // import "./popup.css";
 
   interface PopupProps {
     message: string;

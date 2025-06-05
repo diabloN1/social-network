@@ -25,26 +25,17 @@ export default function CommentForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { apiCall } = useGlobalAPIHelper();
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       // Validate file type
       if (!file.type.startsWith("image/")) {
-        // setPopup({ message: "Please select an image file", status: "failure" });
         return;
       }
 
       // Validate file size (10MB limit)
       if (file.size > 10 * 1024 * 1024) {
-        // setPopup({
-        //   message: "Image size must be less than 10MB",
-        //   status: "failure",
-        // });
         return;
       }
 
@@ -99,19 +90,6 @@ export default function CommentForm({
         "addComment"
       );
 
-      // if (result.error) {
-      //   return;
-      // }
-
-      // if (result.error) {
-      //   setPopup({
-      //     message: `Failed to add comment: ${result.error}`,
-      //     status: "failure",
-      //   });
-      //   console.error("Error adding comment:", result.error);
-      //   return;
-      // }
-
       // Reset form
       setNewComment("");
       setSelectedImage(null);
@@ -123,7 +101,6 @@ export default function CommentForm({
       // Notify parent component
       onCommentAdded();
     } catch (error) {
-      // setPopup({ message: `Failed to add comment` + error, status: "failure" });
       console.log(error);
     } finally {
       setIsSubmitting(false);
@@ -206,13 +183,6 @@ export default function CommentForm({
           </button>
         </div>
       </div>
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </form>
   );
 }

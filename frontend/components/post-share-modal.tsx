@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-import "./post-share-modal.css";
+// import "./post-share-modal.css";
 // import Popup from "@/app/app/popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
@@ -17,10 +17,6 @@ export default function PostShareModal({
   const [availableUsers, setAvailableUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<"current" | "add">("current");
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
   const { apiCall } = useGlobalAPIHelper();
 

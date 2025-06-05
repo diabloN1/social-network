@@ -9,14 +9,23 @@ interface CommentProps {
 }
 
 export default function Comment({ comment, postID }: CommentProps) {
+  console.log("COMMENT DATA ----------------------", comment);
   return (
     <div className="post-comment">
       <div className="comment-user-avatar">
         <Image
-          src="/icons/placeholder.svg"
-          alt="User avatar"
-          width={30}
-          height={30}
+          src={
+            comment.user_avatar
+              ? `http://localhost:8080/getProtectedImage?type=post-comments&id=0&path=${encodeURIComponent(
+                  comment.user_avatar
+                )}`
+              : "/icons/placeholder.svg"
+          }
+          alt="Comment image"
+          className="comment-image"
+          width={200}
+          height={400}
+          unoptimized
         />
       </div>
       <div className="comment-content">
