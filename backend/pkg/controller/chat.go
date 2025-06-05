@@ -1,9 +1,9 @@
 package app
 
 import (
-	"real-time-forum/pkg/model"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 )
 
 func (app *App) GetChat(payload *request.RequestT) any {
@@ -97,7 +97,7 @@ func (app *App) AddMessage(payload *request.RequestT) (*response.AddMessage, *re
 	}
 
 	return &response.AddMessage{
-		Type:  "addMessage",
+		Type:    "addMessage",
 		Message: m,
 		IsGroup: data.IsGroup,
 	}, nil

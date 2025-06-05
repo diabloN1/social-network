@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 type CategoryRepository struct {

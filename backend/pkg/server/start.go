@@ -3,7 +3,7 @@ package server
 import (
 	"log"
 	"net/http"
-	"real-time-forum/pkg/db/sqlite"
+	"social-network/pkg/db/sqlite"
 )
 
 func Start() error {

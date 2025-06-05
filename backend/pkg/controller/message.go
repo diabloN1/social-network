@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 	"log"
-	"real-time-forum/pkg/model"
-	"real-time-forum/pkg/model/request"
+	"social-network/pkg/model"
+	"social-network/pkg/model/request"
 )
 
 func (app *App) UpdateSeenMessage(isGroup bool, currentId, targetId int) {

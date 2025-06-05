@@ -2,7 +2,7 @@ package main
 
 import (
 	"log"
-	"real-time-forum/pkg/server"
+	"social-network/pkg/server"
 )
 
 func main() {

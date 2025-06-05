@@ -2,8 +2,8 @@ package server
 
 import (
 	"net/http"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 )
 
 type HandlerFunc func(*request.RequestT) any

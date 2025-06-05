@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 type GroupRepository struct {
@@ -117,7 +117,6 @@ func (r *GroupRepository) GetGroupJoinInvitations(userID int) (int, error) {
 	return count, nil
 }
 
-
 func (r *GroupRepository) RemoveMember(m *model.GroupMember) error {
 	_, err := r.Repository.db.Exec(
 		"DELETE FROM group_members WHERE user_id = $1 AND group_id = $2",
@@ -219,7 +218,7 @@ func (r *GroupRepository) GetGroupInvitesByUserId(userId int) ([]*model.Group, e
 		if err := rows.Scan(&group.ID, &group.Title, &group.Image, &inviter.ID, &inviter.Firstname, &inviter.Lastname, &inviter.Avatar); err != nil {
 			return nil, err
 		}
-		group.Inviter =  *inviter
+		group.Inviter = *inviter
 		groups = append(groups, group)
 	}
 
@@ -544,7 +543,6 @@ func (r *GroupRepository) GetEventOptionSelectors(e *model.GroupEvent, userId in
 func (r *GroupRepository) GetAvailableUsersToInvite(groupId, currentUserId int) ([]*model.User, error) {
 	var users []*model.User
 
-	
 	query := `SELECT DISTINCT u.id, u.firstname, u.lastname, u.nickname, u.avatar
 FROM users u
 JOIN followers f ON (

@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"io"
 	"net/http"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
-	"real-time-forum/pkg/repository"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
+	"social-network/pkg/repository"
 
-	controller "real-time-forum/pkg/controller"
+	controller "social-network/pkg/controller"
 )
 
 type Server struct {
