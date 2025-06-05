@@ -4,10 +4,9 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
-// import Popup from "../../popup";
 import { Profile } from "@/types/user";
 import Image from "next/image";
-import ConfirmationPopup from "../../ConfirmationPopup";
+import ConfirmationPopup from "@/components/ConfirmationPopup";
 
 export default function ProfilePage() {
   const params = useParams();
@@ -21,10 +20,6 @@ export default function ProfilePage() {
   const [canViewProfile, setCanViewProfile] = useState(true);
   const [loading, setLoading] = useState(true);
   const { apiCall } = useGlobalAPIHelper();
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
   const [confirmation, setConfirmation] = useState<{
     message: string;
     onConfirm: () => void;
@@ -40,7 +35,6 @@ export default function ProfilePage() {
           "getProfile"
         );
         if (response.error) {
-          // setPopup({ message: response.error, status: "failure" });
           return;
         }
 
@@ -302,10 +296,7 @@ export default function ProfilePage() {
                       )}
                       <div className="post-overlay">
                         <div className="post-stats">
-                          <span>❤️ 0</span>{" "}
-                          {/* Placeholder until we get real data */}
-                          <span>💬 0</span>{" "}
-                          {/* Placeholder until we get real data */}
+                          <span>❤️ </span> <span>💬 </span>{" "}
                         </div>
                       </div>
                     </div>
@@ -409,13 +400,6 @@ export default function ProfilePage() {
           onCancel={() => setConfirmation(null)}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }
