@@ -2,6 +2,7 @@ package app
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"regexp"
 	"social-network/pkg/model"
@@ -130,6 +131,26 @@ func (app *App) AddGroupEvent(payload *request.RequestT) any {
 	userId := payload.Ctx.Value("user_id").(int)
 	if data.Title == "" || data.Description == "" || data.Option1 == "" || data.Option2 == "" || data.Date == "" || data.Place == "" {
 		return &response.Error{Code: 400, Cause: "Can't create empty events (must fill all required fields)"}
+	}
+	if len(data.Title) > 100 {
+		return &response.Error{Code: 400, Cause: "Title exceeds maximum allowed length"}
+	}
+	if len(data.Description) > 500 {
+		return &response.Error{Code: 400, Cause: "Description exceeds maximum allowed length"}
+	}
+	if len(data.Option1) > 100 || len(data.Option2) > 100 {
+		return &response.Error{Code: 400, Cause: "Options exceed maximum allowed length"}
+	}
+	if len(data.Place) > 200 {
+		return &response.Error{Code: 400, Cause: "Place exceeds maximum allowed length"}
+	}
+	newTime, err := time.Parse("2006-06-02T15:04", data.Date)
+	if err != nil {
+		return &response.Error{Code: 400, Cause: "invalid event date format, use mm-DD-YYYY"}
+		 
+	}
+	if newTime.Before(time.Now()) {
+		return &response.Error{Code: 400, Cause: "event date must be in the future"} 
 	}
 	user, err := app.repository.User().Find(userId)
 	if err != nil {

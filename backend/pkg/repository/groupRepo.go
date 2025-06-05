@@ -90,7 +90,7 @@ func (r *GroupRepository) CountPendingJoinRequests(ownerId int) (int, error) {
 	SELECT COUNT(*) 
 	FROM group_members gm
 	JOIN groups g ON g.id = gm.group_id
-	WHERE g.user_id = $1 AND gm.is_accepted = FALSE AND gm.inviter_id = 0
+	WHERE g.user_id = $1 AND gm.is_accepted = FALSE AND gm.inviter_id = 0  
 `, ownerId).Scan(&count)
 
 	return count, err
@@ -108,7 +108,7 @@ func (r *GroupRepository) GetGroupJoinInvitations(userID int) (int, error) {
 	var count int
 	err := r.Repository.db.QueryRow(
 		`SELECT COUNT(*) FROM group_members 
-		 WHERE user_id = $1 AND is_accepted = false AND inviter_id = true`,
+		 WHERE user_id = $1 AND is_accepted = false AND inviter_id != 0`,
 		userID,
 	).Scan(&count)
 	if err != nil {
