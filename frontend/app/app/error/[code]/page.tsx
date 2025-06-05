@@ -1,7 +1,6 @@
 "use client";
 
 import { useParams, useSearchParams } from "next/navigation";
-import "@/components/post-share-modal.css";
 import Link from "next/link";
 
 export default function ErrorPage() {
