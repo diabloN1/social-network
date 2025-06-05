@@ -2175,6 +2175,7 @@ a:focus-visible {
   transition: all var(--transition);
   position: relative;
   overflow: hidden;
+  height: 45px;
 }
 
 .reaction-btn::before {
@@ -2204,7 +2205,11 @@ a:focus-visible {
 .reaction-btn.active {
   color: var(--brand-primary);
   border-color: var(--brand-primary);
-  background-color: rgba(59, 130, 246, 0.1);
+  background-color: rgba(0, 98, 255, 0.133);
+}
+
+.reaction-btn.active svg {
+  fill: var(--brand-primary);
 }
 
 .comment-btn {
@@ -2905,6 +2910,7 @@ a:focus-visible {
 
 .profile-tabs {
   display: flex;
+  justify-content: center;
   gap: var(--space-2);
   margin-bottom: var(--space-8);
   border-bottom: 1px solid var(--border);
@@ -3442,13 +3448,16 @@ a:focus-visible {
   color: var(--brand-primary);
   font-size: 2rem;
   margin-bottom: var(--space-4);
+  text-align: center;
 }
 
 .popup-content {
+  display: flex;
+  justify-content: center;
   color: var(--foreground);
   margin-bottom: var(--space-8);
   line-height: 1.6;
-  align-items: center;
+  gap: 1rem;
 }
 
 .popup-actions {
@@ -3971,6 +3980,7 @@ a:focus-visible {
 
   .profile-header {
     flex-direction: column;
+    align-items: center;
     text-align: center;
     gap: var(--space-4);
     padding: var(--space-6);

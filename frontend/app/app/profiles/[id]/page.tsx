@@ -295,9 +295,6 @@ export default function ProfilePage() {
                         />
                       )}
                       <div className="post-overlay">
-                        <div className="post-stats">
-                          <span>❤️ </span> <span>💬 </span>{" "}
-                        </div>
                       </div>
                     </div>
                   ))
