@@ -30,10 +30,6 @@ export default function SinglePostPage() {
   const [display, setDisplay] = useState("none");
   const [isLoading, setIsLoading] = useState(true);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
   const loadComments = useCallback(async () => {
     try {
@@ -444,13 +440,6 @@ export default function SinglePostPage() {
           onClose={() => setIsShareModalOpen(false)}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </>
   );
 }

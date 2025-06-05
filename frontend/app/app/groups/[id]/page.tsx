@@ -13,7 +13,6 @@ import GroupInviteModal from "@/components/group-invite-modal";
 import { Group } from "@/types/group";
 import { Post, Reaction } from "@/types/post";
 import { Comment } from "@/types/comment";
-// import Popup from "../../popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
 export default function GroupDetailPage() {
@@ -31,10 +30,6 @@ export default function GroupDetailPage() {
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [showCreatePostModal, setShowCreatePostModal] = useState(false);
   const [showCreateEventModal, setShowCreateEventModal] = useState(false);
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
   const { apiCall } = useGlobalAPIHelper();
 
@@ -283,7 +278,6 @@ export default function GroupDetailPage() {
   const handleEventResponse = async (eventId: number, going: boolean) => {
     if (!group) return;
     try {
-      // const data = await addEventOption(groupId, eventId, going);
       await apiCall(
         {
           type: "add-event-option",
@@ -292,7 +286,6 @@ export default function GroupDetailPage() {
         "POST",
         "addEventOption"
       );
-      // console.log(data);
       fetchGroupData();
     } catch (error) {
       console.log(error);
@@ -319,7 +312,6 @@ export default function GroupDetailPage() {
   // Handle invitation sent callback
   const handleInvitationSent = () => {
     console.log("Invitation sent successfully");
-    // Optionally refresh group data or show success message
   };
 
   if (isLoading) {
@@ -340,10 +332,6 @@ export default function GroupDetailPage() {
       </div>
     );
   }
-
-  // Get the owner from members array
-  // const owner = group.members?.find((member) => member.id === group.owner_id);
-  // const ownerName = owner ? `${owner.firstname} ${owner.lastname}` : "Unknown";
 
   if (!group.is_accepted && !group.is_owner) {
     return (
@@ -875,13 +863,6 @@ export default function GroupDetailPage() {
           onSubmit={handleCreateEvent}
         />
       )}
-      {/* {popup && (
-        <Popup
-          message={popup.message}
-          status={popup.status}
-          onClose={() => setPopup(null)}
-        />
-      )} */}
     </div>
   );
 }

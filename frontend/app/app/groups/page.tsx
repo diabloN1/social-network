@@ -7,23 +7,16 @@ import { useRouter } from "next/navigation";
 import CreateGroupModal from "@/components/create-group-modal";
 
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
-// import Popup from "../popup";
-// import deleteNewEventNotification from "@/api/pass-groups/deleteNewEventNotification";
 import Image from "next/image";
 import { GroupsData } from "@/types/group";
 
 // Types for API response
-
 export default function GroupsPage() {
   const router = useRouter();
   const [groupsData, setGroupsData] = useState<GroupsData | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [showCreateModal, setShowCreateModal] = useState(false);
-  // const [popup, setPopup] = useState<{
-  //   message: string;
-  //   status: "success" | "failure";
-  // } | null>(null);
 
   const { apiCall } = useGlobalAPIHelper();
 
@@ -35,7 +28,6 @@ export default function GroupsPage() {
       }
 
       setGroupsData(data);
-      console.log("Groups data fetched:", data);
     } catch (error) {
       console.log(error);
     }
@@ -83,7 +75,6 @@ export default function GroupsPage() {
       // Refresh groups data
       fetchGroupsData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -91,7 +82,6 @@ export default function GroupsPage() {
   // Handle joining a group
   const handleJoinGroup = async (groupId: number) => {
     try {
-      // const data = await requestJoinGroup(GroupId :groupId);
       const data = await apiCall(
         { type: "request-join-group", data: { GroupId: groupId } },
         "POST",
@@ -104,12 +94,10 @@ export default function GroupsPage() {
       // Refresh groups data to update the is_pending status
       fetchGroupsData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
 
-  // Handle responding to invitations
   // Handle responding to invitations
   const handleInvitationResponse = async (groupId: number, accept: boolean) => {
     try {
@@ -124,11 +112,6 @@ export default function GroupsPage() {
       if (data.error) {
         return;
       }
-
-      // setPopup({
-      //   message: `Invitation ${accept ? "accepted" : "declined"} successfully.`,
-      //   status: "success",
-      // });
 
       // Refresh groups data to update UI
       fetchGroupsData();
@@ -158,7 +141,6 @@ export default function GroupsPage() {
       }
       fetchGroupsData();
     } catch (error) {
-      // setPopup({ message: `${error}`, status: "failure" });
       console.log(error);
     }
   };
@@ -238,7 +220,6 @@ export default function GroupsPage() {
                       invited you to join <strong>{invite.title}</strong>
                     </span>
                     <span className="invitation-description">
-                      {/* {invite.group.description} */}
                     </span>
                     <span className="invitation-date">
                       {new Date(invite.creation_date).toLocaleDateString()}

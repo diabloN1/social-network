@@ -2,8 +2,7 @@
 
 import getToken from "@/api/auth/getToken";
 import { socket } from "./webSocket";
-//import { handleAPIError } from "./GlobalAPIHelper";
-import { useRouter } from "next/navigation";
+import { getGlobalErrorHandler } from "@/context/ErrorContext";
 
 export const addMessage = async (
   id: number,
@@ -14,8 +13,9 @@ export const addMessage = async (
 
   try {
     const token = await getToken();
+    const showError = getGlobalErrorHandler();
     if (!token) {
-      //handleAPIError("unauthorized: invalid session", 401);
+      showError("Invalid session. Please log in again.", 401);
       return;
     }
 
@@ -25,8 +25,7 @@ export const addMessage = async (
         data: { session: token, isGroup, id, message },
       })
     );
-  } catch (err: any) {
-    //handleAPIError(err.Cause, 500);
+  } catch (err) {
     console.error(err);
   }
 };

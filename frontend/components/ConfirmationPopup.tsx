@@ -8,7 +8,11 @@ interface ConfirmationPopupProps {
   onCancel: () => void;
 }
 
-const ConfirmationPopup: FC<ConfirmationPopupProps> = ({ message, onConfirm, onCancel }) => {
+const ConfirmationPopup: FC<ConfirmationPopupProps> = ({
+  message,
+  onConfirm,
+  onCancel,
+}) => {
   return (
     <div className="popup-overlay">
       <div className=" popup-confirmation">
@@ -19,14 +23,14 @@ const ConfirmationPopup: FC<ConfirmationPopupProps> = ({ message, onConfirm, onC
           <p className="message">{message}</p>
         </div>
         <div className="popup-actions">
-            <button className="popup-confirm" onClick={onConfirm}>
-              <i className="fa-solid fa-check"></i> Confirm
-            </button>
-            <button className="popup-cancel" onClick={onCancel}>
-              <i className="fa-solid fa-times"></i> Cancel
-            </button>
-          </div>
-      </div>    
+          <button className="popup-confirm" onClick={onConfirm}>
+            <i className="fa-solid fa-check"></i> Confirm
+          </button>
+          <button className="popup-cancel" onClick={onCancel}>
+            <i className="fa-solid fa-times"></i> Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
