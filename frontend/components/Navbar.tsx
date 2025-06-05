@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
-import "./Navbar.css";
+// import "./Navbar.css";
 import {
   connectWebSocket,
   onMessageType,

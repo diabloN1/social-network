@@ -118,7 +118,7 @@ export default function ProfilePage() {
             }
           },
         });
-      } else { 
+      } else {
         const data = await apiCall(
           { type: "request-follow", data: { ProfileId: userId } },
           "POST",
@@ -295,9 +295,6 @@ export default function ProfilePage() {
                         />
                       )}
                       <div className="post-overlay">
-                        <div className="post-stats">
-                          <span>❤️ </span> <span>💬 </span>{" "}
-                        </div>
                       </div>
                     </div>
                   ))

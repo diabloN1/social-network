@@ -7,7 +7,7 @@ import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { addMessage } from "@/helpers/addMessage";
 import { onMessageType, socket } from "@/helpers/webSocket";
 import getToken from "@/api/auth/getToken";
-import Popup from "@/app/app/popup";
+import Popup from "@/components/popup";
 import { Chat } from "@/types/chat";
 import { AddMessageEvent, Message } from "@/types/message";
 import Image from "next/image";
