@@ -108,7 +108,7 @@ func (r *GroupRepository) GetGroupJoinInvitations(userID int) (int, error) {
 	var count int
 	err := r.Repository.db.QueryRow(
 		`SELECT COUNT(*) FROM group_members 
-		 WHERE user_id = $1 AND is_accepted = false`,
+		 WHERE user_id = $1 AND is_accepted = false AND inviter_id = true`,
 		userID,
 	).Scan(&count)
 	if err != nil {
