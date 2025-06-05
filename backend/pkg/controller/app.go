@@ -180,3 +180,4 @@ func (app *App) ShowMessage(client *Client, res any) {
 
 	client.Connection.WriteMessage(websocket.TextMessage, data)
 }
+
