@@ -120,7 +120,7 @@ func (app *App) readMessage(conn *websocket.Conn, client *Client) {
 		}
 		reqBody.Ctx = context.WithValue(context.Background(), "user_id", uid)
 		switch reqType {
-		case "update-seen-messages":
+		case "update-seen-message":
 			app.UpdateSeenMessageWS(reqBody)
 		case "add-message":
 			response, err := app.AddMessage(reqBody)

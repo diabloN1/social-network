@@ -56,6 +56,7 @@ func (app *App) GetAllNotifications(payload *request.RequestT) any {
 		log.Println("Error getting event created count:", err)
 		invitations = 0
 	}
+	fmt.Println("Invitations Count:", invitations)
 	groupRequests += invitations
 
 	fmt.Println(userId, groupRequests, invitations)
