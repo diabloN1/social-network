@@ -1,6 +1,5 @@
 import { FC } from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-import "./popup.css";
 
 interface ConfirmationPopupProps {
   message: string;

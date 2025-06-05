@@ -2,7 +2,6 @@ package app
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"regexp"
 	"social-network/pkg/model"
@@ -147,10 +146,10 @@ func (app *App) AddGroupEvent(payload *request.RequestT) any {
 	newTime, err := time.Parse("2006-06-02T15:04", data.Date)
 	if err != nil {
 		return &response.Error{Code: 400, Cause: "invalid event date format, use mm-DD-YYYY"}
-		 
+
 	}
 	if newTime.Before(time.Now()) {
-		return &response.Error{Code: 400, Cause: "event date must be in the future"} 
+		return &response.Error{Code: 400, Cause: "event date must be in the future"}
 	}
 	user, err := app.repository.User().Find(userId)
 	if err != nil {
