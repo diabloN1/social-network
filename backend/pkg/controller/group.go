@@ -3,15 +3,13 @@ package app
 import (
 	"database/sql"
 	"log"
-	"real-time-forum/pkg/model"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
 	"regexp"
+	"social-network/pkg/model"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 	"strings"
 	"time"
 )
-
-
 
 func (app *App) CreateGroup(payload *request.RequestT) any {
 	titleRegex := regexp.MustCompile(`^[a-zA-Z0-9\s\-]{3,50}$`)

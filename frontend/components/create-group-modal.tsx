@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useState } from "react";
-import { uploadFile } from "@/api/auth/uploadFile";
+import { uploadFile } from "@/helpers/uploadFile";
 import Image from "next/image";
 
 interface CreateGroupModalProps {

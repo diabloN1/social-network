@@ -1,9 +1,8 @@
 package request
 
 import (
-
-	"real-time-forum/pkg/model/response"
 	"regexp"
+	"social-network/pkg/model/response"
 	"strings"
 	"time"
 
@@ -87,12 +86,17 @@ func (r *Register) Validate() (err *response.RegisterError) {
 
 func (r *Register) ValidateBirth() string {
 	now := time.Now()
-	newTime, _ := time.Parse("2006-01-02T15:04:05Z", r.Birth)
-
+	newTime, err := time.Parse(time.DateOnly, r.Birth)
+	if err != nil {
+		return "invalid birth date format, use mm-DD-YYYY"
+	}
 	if newTime.After(now) {
 		return "birth date must be in the past"
 	}
-	
+	if !(newTime.After(now.Add(-time.Hour*24*365*100)) && newTime.Before(now.Add(-time.Hour*24*365*18))) {
+		return "birth date must be Between 18 and 100 years"
+	}
+
 	return ""
 }
 

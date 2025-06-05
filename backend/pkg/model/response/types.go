@@ -1,6 +1,6 @@
 package response
 
-import "real-time-forum/pkg/model"
+import "social-network/pkg/model"
 
 type Login struct {
 	Session  string `json:"session"`
@@ -182,7 +182,7 @@ type GetMessages struct {
 }
 
 type AddMessage struct {
-	Type   string         `json:"type"`
+	Type    string         `json:"type"`
 	Message *model.Message `json:"message"`
 	IsGroup bool           `json:"isGroup"`
 }

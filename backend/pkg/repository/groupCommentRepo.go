@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 	"time"
 )
 
@@ -39,7 +39,7 @@ func (r *GroupRepository) GetGroupCommentsByPostId(postId int) ([]*model.Comment
 
 	for rows.Next() {
 		comment := &model.Comment{}
-		if err := rows.Scan(&comment.ID, &comment.UserId, &comment.UserAvatar,&comment.Author, &comment.PostId, &comment.Text, &comment.Image, &comment.CreationDate); err != nil {
+		if err := rows.Scan(&comment.ID, &comment.UserId, &comment.UserAvatar, &comment.Author, &comment.PostId, &comment.Text, &comment.Image, &comment.CreationDate); err != nil {
 			return nil, err
 		}
 		newTime, _ := time.Parse("2006-01-02T15:04:05Z", comment.CreationDate)
@@ -107,7 +107,6 @@ func (r *GroupRepository) GetGroupPostById(userId, postId int) (*model.Post, err
 
 	return post, nil
 }
-
 
 func (r *GroupRepository) GetGroupCommentCountByPostId(postId int) (int, error) {
 	var count int

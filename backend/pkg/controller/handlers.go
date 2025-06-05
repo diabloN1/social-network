@@ -28,9 +28,6 @@ func (app *App) WebSocketHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (app *App) UploadImageHandler(w http.ResponseWriter, r *http.Request) {
-	app.SendJson(w, app.UploadImage(r), nil)
-}
 
 func (app *App) ProtectedImageHandler(w http.ResponseWriter, r *http.Request) {
 	fullPath, ok := r.Context().Value("fullPath").(string)

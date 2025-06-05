@@ -8,7 +8,8 @@ import { useState } from "react";
 import "./auth-form.css";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { useRouter } from "next/navigation";
-import { uploadFile } from "@/api/auth/uploadFile";
+import { uploadFile } from "@/helpers/uploadFile";
+// import Popup from "@/app/app/popup";
 import Image from "next/image";
 
 export default function AuthForm() {

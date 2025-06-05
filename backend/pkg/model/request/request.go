@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 type Payload struct {

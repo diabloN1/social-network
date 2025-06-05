@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 type PostShareRepository struct {
@@ -81,11 +81,11 @@ func (r *PostShareRepository) AddPostShare(postId, userId int) error {
 	var existingId int
 	checkQuery := `SELECT id FROM post_shares WHERE post_id = $1 AND shared_with_user_id = $2`
 	err := r.Repository.db.QueryRow(checkQuery, postId, userId).Scan(&existingId)
-	
+
 	if err == nil {
 		return nil // Share already exists
 	}
-	
+
 	if err != sql.ErrNoRows {
 		return err
 	}
@@ -108,10 +108,10 @@ func (r *PostShareRepository) VerifyPostOwnership(postId, userId int) (bool, err
 	var ownerId int
 	query := `SELECT user_id FROM posts WHERE id = $1`
 	err := r.Repository.db.QueryRow(query, postId).Scan(&ownerId)
-	
+
 	if err != nil {
 		return false, err
 	}
-	
+
 	return ownerId == userId, nil
 }

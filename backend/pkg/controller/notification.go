@@ -3,8 +3,8 @@ package app
 import (
 	"fmt"
 	"log"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 	"time"
 )
 

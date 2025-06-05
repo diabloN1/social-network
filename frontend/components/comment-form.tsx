@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, useRef } from "react";
 import Image from "next/image";
 // import addComment from "@/api/posts/addComment";
-import { uploadFile } from "@/api/auth/uploadFile";
+import { uploadFile } from "@/helpers/uploadFile";
 // import Popup from "@/app/app/popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
