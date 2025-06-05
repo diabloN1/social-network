@@ -1,7 +1,7 @@
 "use client";
 
 import getToken from "@/api/auth/getToken";
-import { getGlobalErrorHandler } from "@/context/ErrorContext";
+import { showGlobalError } from "@/helpers/ErrorProvider";
 
 export let socket: WebSocket | null = null;
 
@@ -24,13 +24,10 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
         console.log("WebSocket message received:", data);
 
         if (data.error) {
-          const showError = getGlobalErrorHandler();
-          showError
-            ? showError(
-                data.error.cause || "Unknown WebSocket error",
-                data.error.code || 500
-              )
-            : null;
+          showGlobalError(
+            data.error.cause || "Unknown WebSocket error",
+            data.error.code || 500
+          );
           console.warn("WebSocket error:", data.error);
           return;
         }

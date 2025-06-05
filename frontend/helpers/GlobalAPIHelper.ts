@@ -1,17 +1,16 @@
 "use client";
 
-import { useError } from "@/context/ErrorContext";
+import { showGlobalError } from "@/helpers/ErrorProvider";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
 import { closeWebSocket } from "./webSocket";
 import setSessionCookie from "@/api/auth/setSession";
 
 export const useGlobalAPIHelper = () => {
-  const { showError } = useError();
   const router = useRouter();
 
   const handleAPIError = (message: string, code = 500) => {
-    showError(message, code);
+    showGlobalError(message, code);
 
     if (
       message.toLowerCase().startsWith("unauthorized: invalid session") &&
