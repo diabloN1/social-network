@@ -1,13 +1,11 @@
-# Step 1: Runtime Stage - Use a smaller Debian-based image for the final image
-FROM golang:alpine
-# Set working directory in runtime image
-WORKDIR /root/
+FROM golang:1.24
 
-# Copy the pre-built Go binary from the host machine to the container
-COPY backend .
+WORKDIR /app
 
-# Expose the backend API port
+COPY . .
+
+RUN go build -o backend main.go
+
 EXPOSE 8080
 
-# Set the default command to run the Go backend binary
 CMD ["./backend"]
