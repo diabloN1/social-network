@@ -6,7 +6,8 @@ RUN apk add --no-cache libc6-compat
 # === Install dependencies (cached if package.json unchanged)
 FROM base AS deps
 COPY package*.json ./
-RUN npm ci
+RUN npm install -g npm@latest
+RUN npm ci --omit=dev
 
 # === Production runner
 FROM base AS runner
@@ -19,10 +20,6 @@ EXPOSE 3000
 COPY ./.next ./.next
 COPY ./public ./public
 COPY ./package.json ./package.json
+COPY ./node_modules ./node_modules
 
-# Use non-root user if needed (optional)
-# RUN addgroup -g 1001 -S nodejs && adduser -S nextjs -u 1001 -G nodejs
-# USER nextjs
-
-RUN npm i --omit=dev
 CMD ["npm", "start"]

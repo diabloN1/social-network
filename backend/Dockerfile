@@ -1,21 +1,13 @@
-FROM golang:1.24 AS builder
-WORKDIR /app
-
-COPY go.mod go.sum ./
-RUN go mod download
-
-COPY . .
-
-# Enable Cgo and build the binary
-RUN apt-get update && apt-get install -y gcc musl-dev
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -o backend ./main.go
-
-# Use Debian-based runtime image
-FROM debian:bullseye-slim
-
+# Step 1: Runtime Stage - Use a smaller Debian-based image for the final image
+FROM golang:alpine
+# Set working directory in runtime image
 WORKDIR /root/
-COPY --from=builder /app/backend .
-COPY --from=builder /app/pkg/db/migrations ./migrations
 
+# Copy the pre-built Go binary from the host machine to the container
+COPY backend .
+
+# Expose the backend API port
 EXPOSE 8080
+
+# Set the default command to run the Go backend binary
 CMD ["./backend"]
