@@ -25,10 +25,12 @@ export const connectWebSocket = async (): Promise<WebSocket | null> => {
 
         if (data.error) {
           const showError = getGlobalErrorHandler();
-          showError(
-            data.error.cause || "Unknown WebSocket error",
-            data.error.code || 500
-          );
+          showError
+            ? showError(
+                data.error.cause || "Unknown WebSocket error",
+                data.error.code || 500
+              )
+            : null;
           console.warn("WebSocket error:", data.error);
           return;
         }

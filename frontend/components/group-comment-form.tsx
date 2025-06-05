@@ -5,7 +5,7 @@ import { useState, useRef } from "react";
 import Image from "next/image";
 // import addGroupComment from "@/api/groups/addGroupComment";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
-import { uploadFile } from "@/api/auth/uploadFile";
+import { uploadFile } from "@/helpers/uploadFile";
 import Popup from "@/app/app/popup";
 // import { group } from "console";
 
