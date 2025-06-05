@@ -33,3 +33,4 @@ func runMigrations() {
 		log.Fatal(err)
 	}
 }
+
