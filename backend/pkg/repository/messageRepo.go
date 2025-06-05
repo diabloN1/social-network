@@ -289,14 +289,3 @@ func (m *MessageRepository) CountUnreadGroup(userId int) (int, error) {
 	err := m.Repository.db.QueryRow(query, userId).Scan(&count)
 	return count, err
 }
-
-// OLD
-
-func (r *MessageRepository) GetTotalNotifications(recipient_id int) (int, error) {
-	var totalNotifications = 0
-	row := r.Repository.db.QueryRow("SELECT COUNT(*) FROM messages where recipient_id = $1 AND is_seen = 0", recipient_id)
-	if err := row.Scan(&totalNotifications); err != nil {
-		return 0, err
-	}
-	return totalNotifications, nil
-}

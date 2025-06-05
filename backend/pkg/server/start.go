@@ -7,10 +7,8 @@ import (
 )
 
 func Start() error {
-	db, err := sqlite.InitDB("pkg/db/forum.db")
-	if err != nil {
-		return err
-	}
+	db := sqlite.InitDB("pkg/db/forum.db")
+
 	defer db.Close()
 
 	s := NewServer(http.NewServeMux(), db)

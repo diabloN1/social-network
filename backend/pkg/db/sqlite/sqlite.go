@@ -10,14 +10,14 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-func InitDB(databasePath string) (*sql.DB, error) {
+func InitDB(databasePath string) (*sql.DB) {
 	
 	runMigrations()
 	db, err := sql.Open("sqlite3", databasePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return db, nil
+	return db
 }
 
 func runMigrations() {
