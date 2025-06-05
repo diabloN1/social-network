@@ -1,29 +1,40 @@
+import { getGlobalErrorHandler } from "@/context/ErrorContext";
+
 export async function uploadFile(
   formData: FormData,
   route: string
 ): Promise<string> {
+  const showError = getGlobalErrorHandler();
+
   try {
     const file = formData.get("file") as File;
 
     if (!file) {
-      throw new Error("No file provided");
+      const msg = "No file provided";
+      showError?.(msg);
+      throw new Error(msg);
     }
 
     if (!file.type.startsWith("image/")) {
-      throw new Error("Only image files are allowed (by MIME type)");
+      const msg = "Only image files are allowed (by MIME type)";
+      showError?.(msg);
+      throw new Error(msg);
     }
 
-    // Extension check
     const allowedExtensions = ["jpg", "jpeg", "png", "gif"];
     const fileExtension = file.name.split(".").pop()?.toLowerCase();
 
     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
-      throw new Error("Only .jpg, .jpeg, .png, .gif images are allowed");
+      const msg = "Only .jpg, .jpeg, .png, .gif images are allowed";
+      showError?.(msg);
+      throw new Error(msg);
     }
 
     const maxSizeInBytes = 10 * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
-      throw new Error("File size must be ≤ 10MB");
+      const msg = "File size must be ≤ 10MB";
+      showError?.(msg);
+      throw new Error(msg);
     }
 
     const uuid = crypto.randomUUID();
@@ -47,12 +58,16 @@ export async function uploadFile(
     const data = await response.json();
 
     if (data.error) {
-      throw new Error(data.error);
+      const msg = data.error;
+      showError?.(msg);
+      throw new Error(msg);
     }
 
-    return ""
-  } catch (error) {
-    console.error(error);
-    throw new Error("Failed to upload file: " + error);
+    return "";
+  } catch (error: any) {
+    const msg = error?.message || "Failed to upload file";
+    showError?.(msg);
+    console.error("Upload Error:", error);
+    throw new Error("Failed to upload file: " + msg);
   }
 }
