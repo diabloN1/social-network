@@ -22,7 +22,7 @@ func (app *App) UploadImage(w http.ResponseWriter, r *http.Request) {
 	targetPath := r.FormValue("path")
 	fileName := r.FormValue("filename")
 	if targetPath == "" || fileName == "" {
-		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		app.ServeError(w, &response.Error{Cause: "Invalid path or filename", Code: 400})
 		return
 	}
 
@@ -34,7 +34,7 @@ func (app *App) UploadImage(w http.ResponseWriter, r *http.Request) {
 	defer file.Close()
 
 	if fileHeader.Size > maxBytes {
-		app.ServeError(w, &response.Error{Cause: err.Error(), Code: 400})
+		app.ServeError(w, &response.Error{Cause: "You exeeded the allowed size", Code: 400})
 		return
 	}
 

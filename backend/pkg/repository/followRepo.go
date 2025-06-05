@@ -89,7 +89,7 @@ func (r *FollowRepository) RequestFollow(profileId, userId int) error {
 		notifQuery := `INSERT INTO notifications (sender_id, receiver_id, type) VALUES ($1, $2, $3)`
 		_, err := r.Repository.db.Exec(notifQuery, userId, profileId, "follow_request")
 		if err != nil {
-			return fmt.Errorf("Error creating notification for public follow")
+			return fmt.Errorf("error creating notification for public follow")
 		}
 	}
 	return err
