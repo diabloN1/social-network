@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { onMessageType } from "@/helpers/webSocket";
-import Popup from "@/app/app/popup";
+import Popup from "@/components/popup";
 import { Chat, ResChat } from "@/types/chat";
 import { AddMessageEvent } from "@/types/message";
 import Image from "next/image";

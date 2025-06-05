@@ -1,6 +1,7 @@
-import { FC } from "react";
+"use client";
+
+import type { FC } from "react";
 import "@fortawesome/fontawesome-free/css/all.min.css";
-// import "./popup.css";
 
 interface ConfirmationPopupProps {
   message: string;
@@ -15,7 +16,7 @@ const ConfirmationPopup: FC<ConfirmationPopupProps> = ({
 }) => {
   return (
     <div className="popup-overlay">
-      <div className=" popup-confirmation">
+      <div className="popup-confirmation">
         <div className="popup-content">
           <h2>
             <i className="fa-solid fa-circle-question"></i>

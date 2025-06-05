@@ -16,9 +16,9 @@ export default function Comment({ comment, postID }: CommentProps) {
         <Image
           src={
             comment.user_avatar
-              ? `http://localhost:8080/getProtectedImage?type=post-comments&id=0&path=${encodeURIComponent(
-                  comment.user_avatar
-                )}`
+              ? `http://localhost:8080/getProtectedImage?type=avatars&id=${
+                  comment.user_id
+                }&path=${encodeURIComponent(comment.user_avatar)}`
               : "/icons/placeholder.svg"
           }
           alt="Comment image"

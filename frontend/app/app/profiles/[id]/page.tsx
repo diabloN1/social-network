@@ -118,7 +118,7 @@ export default function ProfilePage() {
             }
           },
         });
-      } else { 
+      } else {
         const data = await apiCall(
           { type: "request-follow", data: { ProfileId: userId } },
           "POST",

@@ -6,7 +6,7 @@ import Image from "next/image";
 // import addGroupComment from "@/api/groups/addGroupComment";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { uploadFile } from "@/helpers/uploadFile";
-import Popup from "@/app/app/popup";
+import Popup from "@/components/popup";
 // import { group } from "console";
 
 interface GroupCommentFormProps {
