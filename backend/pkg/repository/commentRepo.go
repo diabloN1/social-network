@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 	"time"
 )
 
@@ -59,7 +59,6 @@ func (r *CommentRepository) GetCommentsByPostId(Id int) ([]*model.Comment, error
 	}
 	return comments, nil
 }
-
 
 func (r *CommentRepository) GetCommentCountByPostId(postId int) (int, error) {
 	var count int

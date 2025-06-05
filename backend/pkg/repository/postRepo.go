@@ -2,7 +2,7 @@ package repository
 
 import (
 	"database/sql"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 	"time"
 )
 

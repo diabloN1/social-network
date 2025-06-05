@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model/response"
 	"strings"
 )
 

@@ -3,9 +3,9 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"real-time-forum/pkg/model"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 	"strings"
 
 	"github.com/mattn/go-sqlite3"

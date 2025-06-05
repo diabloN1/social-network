@@ -1,8 +1,8 @@
 package app
 
 import (
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
 )
 
 func (app *App) Register(payload *request.RequestT) any {

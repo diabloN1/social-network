@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"errors"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 	"strings"
 )
 

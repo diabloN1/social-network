@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"real-time-forum/pkg/model/request"
-	"real-time-forum/pkg/model/response"
-	"real-time-forum/pkg/repository"
+	"social-network/pkg/model/request"
+	"social-network/pkg/model/response"
+	"social-network/pkg/repository"
 	"sync"
 	"time"
 
@@ -180,4 +180,3 @@ func (app *App) ShowMessage(client *Client, res any) {
 
 	client.Connection.WriteMessage(websocket.TextMessage, data)
 }
-

@@ -2,7 +2,7 @@ package app
 
 import (
 	"log"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 func (app *App) ValidateSession(request map[string]any) *model.Response {

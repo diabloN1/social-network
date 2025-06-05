@@ -3,7 +3,7 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"real-time-forum/pkg/model"
+	"social-network/pkg/model"
 )
 
 type FollowRepository struct {

@@ -1,9 +1,8 @@
 package request
 
 import (
-
-	"real-time-forum/pkg/model/response"
 	"regexp"
+	"social-network/pkg/model/response"
 	"strings"
 	"time"
 
@@ -92,7 +91,7 @@ func (r *Register) ValidateBirth() string {
 	if newTime.After(now) {
 		return "birth date must be in the past"
 	}
-	
+
 	return ""
 }
 
