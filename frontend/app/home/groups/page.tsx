@@ -157,7 +157,7 @@ export default function GroupsPage() {
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
-    router.push(`/app/groups/${groupId}`);
+    router.push(`/home/groups/${groupId}`);
   };
   return (
     <div className="groups-container">
@@ -219,8 +219,7 @@ export default function GroupsPage() {
                       <strong>{`${invite.inviter.firstname} ${invite.inviter.lastname}`}</strong>{" "}
                       invited you to join <strong>{invite.title}</strong>
                     </span>
-                    <span className="invitation-description">
-                    </span>
+                    <span className="invitation-description"></span>
                     <span className="invitation-date">
                       {new Date(invite.creation_date).toLocaleDateString()}
                     </span>

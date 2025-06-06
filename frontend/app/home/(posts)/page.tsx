@@ -109,10 +109,15 @@ export default function PostsPage() {
 
   return (
     <div className="posts-page">
-      <button className="create-post-btn" onClick={() => setIsModalOpen(true)}>
-        Create Post
-      </button>
-
+      <header className="groups-header">
+        <h1>Posts</h1>
+        <button
+          className="create-post-btn"
+          onClick={() => setIsModalOpen(true)}
+        >
+          Create Post
+        </button>
+      </header>
       <main className="posts-container">
         {isLoading ? (
           <div className="loading">Loading posts...</div>

@@ -2446,7 +2446,7 @@ a:focus-visible {
   margin: 0 auto;
 }
 
-.profile-header {
+.posts-header, .groups-header, .profile-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -2707,7 +2707,7 @@ a:focus-visible {
   border: 1px solid var(--error);
 }
 
-.profile-header {
+.posts-header, .groups-header, .profile-header {
   background-color: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -2721,7 +2721,7 @@ a:focus-visible {
   overflow: hidden;
 }
 
-.profile-header::before {
+.groups-header::before, .profile-header::before {
   content: "";
   position: absolute;
   top: 0;
@@ -3978,7 +3978,7 @@ a:focus-visible {
     --space-8: 1.5rem;
   }
 
-  .profile-header {
+  posts-header, .groups-header, .profile-header {
     flex-direction: column;
     align-items: center;
     text-align: center;

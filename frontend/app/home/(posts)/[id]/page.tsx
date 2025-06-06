@@ -257,7 +257,7 @@ export default function SinglePostPage() {
               <div style={{ display: "flex", alignItems: "center" }}>
                 <div
                   className="post-user-avatar"
-                  onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+                  onClick={() => router.push(`/home/profiles/${post.user_id}`)}
                 >
                   <Image
                     src={
@@ -275,7 +275,7 @@ export default function SinglePostPage() {
                 </div>
                 <div
                   className="post-user-name"
-                  onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+                  onClick={() => router.push(`/home/profiles/${post.user_id}`)}
                 >
                   {post.user?.firstname + " " + post.user?.lastname}
                 </div>

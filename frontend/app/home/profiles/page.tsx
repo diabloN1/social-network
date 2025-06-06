@@ -114,7 +114,7 @@ export default function ProfilesPage() {
     } catch (error) {
       console.error("Failed to delete notification:", error);
     }
-    router.push(`/app/profiles/${id}`);
+    router.push(`/home/profiles/${id}`);
   };
 
   return (
@@ -269,7 +269,7 @@ export default function ProfilesPage() {
               >
                 <div
                   className="post-user-avatar"
-                  onClick={() => router.push(`/app/profiles/${user.id}`)}
+                  onClick={() => router.push(`/home/profiles/${user.id}`)}
                 >
                   <Image
                     src={

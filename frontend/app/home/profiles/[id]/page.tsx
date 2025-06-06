@@ -143,7 +143,7 @@ export default function ProfilePage() {
 
   // Go back to profile list
   const goBack = () => {
-    router.push("/app/profiles");
+    router.push("/home/profiles");
   };
 
   if (loading) {
@@ -280,7 +280,7 @@ export default function ProfilePage() {
                     <div
                       key={post.id}
                       className="post-item"
-                      onClick={() => router.push(`/app/${post.id}`)}
+                      onClick={() => router.push(`/home/${post.id}`)}
                     >
                       {post.image && (
                         <Image
@@ -294,8 +294,7 @@ export default function ProfilePage() {
                           unoptimized
                         />
                       )}
-                      <div className="post-overlay">
-                      </div>
+                      <div className="post-overlay"></div>
                     </div>
                   ))
                 ) : (
@@ -312,7 +311,7 @@ export default function ProfilePage() {
                       key={follower.id}
                       className="user-card"
                       onClick={() =>
-                        router.push(`/app/profiles/${follower.id}`)
+                        router.push(`/home/profiles/${follower.id}`)
                       }
                     >
                       <div className="user-info">
@@ -353,7 +352,7 @@ export default function ProfilePage() {
                       key={following.id}
                       className="user-card"
                       onClick={() =>
-                        router.push(`/app/profiles/${following.id}`)
+                        router.push(`/home/profiles/${following.id}`)
                       }
                     >
                       <div className="user-info">
