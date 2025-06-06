@@ -1,13 +1,23 @@
-# Step 1: Runtime Stage - Use a smaller Debian-based image for the final image
-FROM golang:alpine
-# Set working directory in runtime image
+FROM golang:1.24-bullseye AS builder
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+
+RUN go build -o backend main.go
+
+FROM debian:bullseye-slim
+
+RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /root/
 
-# Copy the pre-built Go binary from the host machine to the container
-COPY backend .
+COPY --from=builder /app/backend .
+COPY --from=builder /app/pkg/db/migrations ./pkg/db/migrations
 
-# Expose the backend API port
 EXPOSE 8080
 
-# Set the default command to run the Go backend binary
 CMD ["./backend"]

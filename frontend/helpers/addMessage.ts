@@ -2,7 +2,7 @@
 
 import getToken from "@/api/auth/getToken";
 import { socket } from "./webSocket";
-import { getGlobalErrorHandler } from "@/context/ErrorContext";
+import { showGlobalError } from "@/helpers/ErrorProvider";
 
 export const addMessage = async (
   id: number,
@@ -13,9 +13,8 @@ export const addMessage = async (
 
   try {
     const token = await getToken();
-    const showError = getGlobalErrorHandler();
     if (!token) {
-      showError("Invalid session. Please log in again.", 401);
+      showGlobalError("Invalid session. Please log in again.", 401);
       return;
     }
 

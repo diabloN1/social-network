@@ -1,9 +1,22 @@
 "use client";
 
-import { useError } from "@/context/ErrorContext";
+import { AppError, setGlobalErrorHandler } from "@/helpers/ErrorProvider";
+import { useEffect, useState } from "react";
 
 export default function ErrorPopup() {
-  const { error, clearError } = useError();
+  const [error, setError] = useState<AppError | null>(null);
+
+  const clearError = () => setError(null);
+
+  useEffect(() => {
+    setGlobalErrorHandler((err: AppError) => {
+      setError(err);
+    });
+
+    return () => {
+      setGlobalErrorHandler(() => {}); // Cleanup
+    };
+  }, []);
 
   if (!error) return null;
 

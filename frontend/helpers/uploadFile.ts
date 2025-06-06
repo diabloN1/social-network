@@ -1,23 +1,21 @@
-import { getGlobalErrorHandler } from "@/context/ErrorContext";
+import { showGlobalError } from "@/helpers/ErrorProvider";
 
 export async function uploadFile(
   formData: FormData,
   route: string
 ): Promise<string> {
-  const showError = getGlobalErrorHandler();
-
   try {
     const file = formData.get("file") as File;
 
     if (!file) {
       const msg = "No file provided";
-      showError?.(msg);
+      showGlobalError(msg);
       throw new Error(msg);
     }
 
     if (!file.type.startsWith("image/")) {
       const msg = "Only image files are allowed (by MIME type)";
-      showError?.(msg);
+      showGlobalError(msg);
       throw new Error(msg);
     }
 
@@ -26,14 +24,14 @@ export async function uploadFile(
 
     if (!fileExtension || !allowedExtensions.includes(fileExtension)) {
       const msg = "Only .jpg, .jpeg, .png, .gif images are allowed";
-      showError?.(msg);
+      showGlobalError(msg);
       throw new Error(msg);
     }
 
     const maxSizeInBytes = 10 * 1024 * 1024;
     if (file.size > maxSizeInBytes) {
       const msg = "File size must be ≤ 10MB";
-      showError?.(msg);
+      showGlobalError(msg);
       throw new Error(msg);
     }
 
@@ -59,14 +57,14 @@ export async function uploadFile(
 
     if (data.error) {
       const msg = data.error;
-      showError?.(msg);
+      showGlobalError(msg);
       throw new Error(msg);
     }
 
     return "";
   } catch (error: any) {
     const msg = error?.message || "Failed to upload file";
-    showError?.(msg);
+    showGlobalError(msg);
     console.error("Upload Error:", error);
     throw new Error("Failed to upload file: " + msg);
   }

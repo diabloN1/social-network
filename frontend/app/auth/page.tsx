@@ -9,7 +9,7 @@ import { useState } from "react";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { useRouter } from "next/navigation";
 import { uploadFile } from "@/helpers/uploadFile";
-// import Popup from "@/app/app/popup";
+// import Popup from "@/home/home/popup";
 import Image from "next/image";
 
 export default function AuthForm() {
@@ -171,7 +171,7 @@ export default function AuthForm() {
             return;
           }
         } else {
-          router.push("/app");
+          router.push("/home");
         }
       } catch (err) {
         console.log(err);
