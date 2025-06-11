@@ -2,8 +2,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Image from "next/image";
-// import "./post-share-modal.css";
-// import Popup from "@/home/home/popup";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 import { User } from "@/types/user";
 import { PostShareModalProps } from "@/types/post";
