@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useGlobalAPIHelper } from "@/helpers/GlobalAPIHelper";
 
-import { Profile } from "@/types/user";
+import type { Profile } from "@/types/user";
 import Image from "next/image";
 import ConfirmationPopup from "@/components/ConfirmationPopup";
 
@@ -14,6 +14,7 @@ export default function ProfilePage() {
   const userId = Number(params.id);
 
   const [user, setUser] = useState<Profile | null>(null);
+  const [currentUser, setCurrentUser] = useState<Profile | null>(null);
   const [activeTab, setActiveTab] = useState("posts");
   const [isPending, setIsPending] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -39,7 +40,13 @@ export default function ProfilePage() {
         }
 
         const userData = response.user;
+        console.log("Fetched user data:", response);
         setUser(userData);
+
+        if (response.currentUser) {
+          setCurrentUser(response.currentUser);
+        }
+
         setIsPending(userData.follow?.id && !userData.follow?.isAccepted);
         setIsFollowing(userData.follow?.isAccepted);
         setCanViewProfile(
@@ -57,7 +64,6 @@ export default function ProfilePage() {
     fetchProfileData();
   }, [userId, apiCall]);
 
-  // Toggle private/public profile
   const togglePrivateProfile = async () => {
     if (!user) return;
     setConfirmation({
@@ -85,8 +91,12 @@ export default function ProfilePage() {
     });
   };
 
-  // Handle follow/unfollow
   const handleFollowAction = async () => {
+    if (!currentUser) {
+      console.error("Current user data not available");
+      return;
+    }
+
     try {
       if (isFollowing || isPending) {
         setConfirmation({
@@ -107,6 +117,19 @@ export default function ProfilePage() {
 
               setIsFollowing(false);
               setIsPending(false);
+
+              setUser((prev) => {
+                if (!prev) return prev;
+
+                return {
+                  ...prev,
+                  followers: prev.followers
+                    ? prev.followers.filter(
+                        (follower) => follower.id !== currentUser.id
+                      )
+                    : [],
+                };
+              });
 
               if (user?.isprivate) {
                 setCanViewProfile(false);
@@ -133,6 +156,26 @@ export default function ProfilePage() {
         } else {
           setIsFollowing(true);
           setCanViewProfile(true);
+
+          setUser((prev) => {
+            if (!prev) return prev;
+
+            const currentUserInfo = {
+              id: currentUser.id,
+              firstname: currentUser.firstname,
+              lastname: currentUser.lastname,
+              nickname: currentUser.nickname,
+              avatar: currentUser.avatar,
+              email: currentUser.email,
+            };
+
+            return {
+              ...prev,
+              followers: prev.followers
+                ? [...prev.followers, currentUserInfo]
+                : [currentUserInfo],
+            };
+          });
         }
       }
     } catch (error) {
@@ -294,8 +337,7 @@ export default function ProfilePage() {
                           unoptimized
                         />
                       )}
-                      <div className="post-overlay">
-                      </div>
+                      <div className="post-overlay"></div>
                     </div>
                   ))
                 ) : (
