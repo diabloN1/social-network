@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
-import "@/styles/globals.css";
 import ErrorPopup from "@/components/ErrorPopup";
+import "@/styles/globals.css";
 
 export const metadata: Metadata = {
   title: "Social Network",

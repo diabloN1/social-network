@@ -48,7 +48,7 @@ const Post: React.FC<PostProps> = ({
   }, [post.reactions]);
 
   const navigateToPost = () => {
-    router.push(`/app/${post.id}`);
+    router.push(`/home/${post.id}`);
   };
 
   const handleReaction = async (reaction: boolean) => {
@@ -129,7 +129,7 @@ const Post: React.FC<PostProps> = ({
   };
 
   const handleCommentClick = () => {
-    router.push(`/app/${post.id}`);
+    router.push(`/home/${post.id}`);
   };
 
   const handleShareClick = () => {
@@ -175,7 +175,7 @@ const Post: React.FC<PostProps> = ({
         <div className="post-header">
           <div
             className="post-user-avatar"
-            onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+            onClick={() => router.push(`/home/profiles/${post.user_id}`)}
           >
             <Image
               src={
@@ -193,7 +193,7 @@ const Post: React.FC<PostProps> = ({
           </div>
           <div
             className="post-user-name"
-            onClick={() => router.push(`/app/profiles/${post.user_id}`)}
+            onClick={() => router.push(`/home/profiles/${post.user_id}`)}
           >
             {post.user.firstname + " " + post.user.lastname}
           </div>

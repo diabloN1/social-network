@@ -32,10 +32,9 @@ export default function Navbar() {
       const notifications = data.notifications;
 
       console.log("Fetched notifications:", notifications);
-      
 
-        setChatUnreadCount(notifications.messageUnread || 0);
-      
+      setChatUnreadCount(notifications.messageUnread || 0);
+
       setJoinRequestCount(notifications.groupRequests || 0);
       setFollowRequestCount(notifications.followRequests || 0);
     }
@@ -79,13 +78,13 @@ export default function Navbar() {
   }, [fetchAllNotificationCounts]);
 
   useEffect(() => {
-    if (pathname === "/app") {
+    if (pathname === "/home") {
       setActiveTab("home");
-    } else if (pathname.includes("/app/profiles")) {
+    } else if (pathname.includes("/home/profiles")) {
       setActiveTab("profile");
-    } else if (pathname.includes("/app/groups")) {
+    } else if (pathname.includes("/home/groups")) {
       setActiveTab("groups");
-    } else if (pathname.includes("/app/chat")) {
+    } else if (pathname.includes("/home/chat")) {
       setActiveTab("chat");
     }
 
@@ -134,7 +133,7 @@ export default function Navbar() {
           <polyline points="9 22 9 12 15 12 15 22" />
         </svg>
       ),
-      link: "/app",
+      link: "/home",
       notifications: 0,
     },
     {
@@ -158,7 +157,7 @@ export default function Navbar() {
           <path d="M17 12H7" />
         </svg>
       ),
-      link: "/app/chat",
+      link: "/home/chat",
       notifications: chatUnreadCount,
     },
     {
@@ -181,7 +180,7 @@ export default function Navbar() {
           <rect width="8" height="6" x="11" y="14" rx="1" />
         </svg>
       ),
-      link: "/app/groups",
+      link: "/home/groups",
       notifications: joinRequestCount,
     },
     {
@@ -202,7 +201,7 @@ export default function Navbar() {
           <path d="M20 21a8 8 0 1 0-16 0" />
         </svg>
       ),
-      link: "/app/profiles",
+      link: "/home/profiles",
       notifications: followRequestCount,
     },
   ];
