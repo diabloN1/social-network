@@ -649,10 +649,13 @@ a:focus-visible {
 }
 
 .reaction-icon {
+  color: var(--gray-30);
   transition: all var(--transition-bounce);
 }
 
 .post-action-btn:hover .reaction-icon {
+  stroke: var(--gray-30);
+  fill: var(--gray-30);
   transform: scale(1.2);
 }
 
