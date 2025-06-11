@@ -683,14 +683,6 @@ export default function GroupDetailPage() {
                     </div>
                   )}
                   <div className="event-description">{event.description}</div>
-                  <div className="event-options">
-                    <div>
-                      <strong>Option 1:</strong> {event.option_1}
-                    </div>
-                    <div>
-                      <strong>Option 2:</strong> {event.option_2}
-                    </div>
-                  </div>
                 </div>
 
                 <div className="event-responses">

@@ -91,8 +91,6 @@ export default function GroupInviteModal({
       if (onInviteSent) {
         onInviteSent();
       }
-
-      alert("Invitation sent successfully!");
     } catch (error) {
       console.error("Error inviting user:", error);
       alert("Failed to send invitation");

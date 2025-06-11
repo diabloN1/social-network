@@ -50,6 +50,7 @@ type RemovePostShare struct {
 
 type GetProfile struct {
 	User *model.User `json:"user"`
+	CurrentUser *model.User `json:"currentUser,omitempty"`
 }
 
 type GetProfiles struct {

@@ -14,6 +14,10 @@ func (app *App) GetProfile(payload *request.RequestT) any {
 
 	userId := payload.Ctx.Value("user_id").(int)
 
+	currentUser, err := app.repository.User().FindProfile(userId, userId)
+		if err != nil {
+		return &response.Error{Code: 404, Cause: err.Error()}
+	}
 	user, err := app.repository.User().FindProfile(data.ProfileId, userId)
 	if err != nil {
 		return &response.Error{Code: 404, Cause: err.Error()}
@@ -21,6 +25,7 @@ func (app *App) GetProfile(payload *request.RequestT) any {
 
 	return &response.GetProfile{
 		User: user,
+		CurrentUser: currentUser,
 	}
 }
 
